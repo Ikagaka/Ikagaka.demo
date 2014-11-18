@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset='UTF-8'>
+  <title>PartPeriod Documentation</title>
+  <script src='../javascript/application.js'></script>
+  <script src='../javascript/search.js'></script>
+  <link rel='stylesheet' href='../stylesheets/application.css' type='text/css'>
+</head>
+  <body>
+    <div id='base' data-path='../'></div>
+<div id='header'>
+  <div id='menu'>
+    <a href='../extra/README.md.html' title='Partperiod'>
+      Partperiod
+    </a>
+    &raquo;
+    <a href='../alphabetical_index.html' title='Index'>
+      Index
+    </a>
+    &raquo;
+    <span class='title'>PartTime</span>
+  </div>
+</div>
+    <div id='content'>
+      <h1>
+        Class:
+        PartTime
+      </h1>
+      <table class='box'>
+        <tr>
+          <td>Defined in:</td>
+          <td>node_modules\parttime\parttime.coffee</td>
+        </tr>
+      </table>
+      <h2>Overview</h2>
+      <div class='docstring'>
+  <p>Creates a &quot;PartTime&quot; instance that represents a single moment in time with placeholder that is useful for compareing repeating moment. Currently, PartTime objects does not support timezones.</p>
+</div>
+<div class='tags'>
+</div>
+      <h2>Property Summary</h2>
+      <dl class='properties'>
+        <dt id='year-property'>
+          <span class='signature'>
+            (Integer)
+            <b>
+              year
+            </b>
+          </span>
+        </dt>
+        <dd class='desc'>
+          such as 2014
+        </dd>
+        <dt id='month-property'>
+          <span class='signature'>
+            (Integer)
+            <b>
+              month
+            </b>
+          </span>
+        </dt>
+        <dd class='desc'>
+          1-12 (not 0-11)
+        </dd>
+        <dt id='date-property'>
+          <span class='signature'>
+            (Integer)
+            <b>
+              date
+            </b>
+          </span>
+        </dt>
+        <dd class='desc'>
+          1-31
+        </dd>
+        <dt id='hour-property'>
+          <span class='signature'>
+            (Integer)
+            <b>
+              hour
+            </b>
+          </span>
+        </dt>
+        <dd class='desc'>
+          0-24
+        </dd>
+        <dt id='minute-property'>
+          <span class='signature'>
+            (Integer)
+            <b>
+              minute
+            </b>
+          </span>
+        </dt>
+        <dd class='desc'>
+          0-59
+        </dd>
+        <dt id='second-property'>
+          <span class='signature'>
+            (Integer)
+            <b>
+              second
+            </b>
+          </span>
+        </dt>
+        <dd class='desc'>
+          0-59
+        </dd>
+        <dt id='millisecond-property'>
+          <span class='signature'>
+            (Integer)
+            <b>
+              millisecond
+            </b>
+          </span>
+        </dt>
+        <dd class='desc'>
+          0-999
+        </dd>
+      </dl>
+      <h2>Class Method Summary</h2>
+      <ul class='summary'>
+  <li>
+    <span class='signature'>
+      <a href='#parse-static'>
+        .
+(Hash)
+<b>parse</b><span>(timeString)</span>
+      </a>
+    </span>
+    <span class='desc'>
+      get parttime data from parttime string 
+    </span>
+  </li>
+</ul>
+      <h2>Instance Method Summary</h2>
+      <ul class='summary'>
+  <li>
+    <span class='signature'>
+      <a href='#getFullYear-dynamic'>
+        #
+(Integer)
+<b>getFullYear</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#getMonth-dynamic'>
+        #
+(Integer)
+<b>getMonth</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#getDate-dynamic'>
+        #
+(Integer)
+<b>getDate</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#getHours-dynamic'>
+        #
+(Integer)
+<b>getHours</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#getMinutes-dynamic'>
+        #
+(Integer)
+<b>getMinutes</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#getSeconds-dynamic'>
+        #
+(Integer)
+<b>getSeconds</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#getMilliseconds-dynamic'>
+        #
+(Integer)
+<b>getMilliseconds</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#compare-dynamic'>
+        #
+(Integer)
+<b>compare</b><span>(date_c)</span>
+      </a>
+    </span>
+    <span class='desc'>
+      compare with DateLike 
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#toString-dynamic'>
+        #
+(String)
+<b>toString</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+</ul>
+      <h2>Class Method Details</h2>
+      <div class='methods'>
+  <div class='method_details'>
+    <p class='signature' id='parse-static'>
+      .
+(Hash)
+<b>parse</b><span>(timeString)</span>
+      <br>
+    </p>
+    <div class='docstring'>
+  <div class='note'>
+    <strong>Note:</strong>
+    This is not instance method but static method. 
+  </div>
+  <p>get parttime data from parttime string</p>
+</div>
+<div class='tags'>
+  <h3>Parameters:</h3>
+  <ul class='param'>
+    <li>
+      <span class='name'>timeString</span>
+      <span class='type'>
+        (
+          <tt>String</tt>
+        )
+      </span>
+      &mdash;
+      <span class='desc'>String value representing a parttime. The string should be in a format yyyy-mm-ddT00:00:00.000. </span>
+    </li>
+  </ul>
+  <h3>Returns:</h3>
+  <ul class='return'>
+    <li>
+      <span class='type'></span>
+      (
+        <tt>Hash</tt>
+      )
+      &mdash;
+      <span class='desc'>Hash data representing parttime. </span>
+    </li>
+  </ul>
+</div>
+  </div>
+</div>
+      <h2>Constructor Details</h2>
+      <div class='methods'>
+  <div class='method_details'>
+    <p class='signature' id='constructor-dynamic'>
+      #
+(void)
+<b>constructor</b><span>(timeString)</span>
+      <br>
+    </p>
+    <div class='docstring'>
+  <p>make a parttime</p>
+  <div class='examples'>
+    <h3>Examples:</h3>
+    <h4>
+      Construct
+    </h4>
+    <pre><code class='coffeescript'>new PartTime()
+new PartTime(&#39;*-10-12&#39;)
+new PartTime(&#39;1970-1-1&#39;)
+new PartTime(&#39;1970-1-1T00:*&#39;)
+new PartTime(&#39;*:00:00.000&#39;)
+new PartTime(&#39;*:*:30&#39;)
+new PartTime(&#39;1970-1-1T00:00:00.000&#39;)</code></pre>
+  </div>
+</div>
+<div class='tags'>
+  <h3>Parameters:</h3>
+  <ul class='param'>
+    <li>
+      <span class='name'>timeString</span>
+      <span class='type'>
+        (
+          <tt>String</tt>
+        )
+      </span>
+      &mdash;
+      <span class='desc'>String value representing a parttime. The string should be in a format recognized by the PartTime.parse() method (yyyy-mm-ddT00:00:00.000). </span>
+    </li>
+  </ul>
+</div>
+  </div>
+</div>
+      <h2>Instance Method Details</h2>
+      <div class='methods'>
+  <div class='method_details'>
+    <p class='signature' id='getFullYear-dynamic'>
+      #
+(Integer)
+<b>getFullYear</b><span>()</span>
+      <br>
+    </p>
+    <div class='tags'>
+  <h3>Returns:</h3>
+  <ul class='return'>
+    <li>
+      <span class='type'></span>
+      (
+        <tt>Integer</tt>
+      )
+      &mdash;
+      <span class='desc'>the year </span>
+    </li>
+  </ul>
+</div>
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='getMonth-dynamic'>
+      #
+(Integer)
+<b>getMonth</b><span>()</span>
+      <br>
+    </p>
+    <div class='tags'>
+  <h3>Returns:</h3>
+  <ul class='return'>
+    <li>
+      <span class='type'></span>
+      (
+        <tt>Integer</tt>
+      )
+      &mdash;
+      <span class='desc'>the month (0-11) </span>
+    </li>
+  </ul>
+</div>
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='getDate-dynamic'>
+      #
+(Integer)
+<b>getDate</b><span>()</span>
+      <br>
+    </p>
+    <div class='tags'>
+  <h3>Returns:</h3>
+  <ul class='return'>
+    <li>
+      <span class='type'></span>
+      (
+        <tt>Integer</tt>
+      )
+      &mdash;
+      <span class='desc'>the date </span>
+    </li>
+  </ul>
+</div>
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='getHours-dynamic'>
+      #
+(Integer)
+<b>getHours</b><span>()</span>
+      <br>
+    </p>
+    <div class='tags'>
+  <h3>Returns:</h3>
+  <ul class='return'>
+    <li>
+      <span class='type'></span>
+      (
+        <tt>Integer</tt>
+      )
+      &mdash;
+      <span class='desc'>the hour </span>
+    </li>
+  </ul>
+</div>
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='getMinutes-dynamic'>
+      #
+(Integer)
+<b>getMinutes</b><span>()</span>
+      <br>
+    </p>
+    <div class='tags'>
+  <h3>Returns:</h3>
+  <ul class='return'>
+    <li>
+      <span class='type'></span>
+      (
+        <tt>Integer</tt>
+      )
+      &mdash;
+      <span class='desc'>the minutes </span>
+    </li>
+  </ul>
+</div>
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='getSeconds-dynamic'>
+      #
+(Integer)
+<b>getSeconds</b><span>()</span>
+      <br>
+    </p>
+    <div class='tags'>
+  <h3>Returns:</h3>
+  <ul class='return'>
+    <li>
+      <span class='type'></span>
+      (
+        <tt>Integer</tt>
+      )
+      &mdash;
+      <span class='desc'>the seconds </span>
+    </li>
+  </ul>
+</div>
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='getMilliseconds-dynamic'>
+      #
+(Integer)
+<b>getMilliseconds</b><span>()</span>
+      <br>
+    </p>
+    <div class='tags'>
+  <h3>Returns:</h3>
+  <ul class='return'>
+    <li>
+      <span class='type'></span>
+      (
+        <tt>Integer</tt>
+      )
+      &mdash;
+      <span class='desc'>the milliseconds </span>
+    </li>
+  </ul>
+</div>
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='compare-dynamic'>
+      #
+(Integer)
+<b>compare</b><span>(date_c)</span>
+      <br>
+    </p>
+    <div class='docstring'>
+  <p>compare with DateLike</p>
+</div>
+<div class='tags'>
+  <h3>Parameters:</h3>
+  <ul class='param'>
+    <li>
+      <span class='name'>date_c</span>
+      <span class='type'>
+        (
+          <tt>DateLike</tt>
+        )
+      </span>
+      &mdash;
+      <span class='desc'>Date or DateLike (has getFullYear, getMonth, ... getMilliseconds) </span>
+    </li>
+  </ul>
+  <h3>Returns:</h3>
+  <ul class='return'>
+    <li>
+      <span class='type'></span>
+      (
+        <tt>Integer</tt>
+      )
+      &mdash;
+      <span class='desc'>if this &lt; date then negative else if this &gt; date then positive else 0 </span>
+    </li>
+  </ul>
+</div>
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='toString-dynamic'>
+      #
+(String)
+<b>toString</b><span>()</span>
+      <br>
+    </p>
+    <div class='tags'>
+  <h3>Returns:</h3>
+  <ul class='return'>
+    <li>
+      <span class='type'></span>
+      (
+        <tt>String</tt>
+      )
+      &mdash;
+      <span class='desc'>yyyy-mm-ddT00:00:00.000. </span>
+    </li>
+  </ul>
+</div>
+  </div>
+</div>
+    </div>
+    <div id='footer'>
+  May 12, 14 00:27:37 by
+  <a href='https://github.com/coffeedoc/codo' title='CoffeeScript API documentation generator'>
+    Codo
+  </a>
+  2.0.8
+  &#10034;
+  Press H to see the keyboard shortcuts
+  &#10034;
+  <a href='http://twitter.com/netzpirat' target='_parent'>@netzpirat</a>
+  &#10034;
+  <a href='http://twitter.com/_inossidabile' target='_parent'>@_inossidabile</a>
+</div>
+<iframe id='search_frame'></iframe>
+<div id='fuzzySearch'>
+  <input type='text'>
+  <ol></ol>
+</div>
+<div id='help'>
+  <p>
+    Quickly fuzzy find classes, mixins, methods, file:
+  </p>
+  <ul>
+    <li>
+      <span>T</span>
+      Open fuzzy finder dialog
+    </li>
+  </ul>
+  <p>
+    Control the navigation frame:
+  </p>
+  <ul>
+    <li>
+      <span>L</span>
+      Toggle list view
+    </li>
+    <li>
+      <span>C</span>
+      Show class list
+    </li>
+    <li>
+      <span>I</span>
+      Show mixin list
+    </li>
+    <li>
+      <span>F</span>
+      Show file list
+    </li>
+    <li>
+      <span>M</span>
+      Show method list
+    </li>
+    <li>
+      <span>E</span>
+      Show extras list
+    </li>
+  </ul>
+  <p>
+    You can focus and blur the search input:
+  </p>
+  <ul>
+    <li>
+      <span>S</span>
+      Focus search input
+    </li>
+    <li>
+      <span>Esc</span>
+      Blur search input
+    </li>
+  </ul>
+</div>
+  </body>
+</html>
