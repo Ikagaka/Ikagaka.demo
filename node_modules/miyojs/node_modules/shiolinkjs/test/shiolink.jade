@@ -1,0 +1,28 @@
+doctype html
+html
+	head
+		meta(charset="UTF-8")
+		link(rel="stylesheet", href="../node_modules/mocha/mocha.css")
+		script(src="http://code.jquery.com/jquery.min.js")
+		script(src="../node_modules/es6-promise/dist/es6-promise.js")
+		script(src="../node_modules/mocha/mocha.js")
+		script(src="../node_modules/chai/chai.js")
+		script(src="../node_modules/chai-as-promised/lib/chai-as-promised.js")
+		script(src="http://sinonjs.org/releases/sinon.js")
+		script(src="../node_modules/shiorijk/lib/shiorijk.js")
+		script(src="../lib/shiolink.js")
+		script.
+			mocha.ui('bdd');
+		script(src="./shiolink.js")
+		script.
+			$(function(){
+				mocha.checkLeaks();
+				//mocha.globals(['jQuery']);
+				if(typeof mochaPhantomJS != "undefined"){
+					mochaPhantomJS.run();
+				}else{
+					mocha.run();
+				}
+			});
+	body
+		#mocha

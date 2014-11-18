@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "no_value.js",
+  "sourceRoot": "",
+  "sources": [
+    "no_value.coffee"
+  ],
+  "names": [],
+  "mappings": ";AAAA;AAAA,+FAAA;AAAA,IAAA,WAAA;;AAEA,IAAO,0DAAP;AACC,EAAA,WAAA,GAAc,EAAd,CADD;CAFA;;AAAA,WAKW,CAAC,QAAZ,GAAuB;AAAA,EAAA,IAAA,EAAM,WAAN;AAAA,EAAmB,MAAA,EAAQ,SAAA,GAAA,CAA3B;CALvB,CAAA;;AAOA,IAAG,kDAAA,IAAY,wBAAf;AACC,EAAA,MAAM,CAAC,OAAP,GAAiB,WAAjB,CADD;CAPA"
+}

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../node_modules/mocha/mocha.css">
+    <script src="http://code.jquery.com/jquery.min.js"></script>
+    <script src="../node_modules/es6-promise/dist/es6-promise.js"></script>
+    <script src="../node_modules/mocha/mocha.js"></script>
+    <script src="../node_modules/chai/chai.js"></script>
+    <script src="../node_modules/chai-as-promised/lib/chai-as-promised.js"></script>
+    <script src="http://sinonjs.org/releases/sinon.js"></script>
+    <script src="../node_modules/miyojs-filter-property/property.js"></script>
+    <script src="../variables.js"></script>
+    <script src="../node_modules/miyojs/lib/miyo.js"></script>
+    <script>mocha.ui('bdd');</script>
+    <script>(function() {
+  var Miyo, MiyoFilters, chai, chaiAsPromised, expect, sinon;
+
+  chai = this.chai;
+
+  chai.should();
+
+  expect = chai.expect;
+
+  chaiAsPromised = this.chaiAsPromised;
+
+  chai.use(chaiAsPromised);
+
+  sinon = this.sinon;
+
+  Miyo = this.Miyo;
+
+  MiyoFilters = this.MiyoFilters;
+
+  describe('variables_initialize', function() {
+    var entry, ms, request;
+    ms = null;
+    request = null;
+    entry = null;
+    beforeEach(function() {
+      var filter, name;
+      ms = new Miyo();
+      for (name in MiyoFilters) {
+        filter = MiyoFilters[name];
+        ms.filters[name] = filter;
+      }
+      request = sinon.stub();
+      return entry = {
+        filters: ['variables_initialize'],
+        argument: {
+          value: 'dummy'
+        }
+      };
+    });
+    it('should return original argument', function() {
+      return ms.call_filters(entry, null, '_load').should.eventually.be.deep.equal(entry.argument);
+    });
+    return it('should define variables and methods', function() {
+      return ms.call_filters(entry, null, '_load').then(function() {
+        ms.variables.should.be["instanceof"](Object);
+        ms.variables_temporary.should.be["instanceof"](Object);
+        ms.variables_save.should.be["instanceof"](Function);
+        return ms.variables_load.should.be["instanceof"](Function);
+      });
+    });
+  });
+
+  describe('variables_load', function() {
+    var ms, promise, request;
+    ms = null;
+    request = null;
+    promise = null;
+    beforeEach(function() {
+      var data, entry, error, filter, name;
+      error = undefined;
+      data = undefined;
+      ms = new Miyo();
+      for (name in MiyoFilters) {
+        filter = MiyoFilters[name];
+        ms.filters[name] = filter;
+      }
+      entry = {
+        filters: ['miyo_require_filters', 'property_initialize', 'variables_initialize'],
+        argument: {
+          miyo_require_filters: ['property'],
+          property_initialize: {
+            handlers: ['coffee', 'jse', 'js']
+          }
+        }
+      };
+      promise = ms.call_filters(entry, null, '_load');
+      return request = sinon.stub();
+    });
+    it('should not throw on read', function() {
+      var data, variables;
+      variables = {
+        "var": 23
+      };
+      data = JSON.stringify(variables);
+      return promise.then(function() {
+        return ms.variables_load('test/variables.json');
+      }).should.eventually.be.fulfilled;
+    });
+    it('should not throw on called from filter', function() {
+      var data, entry, variables;
+      variables = {
+        "var": 23
+      };
+      data = JSON.stringify(variables);
+      entry = {
+        filters: ['variables_load'],
+        argument: {
+          variables_load: {
+            file: 'test/variables.json'
+          }
+        }
+      };
+      return promise.then(function() {
+        return ms.call_filters(entry, null, '_load');
+      }).should.eventually.be.fulfilled;
+    });
+    return it('should reject with filter no argument', function() {
+      var entry;
+      entry = {
+        filters: ['variables_load']
+      };
+      return promise.then(function() {
+        return ms.call_filters(entry, null, '_load');
+      }).should.eventually.rejectedWith(/argument.variables_load.file undefined/);
+    });
+  });
+
+  describe('variables_save', function() {
+    var ms, promise, request;
+    ms = null;
+    request = null;
+    promise = null;
+    beforeEach(function() {
+      var entry, filter, name;
+      ms = new Miyo();
+      for (name in MiyoFilters) {
+        filter = MiyoFilters[name];
+        ms.filters[name] = filter;
+      }
+      entry = {
+        filters: ['miyo_require_filters', 'property_initialize', 'variables_initialize'],
+        argument: {
+          miyo_require_filters: ['property'],
+          property_initialize: {
+            handlers: ['coffee', 'jse', 'js']
+          }
+        }
+      };
+      promise = ms.call_filters(entry, null, '_load');
+      return request = sinon.stub();
+    });
+    it('should not throw on write', function() {
+      return promise.then(function() {
+        ms.variables = {
+          "var": 23
+        };
+        return ms.variables_save('test/variables.json');
+      }).should.eventually.be.fulfilled;
+    });
+    it('should not throw on called from filter', function() {
+      return promise.then(function() {
+        var entry;
+        ms.variables = {
+          "var": 23
+        };
+        entry = {
+          filters: ['variables_save'],
+          argument: {
+            variables_save: {
+              file: 'test/variables.json'
+            }
+          }
+        };
+        return ms.call_filters(entry, null, '_unload');
+      }).should.eventually.be.fulfilled;
+    });
+    return it('should reject with filter no argument', function() {
+      return promise.then(function() {
+        var entry;
+        entry = {
+          filters: ['variables_save']
+        };
+        return ms.call_filters(entry, null, '_unload');
+      }).should.eventually.rejectedWith(/argument.variables_save.file undefined/);
+    });
+  });
+
+}).call(this);
+
+    </script>
+    <script>
+      $(function(){
+      	mocha.checkLeaks();
+      	if(typeof mochaPhantomJS != "undefined"){
+      		mochaPhantomJS.run();
+      	}else{
+      		mocha.run();
+      	}
+      });
+    </script>
+  </head>
+  <body>
+    <div id="mocha"></div>
+  </body>
+</html>

@@ -1,0 +1,147 @@
+doctype html
+html
+	head
+		meta(charset="UTF-8")
+		link(rel="stylesheet", href="../node_modules/mocha/mocha.css")
+		script(src="http://code.jquery.com/jquery.min.js")
+		script(src="../node_modules/es6-promise/dist/es6-promise.js")
+		script(src="../node_modules/mocha/mocha.js")
+		script(src="../node_modules/chai/chai.js")
+		script(src="../node_modules/chai-as-promised/lib/chai-as-promised.js")
+		script(src="http://sinonjs.org/releases/sinon.js")
+		script(src="../node_modules/miyojs-filter-property/property.js")
+		script(src="../variables.js")
+		script(src="../node_modules/miyojs/lib/miyo.js")
+		script.
+			mocha.ui('bdd');
+		script
+			:coffee
+				chai = @chai
+				chai.should()
+				expect = chai.expect
+				chaiAsPromised = @chaiAsPromised
+				chai.use chaiAsPromised
+				sinon = @sinon
+				Miyo = @Miyo
+				MiyoFilters = @MiyoFilters
+
+				describe 'variables_initialize', ->
+					ms = null
+					request = null
+					entry = null
+					beforeEach ->
+						ms = new Miyo()
+						for name, filter of MiyoFilters
+							ms.filters[name] = filter
+						request = sinon.stub()
+						entry =
+							filters: ['variables_initialize']
+							argument:
+								value: 'dummy'
+					it 'should return original argument', ->
+						ms.call_filters entry, null, '_load'
+						.should.eventually.be.deep.equal entry.argument
+					it 'should define variables and methods', ->
+						ms.call_filters entry, null, '_load'
+						.then ->
+							ms.variables.should.be.instanceof Object
+							ms.variables_temporary.should.be.instanceof Object
+							ms.variables_save.should.be.instanceof Function
+							ms.variables_load.should.be.instanceof Function
+
+				describe 'variables_load', ->
+					ms = null
+					request = null
+					promise = null
+					beforeEach ->
+						error = `undefined`
+						data = `undefined`
+						ms = new Miyo()
+						for name, filter of MiyoFilters
+							ms.filters[name] = filter
+						entry =
+							filters: ['miyo_require_filters', 'property_initialize', 'variables_initialize']
+							argument:
+								miyo_require_filters: ['property']
+								property_initialize:
+									handlers: ['coffee', 'jse', 'js']
+						promise = ms.call_filters entry, null, '_load'
+						request = sinon.stub()
+					it 'should not throw on read', ->
+						variables = var: 23
+						data = JSON.stringify variables
+						promise
+						.then ->
+							ms.variables_load('test/variables.json')
+						.should.eventually.be.fulfilled
+					it 'should not throw on called from filter', ->
+						variables = var: 23
+						data = JSON.stringify variables
+						entry =
+							filters: ['variables_load']
+							argument:
+								variables_load:
+									file: 'test/variables.json'
+						promise
+						.then ->
+							ms.call_filters entry, null, '_load'
+						.should.eventually.be.fulfilled
+					it 'should reject with filter no argument', ->
+						entry =
+							filters: ['variables_load']
+						promise
+						.then ->
+							ms.call_filters entry, null, '_load'
+						.should.eventually.rejectedWith /argument.variables_load.file undefined/
+
+				describe 'variables_save', ->
+					ms = null
+					request = null
+					promise = null
+					beforeEach ->
+						ms = new Miyo()
+						for name, filter of MiyoFilters
+							ms.filters[name] = filter
+						entry =
+							filters: ['miyo_require_filters', 'property_initialize', 'variables_initialize']
+							argument:
+								miyo_require_filters: ['property']
+								property_initialize:
+									handlers: ['coffee', 'jse', 'js']
+						promise = ms.call_filters entry, null, '_load'
+						request = sinon.stub()
+					it 'should not throw on write', ->
+						promise
+						.then ->
+							ms.variables = var: 23
+							ms.variables_save('test/variables.json')
+						.should.eventually.be.fulfilled
+					it 'should not throw on called from filter', ->
+						promise
+						.then ->
+							ms.variables = var: 23
+							entry =
+								filters: ['variables_save']
+								argument:
+									variables_save:
+										file: 'test/variables.json'
+							ms.call_filters entry, null, '_unload'
+						.should.eventually.be.fulfilled
+					it 'should reject with filter no argument', ->
+						promise
+						.then ->
+							entry =
+								filters: ['variables_save']
+							ms.call_filters entry, null, '_unload'
+						.should.eventually.rejectedWith /argument.variables_save.file undefined/
+		script.
+			$(function(){
+				mocha.checkLeaks();
+				if(typeof mochaPhantomJS != "undefined"){
+					mochaPhantomJS.run();
+				}else{
+					mocha.run();
+				}
+			});
+	body
+		#mocha
