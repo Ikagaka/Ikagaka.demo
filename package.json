@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "es6-shim": "",
+    "bluebird": "",
     "encoding-japanese": "",
     "ikagaka.wmdescript.js": "",
     "jszip": "",
