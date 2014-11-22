@@ -9,7 +9,7 @@ SakuraScriptPlayer = (function() {
   }
 
   SakuraScriptPlayer.prototype.play = function(script, callback) {
-    var recur, reg;
+    var quick, recur, reg, wait;
     if (callback == null) {
       callback = function() {};
     }
@@ -21,6 +21,8 @@ SakuraScriptPlayer = (function() {
     }
     this["break"]();
     this.playing = true;
+    quick = false;
+    wait = 80;
     reg = {
       "Y0": /^\\0/,
       "Y1": /^\\1/,
@@ -32,7 +34,8 @@ SakuraScriptPlayer = (function() {
       "Yb": /^\\b\[([^\]]+)\]/,
       "Yi": /^\\i\[(\d+)\]/,
       "YwN": /^\\w(\d+)/,
-      "Y_w": /^\\_w\[(\d+)\]/,
+      "Y_w": /^\\\_w\[(\d+)\]/,
+      "Y_q": /^\\\_q/,
       "Yq": /^\\q\[([^\]]+)\]/,
       "Y_aS": /^\\_a\[([^\]]+)\]/,
       "Y_aE": /^\\_a/,
@@ -44,7 +47,7 @@ SakuraScriptPlayer = (function() {
     };
     (recur = (function(_this) {
       return function() {
-        var id, title, wait, _ref, _script;
+        var id, title, _ref, _script;
         if (script.length === 0) {
           _this.playing = false;
           _this.breakTid = setTimeout((function() {
@@ -52,6 +55,7 @@ SakuraScriptPlayer = (function() {
           }), 10000);
           return;
         }
+        wait = 80;
         switch (true) {
           case reg["Y0"].test(script):
             _script = script.replace(reg["Y0"], "");
@@ -88,6 +92,10 @@ SakuraScriptPlayer = (function() {
           case reg["Yi"].test(script):
             _script = script.replace(reg["Yi"], "");
             _this.named.scope().surface().playAnimation(Number(reg["Yi"].exec(script)[1]));
+            break;
+          case reg["Y_q"].test(script):
+            _script = script.replace(reg["Y_q"], "");
+            quick = !quick;
             break;
           case reg["YwN"].test(script):
             _script = script.replace(reg["YwN"], "");
@@ -130,7 +138,8 @@ SakuraScriptPlayer = (function() {
             _this.named.scope().blimp().talk(script[0]);
         }
         script = _script;
-        return _this.breakTid = setTimeout(recur, 80);
+        wait = (quick ? 0 : wait);
+        return _this.breakTid = setTimeout(recur, wait);
       };
     })(this))();
     return void 0;

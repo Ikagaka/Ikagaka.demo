@@ -13,6 +13,9 @@ class SakuraScriptPlayer
     @break()
     @playing = true
 
+    quick = false
+    wait = 80
+
     reg =
       "Y0": /^\\0/
       "Y1": /^\\1/
@@ -24,7 +27,8 @@ class SakuraScriptPlayer
       "Yb": /^\\b\[([^\]]+)\]/
       "Yi": /^\\i\[(\d+)\]/
       "YwN": /^\\w(\d+)/
-      "Y_w": /^\\_w\[(\d+)\]/
+      "Y_w": /^\\\_w\[(\d+)\]/
+      "Y_q": /^\\\_q/
       "Yq": /^\\q\[([^\]]+)\]/
       "Y_aS": /^\\_a\[([^\]]+)\]/
       "Y_aE": /^\\_a/
@@ -39,6 +43,7 @@ class SakuraScriptPlayer
         @playing = false
         @breakTid = setTimeout((=> @break() ), 10000)
         return
+      wait = 80
       switch true
         when reg["Y0"].test(script)  then _script = script.replace(reg["Y0"],  ""); @named.scope(0).blimp(0)
         when reg["Y1"].test(script)  then _script = script.replace(reg["Y1"],  ""); @named.scope(1).blimp(0)
@@ -49,6 +54,7 @@ class SakuraScriptPlayer
         when reg["Ys"].test(script)  then _script = script.replace(reg["Ys"],  ""); @named.scope().surface(Number(reg["Ys"].exec(script)[1]))
         when reg["Yb"].test(script)  then _script = script.replace(reg["Yb"],  ""); @named.scope().blimp(Number(reg["Yb"].exec(script)[1]))
         when reg["Yi"].test(script)  then _script = script.replace(reg["Yi"],  ""); @named.scope().surface().playAnimation(Number(reg["Yi"].exec(script)[1]))
+        when reg["Y_q"].test(script) then _script = script.replace(reg["Y_q"], ""); quick = !quick
         when reg["YwN"].test(script) then _script = script.replace(reg["YwN"], ""); wait = Number(reg["YwN"].exec(script)[1])*100
         when reg["Y_w"].test(script) then _script = script.replace(reg["Y_w"], ""); wait = Number(reg["Y_w"].exec(script)[1])
         when reg["Yq"].test(script)  then _script = script.replace(reg["Yq"],  ""); [title, id] = reg["Yq"].exec(script)[1].split(",", 2); @named.scope().blimp().choice(title, id)
@@ -59,7 +65,8 @@ class SakuraScriptPlayer
         when reg["YY"].test(script)  then _script = script.replace(reg["YY"],  ""); @named.scope().blimp().talk("\\")
         else                              _script = script.slice(1);                @named.scope().blimp().talk(script[0])
       script = _script
-      @breakTid = setTimeout(recur, 80)
+      wait = (if quick then 0 else wait)
+      @breakTid = setTimeout(recur, wait)
     undefined
 
   break: ->
