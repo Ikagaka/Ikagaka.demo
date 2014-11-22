@@ -13,8 +13,6 @@ SurfaceUtil = (function() {
       return;
     }
     _ref = elements[0], canvas = _ref.canvas, type = _ref.type, x = _ref.x, y = _ref.y;
-    x = Number(x);
-    y = Number(y);
     offsetX = offsetY = 0;
     switch (type) {
       case "base":

@@ -8,8 +8,6 @@ class SurfaceUtil
   composeElements: (elements)->
     if elements.length is 0 then return
     {canvas, type, x, y} = elements[0]
-    x = Number(x)
-    y = Number(y)
     offsetX = offsetY = 0
     switch type
       when "base"        then @overlayfast(canvas, offsetX,     offsetY)

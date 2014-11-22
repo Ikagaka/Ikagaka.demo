@@ -1,7 +1,5 @@
 # Nar.js
 
-  Nar.js can read .nar file of "Nanika Archive".
-
 ## Usage
 
 [wiki](https://github.com/Ikagaka/Nar.js/wiki/Nar.js)

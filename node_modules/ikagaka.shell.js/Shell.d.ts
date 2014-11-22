@@ -80,7 +80,7 @@ interface Surfaces {
 declare class Shell {
   constructor(directory: JSZipDirectory); // stable
   load(callback: (error: any) => void): void; // stable
-  attatchSurface(canvas: HTMLCanvasElement, scopeId: number, surfaceId: number): Surface; // unstable
+  attatchSurface(canvas: HTMLCanvasElement, scopeId: number, surfaceId: number, callback?: () => void): Surface; // unstable
   descript: Descript; // stable
   directory: JSZipDirectory; // stable
   surfaces: Surfaces; // stable

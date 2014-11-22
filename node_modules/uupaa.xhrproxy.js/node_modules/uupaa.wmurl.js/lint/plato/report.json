@@ -1,0 +1,161 @@
+{
+  "reports": [
+    {
+      "info": {
+        "file": "lib/WMURL.js",
+        "fileShort": "js",
+        "fileSafe": "js",
+        "link": "files/js/index.html"
+      },
+      "jshint": {
+        "messages": 0
+      },
+      "complexity": {
+        "aggregate": {
+          "line": 40,
+          "complexity": {
+            "sloc": {
+              "physical": 334,
+              "logical": 185
+            },
+            "cyclomatic": 56,
+            "halstead": {
+              "operators": {
+                "distinct": 24,
+                "total": 492,
+                "identifiers": [
+                  "__stripped__"
+                ]
+              },
+              "operands": {
+                "distinct": 169,
+                "total": 642,
+                "identifiers": [
+                  "__stripped__"
+                ]
+              },
+              "length": 1134,
+              "vocabulary": 193,
+              "difficulty": 45.585798816568044,
+              "volume": 8609.846280262003,
+              "effort": 392486.72037360043,
+              "bugs": 2.8699487600873343,
+              "time": 21804.817798533357
+            },
+            "params": 25
+          }
+        },
+        "module": "js",
+        "maintainability": 60.74313802368068
+      }
+    },
+    {
+      "info": {
+        "file": "lib/WMURL.encode.js",
+        "fileShort": "encode.js",
+        "fileSafe": "encode_js",
+        "link": "files/encode_js/index.html"
+      },
+      "jshint": {
+        "messages": 0
+      },
+      "complexity": {
+        "aggregate": {
+          "line": 2,
+          "complexity": {
+            "sloc": {
+              "physical": 71,
+              "logical": 34
+            },
+            "cyclomatic": 21,
+            "halstead": {
+              "operators": {
+                "distinct": 24,
+                "total": 119,
+                "identifiers": [
+                  "__stripped__"
+                ]
+              },
+              "operands": {
+                "distinct": 62,
+                "total": 154,
+                "identifiers": [
+                  "__stripped__"
+                ]
+              },
+              "length": 273,
+              "vocabulary": 86,
+              "difficulty": 29.806451612903224,
+              "volume": 1754.3702780336728,
+              "effort": 52291.552803326245,
+              "bugs": 0.584790092677891,
+              "time": 2905.0862668514583
+            },
+            "params": 8
+          }
+        },
+        "module": "encode.js",
+        "maintainability": 64.77974093442262
+      }
+    },
+    {
+      "info": {
+        "file": "lib/WMURL.decode.js",
+        "fileShort": "decode.js",
+        "fileSafe": "decode_js",
+        "link": "files/decode_js/index.html"
+      },
+      "jshint": {
+        "messages": 0
+      },
+      "complexity": {
+        "aggregate": {
+          "line": 2,
+          "complexity": {
+            "sloc": {
+              "physical": 61,
+              "logical": 34
+            },
+            "cyclomatic": 12,
+            "halstead": {
+              "operators": {
+                "distinct": 21,
+                "total": 98,
+                "identifiers": [
+                  "__stripped__"
+                ]
+              },
+              "operands": {
+                "distinct": 54,
+                "total": 127,
+                "identifiers": [
+                  "__stripped__"
+                ]
+              },
+              "length": 225,
+              "vocabulary": 75,
+              "difficulty": 24.694444444444443,
+              "volume": 1401.484205361573,
+              "effort": 34608.87384906773,
+              "bugs": 0.467161401787191,
+              "time": 1922.715213837096
+            },
+            "params": 8
+          }
+        },
+        "module": "decode.js",
+        "maintainability": 65.92304541313655
+      }
+    }
+  ],
+  "summary": {
+    "total": {
+      "sloc": 466,
+      "maintainability": 191.44592437123984
+    },
+    "average": {
+      "sloc": 155,
+      "maintainability": "63.82"
+    }
+  }
+}
