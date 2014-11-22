@@ -17,7 +17,7 @@
 <script src="./node_modules/ikagaka.nar.js/Nar.js"></script>
 <script src="./node_modules/surfaces_txt2yaml/lib/surfaces_txt2yaml.js"></script>
 <script src="./node_modules/underscore/underscore-min.js"></script>
-<script src="./node_modules/zepto/zepto.min.js"></script>
+<script src="./node_modules/jquery/dist/jquery.min.js"></script>
 <script src="./SurfaceUtil.js"></script>
 <script src="./Surface.js"></script>
 <script src="./Shell.js"></script>

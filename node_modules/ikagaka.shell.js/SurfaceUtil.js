@@ -16,7 +16,7 @@ SurfaceUtil = (function() {
     offsetX = offsetY = 0;
     switch (type) {
       case "base":
-        this.overlayfast(canvas, offsetX, offsetY);
+        this.base(canvas, offsetX, offsetY);
         break;
       case "overlay":
         this.overlayfast(canvas, offsetX + x, offsetY + y);
@@ -40,13 +40,18 @@ SurfaceUtil = (function() {
         offsetX = x;
         offsetY = y;
         copyed = SurfaceUtil.copy(this.cnv);
-        SurfaceUtil.clear(this.cnv);
-        this.overlayfast(copyed, offsetX, offsetY);
+        this.base(copyed, offsetX, offsetY);
         break;
       default:
         console.error(elements[0]);
     }
     this.composeElements(elements.slice(1));
+    return void 0;
+  };
+
+  SurfaceUtil.prototype.base = function(part, x, y) {
+    SurfaceUtil.clear(this.cnv);
+    this.overlayfast(part, x, y);
     return void 0;
   };
 

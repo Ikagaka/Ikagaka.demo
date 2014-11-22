@@ -10,7 +10,7 @@ class SurfaceUtil
     {canvas, type, x, y} = elements[0]
     offsetX = offsetY = 0
     switch type
-      when "base"        then @overlayfast(canvas, offsetX,     offsetY)
+      when "base"        then @base(       canvas, offsetX,     offsetY)
       when "overlay"     then @overlayfast(canvas, offsetX + x, offsetY + y)
       when "overlayfast" then @overlayfast(canvas, offsetX + x, offsetY + y)
       when "replace"     then @replace(    canvas, offsetX + x, offsetY + y)
@@ -21,10 +21,14 @@ class SurfaceUtil
         offsetX = x
         offsetY = y
         copyed = SurfaceUtil.copy(@cnv)
-        SurfaceUtil.clear(@cnv)
-        @overlayfast(copyed, offsetX, offsetY)
+        @base(copyed, offsetX, offsetY)
       else console.error(elements[0])
     @composeElements(elements.slice(1))
+    undefined
+
+  base: (part, x, y)->
+    SurfaceUtil.clear(@cnv)
+    @overlayfast(part, x, y)
     undefined
 
   overlayfast: (part, x, y)->
