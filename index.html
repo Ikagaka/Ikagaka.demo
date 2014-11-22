@@ -1,3 +1,8 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Ikagaka demo</title>
 <script src="./node_modules/es6-shim/es6-shim.min.js"></script>
 <script src="./node_modules/encoding-japanese/encoding.js"></script>
 <script src="./node_modules/ikagaka.nar.js/vender/WMDescript.js"></script>
@@ -36,10 +41,16 @@
 }*/
 </style>
 <script>
+function load_nar(buffer){
 Promise.all([
   new Promise(function(resolve, reject){
     var nar = new Nar();
-    nar.loadFromURL("./vender/goa_06.00.nar", function(err){
+//    nar.loadFromURL("./vender/goa_06.00.nar", function(err){
+//   nar.loadFromURL("./vender/lv1_202.nar", function(err){
+//   nar.loadFromURL("./vender/TempleteKarin.nar", function(err){
+//   nar.loadFromURL("./vender/54_set43.nar", function(err){
+//   nar.loadFromURL("./vender/Ageha.nar", function(err){
+   nar.loadFromBuffer(buffer, function(err){
       if(!!err) return reject(err);
       Promise.all([
         new Promise(function(resolve, reject){
@@ -125,5 +136,48 @@ Promise.all([
     }
   }
 
-}).catch(function(err){ console.error(err, err.stack); });
+}).catch(function(err){ alert(err); console.error(err, err.stack); });
+}
+
+function handleFileSelect(event){
+	var file = event.target.files[0];
+	var reader = new FileReader();
+	reader.onload = function(event){
+		var nar = event.target.result;
+		load_nar(nar);
+	};
+	reader.readAsArrayBuffer(file);
+}
+
+window.onload = function(){
+	document.getElementById('nar').addEventListener('change', handleFileSelect, false);
+};
 </script>
+</head>
+<body>
+<h1>如何かテスト</h1>
+<p>
+<a href="https://github.com/Ikagaka" target="_blank">Webベースウェア「如何か」</a>(に組み込まれている拙作SHIORIモジュール)のテスト。
+</p>
+<p>
+<label>
+narを選択してください。
+<input type='file' id="nar">
+</label>
+</p>
+<p>
+SAORIを使用しない華和梨のnarか、標準のプラグインしか含めないMiyoJSなら読めるかも。
+</p>
+<h2>起動確認が取れたゴースト</h2>
+<ul>
+<li><a href="http://khmix.sakura.ne.jp/ghost.shtml" target="_blank">GOA Lilith</a></li>
+<li><a href="http://spoon.if.land.to/wiki/index.php?%B2%DA%CF%C2%CD%FC%A5%C6%A5%F3%A5%D7%A5%EC%A1%BC%A5%C8Ghost%A1%D8%A3%CC%A3%F6%A3%B1(%A4%EC%A4%D9%A4%EB%A4%A4%A4%C1)%A1%D9" target="_blank">れべるいち</a></li>
+<li><a href="http://rimuhamate.sakura.ne.jp/KarinDocument/" target="_blank">かりん</a></li>
+<li><a href="http://priest.so.land.to/ghost/wish.html" target="_blank">wish</a></li>
+<li><a href="http://paripari.if.land.to/" target="_blank">パリパリ</a></li>
+<li><a href="http://www11.ocn.ne.jp/~feconf/" target="_blank">ブリュンヒルデ</a></li>
+<li><a href="https://dl.dropboxusercontent.com/u/28020825/kuro8/index.html" target="_blank">偽黒姉・偽ひより</a></li>
+<li><a href="http://ms.shillest.net/shiories.xhtml" target="_blank">SHIORIES</a></li>
+</ul>
+</body>
+</html>
