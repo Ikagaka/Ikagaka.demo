@@ -33,7 +33,8 @@ Ghost = (function() {
         this.worker = new Worker("./SatoriWorker.js");
         break;
       case "yaya":
-        return callback(new Error("unsupport shiori"));
+        this.worker = new Worker("./YAYAWorker.js");
+        break;
       case "kawari":
         this.worker = new Worker("./KawariWorker.js");
         break;
