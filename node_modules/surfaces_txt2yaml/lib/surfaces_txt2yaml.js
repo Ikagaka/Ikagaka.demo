@@ -540,7 +540,7 @@ SurfacesTxt2Yaml.ScopeParser.surface = (function(_super) {
       data.elements = {};
     }
     if (data.elements[id] != null) {
-      this["throw"]('element id duplication found');
+      this.warn('element id duplication found');
     }
     return data.elements[id] = {
       is: _is,
@@ -564,7 +564,7 @@ SurfacesTxt2Yaml.ScopeParser.surface = (function(_super) {
       };
     }
     if (data.animations[id].interval != null) {
-      this["throw"]('animation interval duplication found');
+      this.warn('animation interval duplication found');
     }
     return data.animations[id].interval = interval;
   };
@@ -582,7 +582,7 @@ SurfacesTxt2Yaml.ScopeParser.surface = (function(_super) {
       };
     }
     if (data.animations[id].option != null) {
-      this["throw"]('animation option duplication found');
+      this.warn('animation option duplication found');
     }
     return data.animations[id].option = option;
   };
@@ -603,7 +603,7 @@ SurfacesTxt2Yaml.ScopeParser.surface = (function(_super) {
       data.animations[id].patterns = [];
     }
     if (data.animations[id].patterns[p_id] != null) {
-      this["throw"]('animation pattern duplication found');
+      this.warn('animation pattern duplication found');
     }
     data.animations[id].patterns[p_id] = {
       type: type
@@ -669,7 +669,7 @@ SurfacesTxt2Yaml.ScopeParser.surface = (function(_super) {
       data.animations[id].patterns = [];
     }
     if (data.animations[id].patterns[p_id] != null) {
-      this["throw"]('animation pattern duplication found');
+      this.warn('animation pattern duplication found');
     }
     data.animations[id].patterns[p_id] = {
       type: type
@@ -730,7 +730,7 @@ SurfacesTxt2Yaml.ScopeParser.surface = (function(_super) {
       data.regions = {};
     }
     if (data.regions[id] != null) {
-      this["throw"]('collision duplication found');
+      this.warn('collision duplication found');
     }
     return data.regions[id] = {
       is: _is,
@@ -751,7 +751,7 @@ SurfacesTxt2Yaml.ScopeParser.surface = (function(_super) {
       data.regions = {};
     }
     if (data.regions[id] != null) {
-      this["throw"]('collisionex duplication found');
+      this.warn('collisionex duplication found');
     }
     return data.regions[id] = {
       is: _is,
@@ -772,7 +772,7 @@ SurfacesTxt2Yaml.ScopeParser.surface = (function(_super) {
       data.regions = {};
     }
     if (data.regions[id] != null) {
-      this["throw"]('collisionex duplication found');
+      this.warn('collisionex duplication found');
     }
     coordinates = [];
     coordinate = {};

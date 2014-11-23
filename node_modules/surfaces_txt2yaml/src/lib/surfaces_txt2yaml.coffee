@@ -345,7 +345,7 @@ class SurfacesTxt2Yaml.ScopeParser.surface extends SurfacesTxt2Yaml.ScopeParser.
 		unless data.elements?
 			data.elements = {}
 		if data.elements[id]?
-			@throw 'element id duplication found'
+			@warn 'element id duplication found'
 		data.elements[id] = {is : _is, type : type, file : file, x : x, y : y}
 	match_animation_interval : (data, result) ->
 		[_is, interval] = result[1 .. 2]
@@ -355,7 +355,7 @@ class SurfacesTxt2Yaml.ScopeParser.surface extends SurfacesTxt2Yaml.ScopeParser.
 		unless data.animations[id]?
 			data.animations[id] = {is : _is}
 		if data.animations[id].interval?
-			@throw 'animation interval duplication found'
+			@warn 'animation interval duplication found'
 		data.animations[id].interval = interval
 	match_animation_option : (data, result) ->
 		[_is, option] = result[1 .. 2]
@@ -365,7 +365,7 @@ class SurfacesTxt2Yaml.ScopeParser.surface extends SurfacesTxt2Yaml.ScopeParser.
 		unless data.animations[id]?
 			data.animations[id] = {is : _is}
 		if data.animations[id].option?
-			@throw 'animation option duplication found'
+			@warn 'animation option duplication found'
 		data.animations[id].option = option
 	match_animation_pattern : (data, result) ->
 		[_is, p_id, type, args_str] = result[1 .. 4]
@@ -377,7 +377,7 @@ class SurfacesTxt2Yaml.ScopeParser.surface extends SurfacesTxt2Yaml.ScopeParser.
 		unless data.animations[id].patterns?
 			data.animations[id].patterns = []
 		if data.animations[id].patterns[p_id]?
-			@throw 'animation pattern duplication found'
+			@warn 'animation pattern duplication found'
 		data.animations[id].patterns[p_id] = {type : type}
 		args = {}
 		switch type
@@ -401,7 +401,7 @@ class SurfacesTxt2Yaml.ScopeParser.surface extends SurfacesTxt2Yaml.ScopeParser.
 		unless data.animations[id].patterns?
 			data.animations[id].patterns = []
 		if data.animations[id].patterns[p_id]?
-			@throw 'animation pattern duplication found'
+			@warn 'animation pattern duplication found'
 		data.animations[id].patterns[p_id] = {type : type}
 		args = {}
 		switch type
@@ -423,7 +423,7 @@ class SurfacesTxt2Yaml.ScopeParser.surface extends SurfacesTxt2Yaml.ScopeParser.
 		unless data.regions?
 			data.regions = {}
 		if data.regions[id]?
-			@throw 'collision duplication found'
+			@warn 'collision duplication found'
 		data.regions[id] = {is : _is, type : 'rect', name : name, left : left, top : top, right : right, bottom : bottom}
 	match_collisionex_4 : (data, result) ->
 		[_is, name, type, left, top, right, bottom] = result[1 .. 7]
@@ -431,7 +431,7 @@ class SurfacesTxt2Yaml.ScopeParser.surface extends SurfacesTxt2Yaml.ScopeParser.
 		unless data.regions?
 			data.regions = {}
 		if data.regions[id]?
-			@throw 'collisionex duplication found'
+			@warn 'collisionex duplication found'
 		data.regions[id] = {is : _is, type : type, name : name, left : left, top : top, right : right, bottom : bottom}
 	match_collisionex_n : (data, result) ->
 		[_is, name, coordinates_str] = result[1 .. 3]
@@ -439,7 +439,7 @@ class SurfacesTxt2Yaml.ScopeParser.surface extends SurfacesTxt2Yaml.ScopeParser.
 		unless data.regions?
 			data.regions = {}
 		if data.regions[id]?
-			@throw 'collisionex duplication found'
+			@warn 'collisionex duplication found'
 		coordinates = []
 		coordinate = {}
 		for c, index in coordinates_str.split(',')
