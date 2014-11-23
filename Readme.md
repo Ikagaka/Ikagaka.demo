@@ -1,4 +1,4 @@
-Ikagaka.js public test
+Ikagaka.js demo
 ======================
 
-http://narazaka.github.io/Ikagaka.js.pubtest/
+http://ikagaka.github.io/Ikagaka.demo/
