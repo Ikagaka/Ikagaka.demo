@@ -407,7 +407,8 @@ class SurfacesTxt2Yaml.ScopeParser.surface extends SurfacesTxt2Yaml.ScopeParser.
 		switch type
 			when 'overlay', 'overlayfast', 'reduce', 'replace', 'interpolate', 'asis', 'bind', 'add', 'reduce', 'move'
 				[args.surface, args.wait] = [surface, wait * 10]
-				[args.x, args.y] = args_str.split ','
+				if args_str
+					[args.x, args.y] = args_str.split ','
 			when 'base'
 				[args.surface, args.wait] = [surface, wait * 10]
 			when 'insert', 'start', 'stop'

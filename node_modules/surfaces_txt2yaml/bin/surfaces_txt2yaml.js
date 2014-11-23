@@ -8,7 +8,7 @@
 
   fs = require('fs');
 
-  SurfacesTxt2Yaml = require('surfaces_txt2yaml');
+  SurfacesTxt2Yaml = require('../lib/surfaces_txt2yaml');
 
   toyaml = function(file, file_out) {
     var txt_str, yaml;

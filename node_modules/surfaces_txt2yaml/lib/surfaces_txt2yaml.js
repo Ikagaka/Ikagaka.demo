@@ -687,7 +687,9 @@ SurfacesTxt2Yaml.ScopeParser.surface = (function(_super) {
       case 'reduce':
       case 'move':
         _ref1 = [surface, wait * 10], args.surface = _ref1[0], args.wait = _ref1[1];
-        _ref2 = args_str.split(','), args.x = _ref2[0], args.y = _ref2[1];
+        if (args_str) {
+          _ref2 = args_str.split(','), args.x = _ref2[0], args.y = _ref2[1];
+        }
         break;
       case 'base':
         _ref3 = [surface, wait * 10], args.surface = _ref3[0], args.wait = _ref3[1];

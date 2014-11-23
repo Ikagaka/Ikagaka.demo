@@ -1,6 +1,6 @@
 ### (C) 2014 Narazaka : Licensed under The MIT License - http://narazaka.net/license/MIT?2014 ###
 fs = require 'fs'
-SurfacesTxt2Yaml = require 'surfaces_txt2yaml'
+SurfacesTxt2Yaml = require '../lib/surfaces_txt2yaml'
 
 toyaml = (file, file_out) ->
 	txt_str = fs.readFileSync file, 'utf8'
