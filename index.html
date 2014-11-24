@@ -85,6 +85,8 @@ Promise.all([
   var balloon = tmp[1];
   var named = new Named(shell, balloon);
   var ssp = new SakuraScriptPlayer(named);
+  var version = '2.6';
+  var method = 'GET Version';
 
   $(named.element)
     .on("IkagakaSurfaceEvent", function(ev){
@@ -92,49 +94,69 @@ Promise.all([
     })
     .appendTo("body");
 
-  requestSender({
-    ID: "OnBoot",
-    Sender: "embryo",
-    Charset: "Shift_JIS",
-    Reference0: "0"
-  });
-
-  setInterval(function(){
+  requestSender({}, function(err, response){
+    var parsed = responseHandler(err, response);
+    if(parsed.status_line.arguments.code == 200 && parsed.status_line.arguments.version != '3.0'){
+      method = 'GET Sentence';
+    }else{
+      version = '3.0';
+      method = 'GET';
+    }
     requestSender({
-      ID: "OnSecondChange",
+      ID: "OnBoot",
       Sender: "embryo",
       Charset: "Shift_JIS",
-      Reference0: "0",
-      Reference1: "0",
-      Reference2: "0",
-      Reference3: "1"
+      Reference0: "0"
     });
-  }, 1000);
+    setInterval(function(){
+      requestSender({
+        ID: "OnSecondChange",
+        Sender: "embryo",
+        Charset: "Shift_JIS",
+        Reference0: "0",
+        Reference1: "0",
+        Reference2: "0",
+        Reference3: "1"
+      });
+    }, 1000);
+  });
 
-  function requestSender(ev){
+
+  function requestSender(headers, callback){
     var request = new ShioriJK.Message.Request();
-    request.request_line.method = "GET";
+    request.request_line.method = method;
     request.request_line.protocol = "SHIORI";
-    request.request_line.version = "3.0";
+    request.request_line.version = version;
     request.headers.header["Sender"] = "embryo";
     request.headers.header["Charset"] = "Shift_JIS";
-    Object.keys(ev).forEach(function(key){
-      request.headers.header[key] = ""+ev[key];
+    if(version != '3.0' && headers["ID"] != null){
+      headers["Event"] = headers["ID"];
+      delete headers["ID"];
+    }
+    Object.keys(headers).forEach(function(key){
+      request.headers.header[key] = ""+headers[key];
     });
     console.log(""+request);
-    ghost.request(""+request, responseHandler);
+    ghost.request(""+request, callback ? callback : responseHandler);
   }
   function responseHandler(err, response){
     if(!!err) return console.error(err.stack);
     console.log(response);
     var parser = new ShioriJK.Shiori.Response.Parser();
     parsed = parser.parse(response);
-    if(parsed.status_line.arguments.code === 200 &&
-       typeof parsed.headers.header.Value === "string"){
-      var ss = parsed.headers.header.Value;
-      console.log(ss);
-      ssp.play("\\1\\0"+ss);
+    if(parsed.status_line.arguments.code === 200){
+      var ss;
+      if(version == '3.0' && typeof parsed.headers.header.Value === "string"){
+        ss = parsed.headers.header.Value;
+      }else if(version != '3.0' && typeof parsed.headers.header.Sentence === "string"){
+        ss = parsed.headers.header.Sentence;
+      }
+      if(ss != null){
+        console.log(ss);
+        ssp.play("\\1\\0"+ss);
+      }
     }
+    return parsed;
   }
 
 }).catch(function(err){ alert(err); console.error(err, err.stack); });
