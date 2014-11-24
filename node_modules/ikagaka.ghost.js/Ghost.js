@@ -29,6 +29,12 @@ Ghost = (function() {
       return callback(new Error("shiori not found"));
     }
     switch (Ghost.detectShiori(this.directory)) {
+      case "kawari":
+        this.worker = new Worker("./KawariWorker.js");
+        break;
+      case "kawari7":
+        this.worker = new Worker("./Kawari7Worker.js");
+        break;
       case "satori":
         this.worker = new Worker("./SatoriWorker.js");
         break;
@@ -37,9 +43,6 @@ Ghost = (function() {
         break;
       case "aya5":
         this.worker = new Worker("./AYA5Worker.js");
-        break;
-      case "kawari":
-        this.worker = new Worker("./KawariWorker.js");
         break;
       case "miyojs":
         this.worker = new Worker("./MiyoJSWorker.js");
@@ -94,6 +97,9 @@ Ghost = (function() {
   Ghost.detectShiori = function(directory) {
     if (!!directory["kawarirc.kis"]) {
       return "kawari";
+    }
+    if (!!directory["kawari.ini"]) {
+      return "kawari7";
     }
     if (!!directory["satori_conf.txt"]) {
       return "satori";
