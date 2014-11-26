@@ -503,9 +503,15 @@ class SurfacesTxt2Yaml.ScopeParser.surface extends SurfacesTxt2Yaml.ScopeParser.
 		args = {}
 		switch type
 			when 'overlay', 'overlayfast', 'reduce', 'replace', 'interpolate', 'asis', 'bind', 'add', 'reduce', 'move'
-				[args.surface, args.wait, args.x, args.y] = (elem - 0 for elem in args_str.split ',')
+				[args.surface, args.wait, args.x, args.y] = args_str.split ','
+				if args.surface? then args.surface -= 0
+				if args.wait? and (args.wait - 0) == args.wait then args.wait -= 0
+				if args.x? then args.x -= 0
+				if args.y? then args.y -= 0
 			when 'base'
-				[args.surface, args.wait] = (elem - 0 for elem in args_str.split ',')
+				[args.surface, args.wait] = args_str.split ','
+				if args.surface? then args.surface -= 0
+				if args.wait? and (args.wait - 0) == args.wait then args.wait -= 0
 			when 'insert', 'start', 'stop'
 				args.animation_id = 'animation'+args_str
 			when 'alternativestart', 'alternativestop'

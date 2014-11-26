@@ -813,7 +813,7 @@ SurfacesTxt2Yaml.ScopeParser.surface = (function(_super) {
   };
 
   surface.prototype.match_animation_pattern = function(data, result) {
-    var animation_id, arg, args, args_str, elem, id, name, p_id, type, _is, _ref, _ref1, _ref2;
+    var animation_id, arg, args, args_str, id, name, p_id, type, _is, _ref, _ref1, _ref2;
     _ref = result.slice(1, 5), _is = _ref[0], p_id = _ref[1], type = _ref[2], args_str = _ref[3];
     _is -= 0;
     p_id -= 0;
@@ -851,28 +851,28 @@ SurfacesTxt2Yaml.ScopeParser.surface = (function(_super) {
       case 'add':
       case 'reduce':
       case 'move':
-        _ref1 = (function() {
-          var _i, _len, _ref1, _results;
-          _ref1 = args_str.split(',');
-          _results = [];
-          for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-            elem = _ref1[_i];
-            _results.push(elem - 0);
-          }
-          return _results;
-        })(), args.surface = _ref1[0], args.wait = _ref1[1], args.x = _ref1[2], args.y = _ref1[3];
+        _ref1 = args_str.split(','), args.surface = _ref1[0], args.wait = _ref1[1], args.x = _ref1[2], args.y = _ref1[3];
+        if (args.surface != null) {
+          args.surface -= 0;
+        }
+        if ((args.wait != null) && (args.wait - 0) === args.wait) {
+          args.wait -= 0;
+        }
+        if (args.x != null) {
+          args.x -= 0;
+        }
+        if (args.y != null) {
+          args.y -= 0;
+        }
         break;
       case 'base':
-        _ref2 = (function() {
-          var _i, _len, _ref2, _results;
-          _ref2 = args_str.split(',');
-          _results = [];
-          for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
-            elem = _ref2[_i];
-            _results.push(elem - 0);
-          }
-          return _results;
-        })(), args.surface = _ref2[0], args.wait = _ref2[1];
+        _ref2 = args_str.split(','), args.surface = _ref2[0], args.wait = _ref2[1];
+        if (args.surface != null) {
+          args.surface -= 0;
+        }
+        if ((args.wait != null) && (args.wait - 0) === args.wait) {
+          args.wait -= 0;
+        }
         break;
       case 'insert':
       case 'start':
