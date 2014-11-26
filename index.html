@@ -104,14 +104,14 @@ Promise.all([
     }
     requestSender({
       ID: "OnBoot",
-      Sender: "embryo",
+      Sender: "SSP",
       Charset: "Shift_JIS",
       Reference0: "0"
     });
     setInterval(function(){
       requestSender({
         ID: "OnSecondChange",
-        Sender: "embryo",
+        Sender: "SSP",
         Charset: "Shift_JIS",
         Reference0: "0",
         Reference1: "0",
@@ -127,7 +127,7 @@ Promise.all([
     request.request_line.method = method;
     request.request_line.protocol = "SHIORI";
     request.request_line.version = version;
-    request.headers.header["Sender"] = "embryo";
+    request.headers.header["Sender"] = "SSP";
     request.headers.header["Charset"] = "Shift_JIS";
     if(version != '3.0' && headers["ID"] != null){
       headers["Event"] = headers["ID"];
@@ -195,6 +195,9 @@ narを選択してください。
 </p>
 <p>
 起動時にSAORIをロードしない華和梨・里々・YAYA・文5・華和梨7のnarか、標準のプラグインしか含めないMiyoJSなら読めるかも。
+</p>
+<p>
+里々は起動時にSAORIをロードするやつがやたら多いのでむしゃくしゃしてSAORIロードを強制的になかったことにしたりしてますので、場合によっては起動しても問題が多いかも。
 </p>
 <h2><strong>起動</strong>確認が取れたゴースト</h2>
 <h3>華和梨</h3>
