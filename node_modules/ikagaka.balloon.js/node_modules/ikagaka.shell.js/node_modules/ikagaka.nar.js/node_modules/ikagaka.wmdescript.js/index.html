@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<title>Descript.js</title>
+<meta name="viewport" content="width=device-width" />
+<script type="text/javascript" charset="utf-8" src="src/Descript.js"></script>
+<script type="text/javascript">
+window.addEventListener("load", function(){
+  document.getElementById("descript").addEventListener("keyup", convert);
+  convert();
+  
+  function convert(){
+    var txt = document.getElementById("descript").value;
+    var descriptObj = new Descript(txt);
+    var json = JSON.stringify(descriptObj);
+    json = json.split(":").join(": ")
+               .split("{").join("{\n")
+               .split(",").join(",\n")
+               .split("}").join("\n}\n")
+               .split("}\n,").join("},");
+    var lines = json.split("\n").map((function(){
+      var spaces = 1;
+      return function(line){
+        var rslt;
+        if(line === "") return "";
+        if(/\{$/.test(line)){
+          rslt = Array(spaces).join(" ") + line;
+          spaces += 2;
+        }else if(/\}\,?$/.test(line)){
+          spaces -= 2;
+          rslt = Array(spaces).join(" ") + line;
+        }else{
+          rslt = Array(spaces).join(" ") + line;
+        }
+        return rslt;
+      };
+    })()).filter(function(line){
+      return line !== "";
+    });
+    document.getElementById("json").value = lines.join("\n");
+  }
+});
+</script>
+<style type="text/css">
+html,body,
+#descript, #json{
+  box-sizing: border-box;
+  position: relative;
+  height: 100%;
+  margin: 0px;
+}
+#descript, #json{
+  float: left;
+  width: 50%;
+  border: 1px solid black;
+}
+</style>
+</head>
+<body>
+<textarea id="descript">
+
+charset,Shift_JIS
+
+type,ghost
+
+name,Emily/Phase4.5
+sakura.name,Emily
+kero.name,Teddy
+
+balloon,emily4
+
+id,Emily/Phase4.5
+title,Slapstick Beauty
+
+char2.seriko.defaultsurface,200
+
+name.allowoverride,0
+install.accept,Emily,エミリ,えみりぃ
+
+craftmanurl,http://ssp.shillest.net/
+craftman,[SSPBT/GL03B]Emily Development Team
+
+updateurl,http://ssp.shillest.net/ghost/emily4/
+
+sstp.allowunspecifiedsend,1
+
+icon,icon.ico
+icon.minimize,icon_minimize.ico
+
+shiori,yaya.dll
+shiori.version,SHIORI/3.0
+</textarea>
+<textarea id="json"> 
+</textarea>
+</body>
+</html>
