@@ -7,7 +7,7 @@ KawariShiori = function(){
 	this.load = function(str){
 		var load = this.Module.cwrap('load', 'number', ['number','number']);
 		var str_sjis = Encoding.codeToString(Encoding.convert(Encoding.stringToCode(str), 'SJIS', 'UNICODE'));
-		var dir = Encoding.stringToCode(str_sjis).concat([0]);
+		var dir = Encoding.stringToCode(str_sjis);
 		var dir_buf = new Int8Array(dir);
 		var dir_buf_size = dir_buf.length * dir_buf.BYTES_PER_ELEMENT;
 		var dir_ptr = this.Module._malloc(dir_buf_size);
@@ -24,8 +24,7 @@ KawariShiori = function(){
 		var request = this.Module.cwrap('request', 'number', ['number','number']);
 
 		var str_sjis = Encoding.codeToString(Encoding.convert(Encoding.stringToCode(str), 'SJIS', 'UNICODE'));
-		var req = Encoding.stringToCode(str_sjis).concat([0]);
-		console.log(str_sjis);
+		var req = Encoding.stringToCode(str_sjis);
 		var req_buf = new Int8Array(req);
 		var req_buf_size = req_buf.length * req_buf.BYTES_PER_ELEMENT;
 		var req_ptr = this.Module._malloc(req_buf_size);
@@ -45,7 +44,7 @@ KawariShiori = function(){
 		var request_ret_u = Encoding.codeToString(Encoding.convert(Encoding.stringToCode(request_ret_sjis), 'UNICODE', 'SJIS'));
 		
 		this.Module._free(len_heap.byteOffset);
-		//this.Module._free(req_heap.byteOffset);
+		this.Module._free(req_ret_heap.byteOffset);
 		
 		return request_ret_u;
 	}

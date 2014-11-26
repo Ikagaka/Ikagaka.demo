@@ -136,3 +136,11 @@ SurfaceUtil = (function() {
   return SurfaceUtil;
 
 })();
+
+if ((typeof module !== "undefined" && module !== null ? module.exports : void 0) != null) {
+  module.exports = SurfaceUtil;
+}
+
+if (window["Ikagaka"] != null) {
+  window["Ikagaka"]["SurfaceUtil"] = SurfaceUtil;
+}

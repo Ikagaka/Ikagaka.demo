@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Ghost.js</title>
+<script src="./node_modules/ikagaka.nar.js/node_modules/encoding-japanese/encoding.js"></script>
+<script src="./node_modules/ikagaka.nar.js/vender/jszip.min.js"></script>
+<script src="./node_modules/ikagaka.nar.js/vender/XHRProxy.min.js"></script>
+<script src="./node_modules/ikagaka.nar.js/vender/WMDescript.js"></script>
+<script src="./node_modules/ikagaka.nar.js/Nar.js"></script>
+<script src="./Ghost.js"></script>
+<script>
+var nar = new Nar();
+nar.loadFromURL("./vender/dot_sakura_020_060506a.nar", function (err){
+  if(!!err) return console.error(err.stack);
+
+  if(nar.install.type === "ghost"){
+    var ghostDir = Object
+      .keys(nar.directory)
+      .filter(function(path){ return /ghost\/master\//.test(path); })
+      .reduce(function(dir, path, zip){ dir[path.replace(/ghost\/master\//, "")] = nar.directory[path]; return dir; }, {})
+    var ghost = new Ghost(ghostDir)
+  }else{
+    throw new Error("wrong nar file")
+  }
+
+  Error.stackTraceLimit = Infinity;
+
+  ghost.load(function(err){
+    if(!!err) return console.error(err.stack);
+
+    console.log(ghost);
+
+    var request_callback = function(err, response){
+      if(!!err) return console.error(err.stack);
+
+      console.log(response);
+    };
+    var standing = true;
+    ghost.request("GET Version SHIORI/2.6\r\nSender: embryo\r\nCharset: Shift_JIS\r\n\r\n", request_callback);
+    ghost.request("GET Sentence SHIORI/2.6\r\nEvent: OnBoot\r\nSender: embryo\r\nCharset: Shift_JIS\r\n\r\n", request_callback);
+    var OnSecondChange;
+    OnSecondChange = function (){
+      if(standing){
+        ghost.request("GET Sentence SHIORI/2.6\r\nEvent: OnSecondChange\r\nSender: embryo\r\nCharset: Shift_JIS\r\nReference0: 0\r\nReference1: 0\r\nReference2: 0\r\nReference3: 1\r\n\r\n", request_callback);
+        setTimeout(OnSecondChange, 1000);
+      }
+    };
+    setTimeout(OnSecondChange, 1000);
+    var OnClose = function(){
+      ghost.request("GET Sentence SHIORI/2.6\r\nEvent: OnClose\r\nSender: embryo\r\nCharset: Shift_JIS\r\n\r\n", request_callback);
+      standing = false;
+      ghost.unload(function(err){
+        if(!!err) return console.error(err.stack);
+        console.log("finish");
+      });
+    };
+    setTimeout(OnClose, 180 * 1000);
+
+  });
+});
+</script>
+</head>
+<body>
+</body>
+</html>

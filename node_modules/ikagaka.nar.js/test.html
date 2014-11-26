@@ -3,9 +3,19 @@
 <script src="./vender/XHRProxy.min.js"></script>
 <script src="./vender/WMDescript.js"></script>
 <script src="./Nar.js"></script>
+<p>
+  nar: <input type="file" id="nar" />
+</p>
 <script>
+document.getElementById("nar").addEventListener("change", function(ev){
+  var nar = new Nar();
+  nar.loadFromBlob(ev.target.files[0], loadHandler.bind(this, nar));
+});
 var nar = new Nar();
-nar.loadFromURL("./vender/mobilemaster.nar", function(err){
+
+nar.loadFromURL("./vender/mobilemaster.nar", loadHandler.bind(this, nar));
+
+function loadHandler(nar, err){
   if(!!err) return console.error(err.stack);
 
   console.dir(nar);
@@ -17,5 +27,5 @@ nar.loadFromURL("./vender/mobilemaster.nar", function(err){
   var pre = document.createElement("pre")
   pre.appendChild(document.createTextNode(JSON.stringify(nar.install, null, "  ")));
   document.body.appendChild(pre);
-});
+}
 </script>

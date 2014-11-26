@@ -90,3 +90,9 @@ class SurfaceUtil
     img.addEventListener "load", -> callback(null, img)
     img.addEventListener "error", (ev)-> console.error(ev); callback(ev.error, null)
     undefined
+
+if module?.exports?
+  module.exports = SurfaceUtil
+
+if window["Ikagaka"]?
+  window["Ikagaka"]["SurfaceUtil"] = SurfaceUtil
