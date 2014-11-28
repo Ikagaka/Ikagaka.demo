@@ -1,14 +1,11 @@
 var loadHandler;
 
 $(function() {
-  var nar;
-  $("#nar").change(function(ev) {
+  return $("#nar").change(function(ev) {
     var nar;
     nar = new Nar();
     return nar.loadFromBlob(ev.target.files[0], loadHandler.bind(this, nar));
   });
-  nar = new Nar();
-  return nar.loadFromURL("./vendor/nar/akos.nar", loadHandler.bind(this, nar));
 });
 
 loadHandler = function(ghost_nar, err) {

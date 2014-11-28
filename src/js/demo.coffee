@@ -2,8 +2,8 @@ $ ->
   $("#nar").change (ev) ->
     nar = new Nar()
     nar.loadFromBlob(ev.target.files[0], loadHandler.bind(@, nar))
-  nar = new Nar()
-  nar.loadFromURL("./vendor/nar/akos.nar", loadHandler.bind(@, nar))
+#  nar = new Nar()
+#  nar.loadFromURL("./vendor/nar/akos.nar", loadHandler.bind(@, nar))
 loadHandler = (ghost_nar, err) ->
   return console.error(err.stack) if err?
   Promise.all [
