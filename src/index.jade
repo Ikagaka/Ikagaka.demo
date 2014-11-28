@@ -52,13 +52,19 @@ html
 							li: del 標準のプラグインしか含めないMiyoJS
 					dt 栞の制限事項
 					dd
-						ul
+						dl
 							dt 里々
 							dd satori_conf.txtの＠SAORIを書き換えてSAORIを無視して読み込む処理にしてあるので、SAORI関連の動作は色々な不具合を生む可能性があります。
 							dt YAYA
 							dd boostをSTLに置換した影響で、容易に機能を置換できなかった正規表現の「//m,//s,//x」については無効になっています。これらを使用しているゴーストは正しく動かない可能性があります。
 							dt 華和梨7
 							dd 旧通信プロトコルであるSHIORI/2.6を使っての通信となりますので、バグが出やすいかもしれません。
+					dt 既知の不具合
+					dd
+						ul
+							li まあ色々と動きません。
+							li バルーンはしゃべらない場合にもどちらにも出ます。
+							li 一部のエラーは表示されないまま落ちます。20秒くらいたっても何も出なかったらダメだったんだと思ってください。
 			section
 				h2 動作報告のお願い
 				p Githubユーザーの方: <a href="https://github.com/Ikagaka/Ikagaka.demo/issues" target="_blank">Issues</a>

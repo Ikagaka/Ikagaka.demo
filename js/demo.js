@@ -2,9 +2,15 @@ var loadHandler;
 
 $(function() {
   return $("#nar").change(function(ev) {
-    var nar;
+    var err, nar;
     nar = new Nar();
-    return nar.loadFromBlob(ev.target.files[0], loadHandler.bind(this, nar));
+    try {
+      return nar.loadFromBlob(ev.target.files[0], loadHandler.bind(this, nar));
+    } catch (_error) {
+      err = _error;
+      console.error(err, err.stack);
+      return alert(err);
+    }
   });
 });
 

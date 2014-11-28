@@ -1,7 +1,11 @@
 $ ->
   $("#nar").change (ev) ->
     nar = new Nar()
-    nar.loadFromBlob(ev.target.files[0], loadHandler.bind(@, nar))
+    try
+      nar.loadFromBlob(ev.target.files[0], loadHandler.bind(@, nar))
+    catch err
+      console.error(err, err.stack)
+      alert(err)
 #  nar = new Nar()
 #  nar.loadFromURL("./vendor/nar/akos.nar", loadHandler.bind(@, nar))
 loadHandler = (ghost_nar, err) ->
