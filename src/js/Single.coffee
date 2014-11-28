@@ -50,6 +50,9 @@ class Single
 		@run_version()
 		@run_boot()
 		@run_timer()
+	stop: ->
+		$(@named.element).remove()
+		@transaction = null
 	run_version: ->
 		@transaction = @transaction
 		.then =>
@@ -202,13 +205,11 @@ class Single
 					resolve() # through no SHIORI/2.x event
 				method[1] ?= 'Sentence'
 				request.request_line.method = method[0] + ' ' + method[1] # default SHIORI/2.2
-				console.log method
 				if method[1] == 'Sentence' and headers["ID"]? # SHIORI/2.2
 					headers["Event"] = headers["ID"]
 					delete headers["ID"]
 			for key, value of headers
 				request.headers.header[key] = ''+value
-			console.log request
 			@ghost.request ""+request, (err, response) ->
 				if err? then reject(err)
 				else resolve(response)

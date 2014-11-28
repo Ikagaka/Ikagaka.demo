@@ -99,6 +99,11 @@ Single = (function() {
     return this.run_timer();
   };
 
+  Single.prototype.stop = function() {
+    $(this.named.element).remove();
+    return this.transaction = null;
+  };
+
   Single.prototype.run_version = function() {
     return this.transaction = this.transaction.then((function(_this) {
       return function() {
@@ -323,7 +328,6 @@ Single = (function() {
             method[1] = 'Sentence';
           }
           request.request_line.method = method[0] + ' ' + method[1];
-          console.log(method);
           if (method[1] === 'Sentence' && (headers["ID"] != null)) {
             headers["Event"] = headers["ID"];
             delete headers["ID"];
@@ -333,7 +337,6 @@ Single = (function() {
           value = headers[key];
           request.headers.header[key] = '' + value;
         }
-        console.log(request);
         return _this.ghost.request("" + request, function(err, response) {
           if (err != null) {
             return reject(err);
