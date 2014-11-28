@@ -157,7 +157,7 @@ Named = (function() {
     detail = {
       "ID": "OnUserInput",
       "Reference0": id,
-      "Reference1": "" + prompt("UserInput", text)
+      "Reference1": prompt("UserInput", text) || ""
     };
     return this.$named.trigger($.Event("IkagakaSurfaceEvent", {
       detail: detail
@@ -172,7 +172,7 @@ Named = (function() {
     detail = {
       "ID": "OnCommunicate",
       "Reference0": "user",
-      "Reference1": "" + prompt("Communicate", text)
+      "Reference1": prompt("Communicate", text) || ""
     };
     return this.$named.trigger($.Event("IkagakaSurfaceEvent", {
       detail: detail
