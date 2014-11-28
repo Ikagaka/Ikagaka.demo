@@ -120,7 +120,7 @@ Ghost = (function() {
     if (!!directory["kawari.ini"]) {
       return "kawari7";
     }
-    if (!!directory["satori_conf.txt"]) {
+    if (!!directory["satori.dll"]) {
       return "satori";
     }
     if (!!directory["yaya.dll"]) {

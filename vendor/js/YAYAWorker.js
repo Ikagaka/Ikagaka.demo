@@ -14,30 +14,42 @@ shiori.Module.logReadFiles = true;
 shiorihandler = null;
 
 self.onmessage = function(_arg) {
-  var code, data, event, request, response, _ref;
+  var code, data, error, event, request, response, _ref;
   _ref = _arg.data, event = _ref.event, data = _ref.data;
   switch (event) {
     case "load":
       shiorihandler = new NativeShiori(shiori, data, true);
-      code = shiorihandler.load('/home/web_user/');
+      try {
+        code = shiorihandler.load('/home/web_user/');
+      } catch (_error) {
+        error = _error;
+      }
       return self.postMessage({
         event: "loaded",
-        error: null,
+        error: error,
         data: code
       });
     case "request":
       request = data;
-      response = shiorihandler.request(request);
+      try {
+        response = shiorihandler.request(request);
+      } catch (_error) {
+        error = _error;
+      }
       return self.postMessage({
         event: "response",
-        error: null,
+        error: error,
         data: response
       });
     case "unload":
-      code = shiorihandler.unload();
+      try {
+        code = shiorihandler.unload();
+      } catch (_error) {
+        error = _error;
+      }
       return self.postMessage({
         event: "unloaded",
-        error: null,
+        error: error,
         data: code
       });
     default:

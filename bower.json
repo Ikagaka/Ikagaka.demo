@@ -18,7 +18,7 @@
 		"uupaa.xhrproxy.js": "uupaa/XHRProxy.js",
 		"ikagaka.wmdescript.js": "Ikagaka/WMDescript.js",
 		"ikagaka.nar.js": "Ikagaka/Nar.js",
-		"ikagaka.ghost.js": "Ikagaka/Ghost.js",
+		"ikagaka.ghost.js": "",
 		"ikagaka.shell.js": "Ikagaka/Shell.js",
 		"ikagaka.balloon.js": "Ikagaka/Balloon.js",
 		"ikagaka.named.js": "Ikagaka/Named.js",
@@ -36,9 +36,6 @@
 		},
 		"ikagaka.nar.js": {
 			"js": "Nar.js"
-		},
-		"ikagaka.ghost.js": {
-			"js": ["Ghost.js", "KawariWorker.js", "Kawari7Worker.js", "SatoriWorker.js", "YAYAWorker.js", "AYA5Worker.js"]
 		},
 		"ikagaka.shell.js": {
 			"js": ["Shell.js", "Surface.js", "SurfaceUtil.js"]

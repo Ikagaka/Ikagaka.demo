@@ -14,42 +14,54 @@ shiori.Module.logReadFiles = true;
 shiorihandler = null;
 
 self.onmessage = function(_arg) {
-  var code, data, event, filepath, filestr, request, response, uint8arr, _ref;
+  var code, data, error, event, filepath, filestr, request, response, uint8arr, _ref;
   _ref = _arg.data, event = _ref.event, data = _ref.data;
   switch (event) {
     case "load":
-      for (filepath in data) {
-        if (/\bsatori_conf\.txt$/.test(filepath)) {
-          uint8arr = new Uint8Array(data[filepath]);
-          filestr = Encoding.codeToString(Encoding.convert(uint8arr, 'UNICODE', 'SJIS'));
-          if (/＠SAORI/.test(filestr)) {
-            filestr = filestr.replace(/＠SAORI/, '＠NO__SAORI');
-            data[filepath] = new Uint8Array(Encoding.convert(Encoding.stringToCode(filestr), 'SJIS', 'UNICODE'));
-            console.log('REMOVE ＠SAORI');
+      try {
+        for (filepath in data) {
+          if (/\bsatori_conf\.txt$/.test(filepath)) {
+            uint8arr = new Uint8Array(data[filepath]);
+            filestr = Encoding.codeToString(Encoding.convert(uint8arr, 'UNICODE', 'SJIS'));
+            if (/＠SAORI/.test(filestr)) {
+              filestr = filestr.replace(/＠SAORI/, '＠NO__SAORI');
+              data[filepath] = new Uint8Array(Encoding.convert(Encoding.stringToCode(filestr), 'SJIS', 'UNICODE'));
+              console.log('REMOVE ＠SAORI');
+            }
+            break;
           }
-          break;
         }
+        shiorihandler = new NativeShiori(shiori, data, true);
+        code = shiorihandler.load('/home/web_user/');
+      } catch (_error) {
+        error = _error;
       }
-      shiorihandler = new NativeShiori(shiori, data, true);
-      code = shiorihandler.load('/home/web_user/');
       return self.postMessage({
         event: "loaded",
-        error: null,
+        error: error,
         data: code
       });
     case "request":
       request = data;
-      response = shiorihandler.request(request);
+      try {
+        response = shiorihandler.request(request);
+      } catch (_error) {
+        error = _error;
+      }
       return self.postMessage({
         event: "response",
-        error: null,
+        error: error,
         data: response
       });
     case "unload":
-      code = shiorihandler.unload();
+      try {
+        code = shiorihandler.unload();
+      } catch (_error) {
+        error = _error;
+      }
       return self.postMessage({
         event: "unloaded",
-        error: null,
+        error: error,
         data: code
       });
     default:
