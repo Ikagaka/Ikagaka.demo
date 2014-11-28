@@ -216,6 +216,7 @@ class Single
 		.catch @throw
 		.then (response_str) =>
 			unless response_str? then return
+			response_str = response_str.replace /\r\n(?:\r\n)?$/, '\r\n\r\n'
 			parser = new ShioriJK.Shiori.Response.Parser()
 			response = parser.parse(response_str)
 			if response.headers.header.Charset? then @charset = response.headers.header.Charset

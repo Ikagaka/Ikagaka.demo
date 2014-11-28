@@ -351,6 +351,7 @@ Single = (function() {
         if (response_str == null) {
           return;
         }
+        response_str = response_str.replace(/\r\n(?:\r\n)?$/, '\r\n\r\n');
         parser = new ShioriJK.Shiori.Response.Parser();
         response = parser.parse(response_str);
         if (response.headers.header.Charset != null) {
