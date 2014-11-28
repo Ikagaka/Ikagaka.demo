@@ -1,0 +1,69 @@
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+a {
+  color: #06c;
+}
+header {
+  margin: 0.5em;
+  padding: 0.5em;
+  border-bottom: 1px solid #ccc;
+}
+header h1 {
+  margin: 0;
+}
+header h1 a {
+  text-decoration: none;
+}
+article {
+  margin: 0.5em;
+  line-height: 140%;
+}
+article .nar label {
+  display: block;
+  float: left;
+  margin: 0.5em;
+  padding: 0.5em;
+  color: #fff;
+  background: #06f;
+}
+article .nar:after {
+  content: "";
+  display: block;
+  clear: both;
+}
+article h2 {
+  margin: 0.5em 0;
+  padding: 0.5em 0;
+  border-bottom: 1px solid #ddd;
+}
+article p {
+  margin: 0.5em;
+}
+article ul {
+  margin: 0;
+  padding: 0 0 0 1.5em;
+}
+article ul li {
+  margin: 0.5em;
+}
+article dl {
+  margin: 0;
+  padding: 0;
+}
+article dl dt {
+  margin: 0;
+  padding: 0;
+  font-weight: bold;
+}
+article dl dd {
+  margin: 0;
+  padding: 0 0 0 1.5em;
+}
+footer {
+  margin: 0.5em;
+}
