@@ -106,3 +106,4 @@ loadHandler = (ghost_nar, err) ->
     )
   ).catch (err) ->
     console.error(err, err.stack)
+    alert(err)
