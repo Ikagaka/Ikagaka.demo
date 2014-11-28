@@ -62,7 +62,10 @@ loadHandler = (ghost_nar, err) ->
         delete headers["ID"]
       Object.keys(headers).forEach (key) -> request.headers.header[key] = ""+headers[key]
       console.log(""+request)
-      ghost.request(""+request, if callback then callback else responseHandler)
+      try
+        ghost.request(""+request, if callback then callback else responseHandler)
+      catch err
+        console.error err, err.stack
     
     $(named.element)
     .on("IkagakaSurfaceEvent", (ev) -> requestSender(ev.detail))

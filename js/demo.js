@@ -98,7 +98,12 @@ loadHandler = function(ghost_nar, err) {
         return request.headers.header[key] = "" + headers[key];
       });
       console.log("" + request);
-      return ghost.request("" + request, callback ? callback : responseHandler);
+      try {
+        return ghost.request("" + request, callback ? callback : responseHandler);
+      } catch (_error) {
+        err = _error;
+        return console.error(err, err.stack);
+      }
     };
     $(named.element).on("IkagakaSurfaceEvent", function(ev) {
       return requestSender(ev.detail);
