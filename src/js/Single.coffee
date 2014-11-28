@@ -203,8 +203,8 @@ class Single
 			else
 				if method[1] == null
 					resolve() # through no SHIORI/2.x event
-				method[1] ?= 'Sentence'
-				request.request_line.method = method[0] + ' ' + method[1] # default SHIORI/2.2
+				method[1] ?= 'Sentence' # default SHIORI/2.2
+				request.request_line.method = method[0] + ' ' + method[1]
 				if method[1] == 'Sentence' and headers["ID"]? # SHIORI/2.2
 					headers["Event"] = headers["ID"]
 					delete headers["ID"]
