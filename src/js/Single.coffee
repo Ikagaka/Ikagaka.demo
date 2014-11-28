@@ -58,14 +58,12 @@ class Single
 			# support 2.6 or 3.0 not 1.x
 			if response.status_line.code == 200 && response.status_line.version != '3.0'
 				@protocol_version = '2.6'
-				@charset = response.headers.header.Charset
 				@resource.version = response.headers.header.Version
-					name: response.headers.header.ID
-					craftman: response.headers.header.Craftman
-					craftmanw: response.headers.header.Craftman
+				@resource.name = response.headers.header.ID
+				@resource.craftman = response.headers.header.Craftman
+				@resource.craftmanw = response.headers.header.Craftman
 			else
 				@protocol_version = '3.0'
-				@charset = response.headers.header.Charset
 				@send_request ['GET'], @protocol_version,
 					ID: 'version'
 				.then (response) => @resource.version = response.headers.header.Value
@@ -200,21 +198,27 @@ class Single
 			if version == '3.0'
 				request.request_line.method = method[0]
 			else
-				if method[1] == null then return # through no SHIORI/2.x event
-				request.request_line.method = method[0] + ' ' + (method[1] || 'Sentence') # default SHIORI/2.2
+				if method[1] == null
+					resolve() # through no SHIORI/2.x event
+				method[1] ?= 'Sentence'
+				request.request_line.method = method[0] + ' ' + method[1] # default SHIORI/2.2
+				console.log method
 				if method[1] == 'Sentence' and headers["ID"]? # SHIORI/2.2
 					headers["Event"] = headers["ID"]
 					delete headers["ID"]
 			for key, value of headers
 				request.headers.header[key] = ''+value
+			console.log request
 			@ghost.request ""+request, (err, response) ->
 				if err? then reject(err)
 				else resolve(response)
 		.catch @throw
-		.then (response) ->
-			unless response? then return
+		.then (response_str) =>
+			unless response_str? then return
 			parser = new ShioriJK.Shiori.Response.Parser()
-			parser.parse(response)
+			response = parser.parse(response_str)
+			if response.headers.header.Charset? then @charset = response.headers.header.Charset
+			response
 	recv_response: (response) ->
 		new Promise (resolve, reject) =>
 			if response.status_line.code == 200

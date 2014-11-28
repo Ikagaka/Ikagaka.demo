@@ -108,15 +108,12 @@ Single = (function() {
       return function(response) {
         if (response.status_line.code === 200 && response.status_line.version !== '3.0') {
           _this.protocol_version = '2.6';
-          _this.charset = response.headers.header.Charset;
-          return _this.resource.version = response.headers.header.Version({
-            name: response.headers.header.ID,
-            craftman: response.headers.header.Craftman,
-            craftmanw: response.headers.header.Craftman
-          });
+          _this.resource.version = response.headers.header.Version;
+          _this.resource.name = response.headers.header.ID;
+          _this.resource.craftman = response.headers.header.Craftman;
+          return _this.resource.craftmanw = response.headers.header.Craftman;
         } else {
           _this.protocol_version = '3.0';
-          _this.charset = response.headers.header.Charset;
           return _this.send_request(['GET'], _this.protocol_version, {
             ID: 'version'
           }).then(function(response) {
@@ -320,9 +317,13 @@ Single = (function() {
           request.request_line.method = method[0];
         } else {
           if (method[1] === null) {
-            return;
+            resolve();
           }
-          request.request_line.method = method[0] + ' ' + (method[1] || 'Sentence');
+          if (method[1] == null) {
+            method[1] = 'Sentence';
+          }
+          request.request_line.method = method[0] + ' ' + method[1];
+          console.log(method);
           if (method[1] === 'Sentence' && (headers["ID"] != null)) {
             headers["Event"] = headers["ID"];
             delete headers["ID"];
@@ -332,6 +333,7 @@ Single = (function() {
           value = headers[key];
           request.headers.header[key] = '' + value;
         }
+        console.log(request);
         return _this.ghost.request("" + request, function(err, response) {
           if (err != null) {
             return reject(err);
@@ -340,14 +342,20 @@ Single = (function() {
           }
         });
       };
-    })(this))["catch"](this["throw"]).then(function(response) {
-      var parser;
-      if (response == null) {
-        return;
-      }
-      parser = new ShioriJK.Shiori.Response.Parser();
-      return parser.parse(response);
-    });
+    })(this))["catch"](this["throw"]).then((function(_this) {
+      return function(response_str) {
+        var parser, response;
+        if (response_str == null) {
+          return;
+        }
+        parser = new ShioriJK.Shiori.Response.Parser();
+        response = parser.parse(response_str);
+        if (response.headers.header.Charset != null) {
+          _this.charset = response.headers.header.Charset;
+        }
+        return response;
+      };
+    })(this));
   };
 
   Single.prototype.recv_response = function(response) {
