@@ -10,9 +10,7 @@ $ ->
     narloader = new NarLoader()
     Promise.all [
       (new Promise (resolve, reject) =>
-        console.log ev.target.files[0]
         narloader.loadFromBlob ev.target.files[0], (err, nar) ->
-          console.log nar
           if err? then reject(err)
           else resolve(nar)
       ),

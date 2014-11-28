@@ -17,9 +17,7 @@ $(function() {
     return Promise.all([
       new Promise((function(_this) {
         return function(resolve, reject) {
-          console.log(ev.target.files[0]);
           return narloader.loadFromBlob(ev.target.files[0], function(err, nar) {
-            console.log(nar);
             if (err != null) {
               return reject(err);
             } else {
