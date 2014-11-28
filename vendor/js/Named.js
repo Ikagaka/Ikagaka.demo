@@ -156,7 +156,7 @@ Named = (function() {
     }
     detail = {
       "ID": "OnUserInput",
-      "Reference1": id,
+      "Reference0": id,
       "Reference1": "" + prompt("UserInput", text)
     };
     return this.$named.trigger($.Event("IkagakaSurfaceEvent", {
