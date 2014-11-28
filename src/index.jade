@@ -1,0 +1,75 @@
+- var dir = {js: './js', css: './css', vendor: {js: './vendor/js', css: './vendor/css'}}
+doctype html
+html
+	head
+		meta(charset="UTF-8")
+		title Ikagaka Demo
+		link(rel="stylesheet", href="#{dir.css}/index.css")
+		//script(src="#{dir.vendor.js}/es6-shim.js")
+		script(src="#{dir.vendor.js}/bluebird.js")
+		script(src="#{dir.vendor.js}/zepto.js")
+		script(src="#{dir.vendor.js}/underscore.js")
+		script(src="#{dir.vendor.js}/encoding.min.js")
+		script(src="#{dir.vendor.js}/surfaces_txt2yaml.js")
+		script(src="#{dir.vendor.js}/shiorijk.js")
+		script(src="#{dir.vendor.js}/WMDescript.js")
+		script(src="#{dir.vendor.js}/jszip.min.js")
+		script(src="#{dir.vendor.js}/XHRProxy.min.js")
+		script(src="#{dir.vendor.js}/Nar.js")
+		script(src="#{dir.vendor.js}/SurfaceUtil.js")
+		script(src="#{dir.vendor.js}/Surface.js")
+		script(src="#{dir.vendor.js}/Shell.js")
+		script(src="#{dir.vendor.js}/BalloonSurface.js")
+		script(src="#{dir.vendor.js}/Balloon.js")
+		script(src="#{dir.vendor.js}/Scope.js")
+		script(src="#{dir.vendor.js}/Named.js")
+		script(src="#{dir.vendor.js}/SakuraScriptPlayer.js")
+		script(src="#{dir.vendor.js}/Ghost.js")
+		script(src="#{dir.js}/demo.js")
+	body
+		header
+			h1
+				a(href="https://github.com/Ikagaka", target="_blank") 如何か
+			small Ukagaka Web Platform
+		article
+			label
+				| *.nar
+				input#nar(type="file")
+			section
+				h2 動作条件
+				dl
+					dt ブラウザ
+					dd IE10+,Fx?,Chrome
+					dt ゴースト
+					dd
+						ul
+							li 起動時にSAORIをロードしない華和梨
+							li 里々
+							li 起動時にSAORIをロードしないYAYA
+							li 起動時にSAORIをロードしない文5
+							li 起動時にSAORIをロードしない華和梨7
+							li 標準のプラグインしか含めないMiyoJS
+					dt 栞の制限事項
+					dd
+						ul
+							dt YAYA
+							dd boostをSTLに置換した影響で、容易に機能を置換できなかった正規表現の「//m,//s,//x」については無効になっています。これらを使用しているゴーストは正しく動かない可能性があります。
+							dt 華和梨7
+							dd 旧通信プロトコルであるSHIORI/2.6を使っての通信となりますので、バグが出やすいかもしれません。
+			section
+				h2 動作報告のお願い
+				p Githubユーザーの方: <a href="https://github.com/Ikagaka/Ikagaka.demo/issues" target="_blank">Issues</a>
+				p そうでない方・単純な起動報告等: <a href="http://uka.jpn.org/test/read.cgi/unyu/1416718339/l50" target="_blank">如何か開発スレッド</a>
+				p ○○が起動・動作した、動作したが未知っぽい原因でおかしい、その他気づいたことなど、色々お願いします。
+				p できれば一応IE、Fx、Chrome等の開発者ツールでバグの原因をある程度特定してお願いします。
+				ul
+					li 上記制約の元で動作します。
+					li さくらスクリプトは未対応のものが多いですが、対応していそうなやつでバグが出てたらご報告ください。 
+					li シェル関連も読み込み時エラーや動作時エラーがありえます。動作に関しては未実装なものもあります。これについてもお願いします。
+					li 多重起動はできますが、現状は各ゴーストが単体で動いていて相互の管理がなされていない擬似的なものです。これについてのバグ報告はお待ちください。
+					li 「dlopen」が関連するエラーはSAORIが原因ですので報告していただかなくてかまいません。
+					li バグ報告はすぐ処理されるとは限りません。忙しい上にやることは山ほどあるのでものによってはめっちゃ放置がありえます。
+
+		footer
+			small (C) #{(new Date()).getFullYear()} Ikagaka.demo
+

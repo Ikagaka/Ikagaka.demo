@@ -1,0 +1,56 @@
+{
+	"name": "Ikagaka.demo",
+	"dependencies": {
+		"es6-shim": ">= 0.21.0",
+		"bluebird": ">= 2.3.11",
+		"underscore": ">= 1.7.0",
+		"zepto": ">= 1.1.4",
+		"jszip": ">= 2.0.0",
+		"encoding-japanese": "polygonplanet/encoding.js#master",
+		"surfaces_txt2yaml": "",
+		"shiorijk": "",
+		"nativeshiori": "",
+		"kawari.js": "",
+		"kawari7.js": "",
+		"libsatori.js": "",
+		"yaya.js": "",
+		"aya5.js": "",
+		"uupaa.xhrproxy.js": "uupaa/XHRProxy.js",
+		"ikagaka.wmdescript.js": "Ikagaka/WMDescript.js",
+		"ikagaka.nar.js": "Ikagaka/Nar.js",
+		"ikagaka.ghost.js": "Ikagaka/Ghost.js",
+		"ikagaka.shell.js": "Ikagaka/Shell.js",
+		"ikagaka.balloon.js": "Ikagaka/Balloon.js",
+		"ikagaka.named.js": "Ikagaka/Named.js",
+		"ikagaka.sakurascriptplayer.js": "Ikagaka/SakuraScriptPlayer.js"
+	},
+	"exportsOverride": {
+		"encoding-japanese": {
+			"js": "encoding.min.js"
+		},
+		"uupaa.xhrproxy.js": {
+			"js": "lib/XHRProxy.js"
+		},
+		"ikagaka.wmdescript.js": {
+			"js": "src/Descript.js"
+		},
+		"ikagaka.nar.js": {
+			"js": "Nar.js"
+		},
+		"ikagaka.ghost.js": {
+			"js": ["Ghost.js", "KawariWorker.js", "Kawari7Worker.js", "SatoriWorker.js", "YAYAWorker.js", "AYA5Worker.js"]
+		},
+		"ikagaka.shell.js": {
+			"js": ["Shell.js", "Surface.js", "SurfaceUtil.js"]
+		},
+		"ikagaka.balloon.js": {
+			"js": ["Balloon.js", "BalloonSurface.js"]
+		},
+		"ikagaka.named.js": {
+			"js": ["Named.js", "Scope.js"]
+		},
+		"ikagaka.sakurascriptplayer.js": {
+			"js": "SakuraScriptPlayer.js"
+		}
+	}
+}

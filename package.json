@@ -1,63 +1,36 @@
 {
-  "name": "ikagaka.ikagaka.js",
-  "version": "0.0.3",
-  "description": "Ukagaka Web Platform",
-  "url": "https://github.com/ikagaka/Ikagaka.js",
-  "keywords": [
-    "ikagaka",
-    "unstable",
-    "ukagaka"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/ikagaka/Ikagaka.js"
-  },
-  "dependencies": {
-    "es6-shim": "",
-    "bluebird": "",
-    "encoding-japanese": "",
-    "ikagaka.wmdescript.js": "",
-    "jszip": "",
-    "uupaa.xhrproxy.js": "",
-    "ikagaka.nar.js": "",
-    "surfaces_txt2yaml": "",
-    "underscore": "",
-    "jquery": "",
-    "ikagaka.shell.js": "",
-    "ikagaka.named.js": "",
-    "ikagaka.balloon.js": "",
-    "ikagaka.sakurascriptplayer.js": "",
-    "shiorijk": "",
-    "miyojs": "",
-    "parttime": "",
-    "partperiod": "",
-    "miyojs-filter-conditions": "^1.0.0",
-    "miyojs-filter-default_response_headers": "^1.0.0",
-    "miyojs-filter-join": "^2.0.0",
-    "miyojs-filter-no_value": "^1.0.0",
-    "miyojs-filter-property": "^1.2.0",
-    "miyojs-filter-value": "^1.0.0",
-    "miyojs-filter-value_filters": "^1.0.0",
-    "miyojs-filter-variables": "^2.0.1",
-    "miyojs-filter-autotalks": "^1.0.0",
-    "miyojs-filter-talking": "^1.0.0",
-    "miyojs-filter-stash": "^1.0.0",
-    "miyojs-filter-entry_template": "^2.0.0",
-    "miyojs-filter-stash_template": "^1.0.0",
-    "miyojs-filter-child_process": ">= 0.0.1",
-    "ikagaka.ghost.js": ""
-  },
-  "devDependencies": {},
-  "license": "MIT",
-  "readme": "Ikagaka.js\n======================\n[Ukagaka](http://usada.sakura.vg/)  on Web Browser.\n\nDemo\n------\n\nFeatures\n----------------\n\nDependence\n----------\n* https://github.com/jashkenas/coffee-script\n* https://github.com/edvakf/MMD.js\n* http://www6.atwiki.jp/vpvpwiki/pages/204.html\n\nLicense\n----------\nCreative Commons [CC BY-SA 3.0](http://creativecommons.org/licenses/by-sa/3.0/)\n\nCopyright &copy; 2012 Legokichi Duckscallion\n\nAcknowledgements\n----------\n* ls for developing the original Ukagaka software &lt;usada.sakura.vg/&gt;\n* SSP project &lt;ssp.shillest.net/&gt; for high quality Ukagaka clones. (I did not use their code, but studied them extensively)\n\nAuthor\n----------\nLegokichi Duckscallion",
-  "readmeFilename": "readme.md",
-  "gitHead": "a8601763a3b3068435597be7bfc12990cf7121f9",
-  "bugs": {
-    "url": "https://github.com/ikagaka/Ikagaka.js/issues"
-  },
-  "homepage": "https://github.com/ikagaka/Ikagaka.js",
-  "_id": "ikagaka.ikagaka.js@0.0.3",
-  "scripts": {},
-  "_shasum": "15c3eea7ebeb98bd20591f0b1467f2c8843ed30f",
-  "_from": "ikagaka.ikagaka.js@0.0.3"
+	"name": "Ikagaka.demo",
+	"version": "0.1.5",
+	"description": "Ukagaka Web Platform",
+	"url": "https://github.com/ikagaka/Ikagaka.js",
+	"keywords": [
+		"ikagaka",
+		"unstable",
+		"ukagaka"
+	],
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/ikagaka/Ikagaka.js"
+	},
+	"devDependencies": {
+		"grunt": "~0.4.1",
+		"grunt-bower-task": "",
+		"grunt-contrib-csslint": "",
+		"grunt-coffeelint": "",
+		"grunt-simple-mocha": "",
+		"grunt-contrib-jade": "",
+		"grunt-contrib-stylus": "",
+		"grunt-contrib-coffee": "",
+		"grunt-autoprefixer": "",
+		"grunt-contrib-htmlmin": "",
+		"grunt-contrib-cssmin": "",
+		"grunt-contrib-uglify": "",
+		"grunt-contrib-copy": "",
+		"grunt-contrib-clean": "",
+		"grunt-contrib-watch": "",
+		"grunt-contrib-connect": "",
+		"grunt-connect-proxy": "",
+		"jit-grunt": "~0.8.0"
+	},
+	"license": "MIT"
 }

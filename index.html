@@ -1,267 +1,82 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
-<head>
-<meta charset="UTF-8">
-<title>Ikagaka demo</title>
-<script src="./node_modules/es6-shim/es6-shim.min.js"></script>
-<script src="./node_modules/bluebird/js/browser/bluebird.js"></script>
-<script src="./node_modules/encoding-japanese/encoding.js"></script>
-<script src="./node_modules/ikagaka.nar.js/vender/WMDescript.js"></script>
-<script src="./node_modules/ikagaka.nar.js/vender/jszip.min.js"></script>
-<script src="./node_modules/ikagaka.nar.js/vender/XHRProxy.min.js"></script>
-<script src="./node_modules/ikagaka.nar.js/Nar.js"></script>
-<script src="./node_modules/surfaces_txt2yaml/lib/surfaces_txt2yaml.js"></script>
-<script src="./node_modules/underscore/underscore-min.js"></script>
-<script src="./node_modules/jquery/dist/jquery.min.js"></script>
-<script src="./node_modules/ikagaka.shell.js/SurfaceUtil.js"></script>
-<script src="./node_modules/ikagaka.shell.js/Surface.js"></script>
-<script src="./node_modules/ikagaka.shell.js/Shell.js"></script>
-<script src="./node_modules/ikagaka.balloon.js/BalloonSurface.js"></script>
-<script src="./node_modules/ikagaka.balloon.js/Balloon.js"></script>
-<script src="./node_modules/ikagaka.named.js/vender/jquery-ui/core.js"></script>
-<script src="./node_modules/ikagaka.named.js/vender/jquery-ui/widget.js"></script>
-<script src="./node_modules/ikagaka.named.js/vender/jquery-ui/mouse.js"></script>
-<script src="./node_modules/ikagaka.named.js/vender/jquery-ui/draggable.js"></script>
-<script src="./node_modules/ikagaka.named.js/vender/jquery.ui.touch-punch.min.js"></script>
-<script src="./node_modules/ikagaka.named.js/Scope.js"></script>
-<script src="./node_modules/ikagaka.named.js/Named.js"></script>
-<script src="./node_modules/ikagaka.sakurascriptplayer.js/SakuraScriptPlayer.js"></script>
-<script src="./node_modules/ikagaka.ghost.js/Ghost.js"></script>
-<script src="./node_modules/shiorijk/lib/shiorijk.js"></script>
-<style>
-/*
-.surfaceCanvas {
-  animation: breathing 6s linear 0s infinite normal;
-}
-@keyframes breathing {
-  0% { transform: scale(1.0, 1.0); }
-  20% { transform: scale(1.01, 1.02); }
-  50% { transform: scale(1.05, 1.05); }
-  80% { transform: scale(1.01, 1.02); }
-  100% { transform: scale(1.0, 1.0); }
-}*/
-</style>
-<script>
-function load_nar(buffer){
-Promise.all([
-  new Promise(function(resolve, reject){
-    var nar = new Nar();
-//    nar.loadFromURL("./vender/goa_06.00.nar", function(err){
-//   nar.loadFromURL("./vender/lv1_202.nar", function(err){
-//   nar.loadFromURL("./vender/TempleteKarin.nar", function(err){
-//   nar.loadFromURL("./vender/54_set43.nar", function(err){
-//   nar.loadFromURL("./vender/Ageha.nar", function(err){
-   nar.loadFromBuffer(buffer, function(err){
-      if(!!err) return reject(err);
-      Promise.all([
-        new Promise(function(resolve, reject){
-          var shell = new Shell(nar.getDirectory(/shell\/master\//));
-          shell.load(function(err){
-            if(!!err) reject(err); else resolve(shell);
-          });
-        }),
-        new Promise(function(resolve, reject){
-          var ghost = new Ghost(nar.getDirectory(/ghost\/master\//));
-          ghost.load(function(err){
-            if(!!err) reject(err); else resolve(ghost);
-          });
-        })
-      ]).then(resolve).catch(reject);
-    });
-  }),
-  new Promise(function(resolve, reject){
-    var nar = new Nar();
-    nar.loadFromURL("./node_modules/ikagaka.balloon.js/vender/origin.nar", function(err){
-      if(!!err) return reject(err);
-      var balloon = new Balloon(nar.directory);
-      balloon.load(function(err){
-        if(!!err) reject(err); else resolve(balloon);
-      });
-    });
-  })
-]).then(function(tmp){
-  var shell = tmp[0][0];
-  var ghost = tmp[0][1];
-  var balloon = tmp[1];
-  var named = new Named(shell, balloon);
-  var ssp = new SakuraScriptPlayer(named);
-  var version = '2.6';
-  var method = 'GET Version';
-
-  $(named.element)
-    .on("IkagakaSurfaceEvent", function(ev){
-      requestSender(ev.detail);
-    })
-    .appendTo("body");
-
-  requestSender({}, function(err, response){
-    var parsed = responseHandler(err, response);
-    if(parsed.status_line.arguments.code == 200 && parsed.status_line.arguments.version != '3.0'){
-      method = 'GET Sentence';
-    }else{
-      version = '3.0';
-      method = 'GET';
-    }
-    requestSender({
-      ID: "OnBoot",
-      Sender: "SSP",
-      Charset: "Shift_JIS",
-      Reference0: "0"
-    });
-    setInterval(function(){
-      requestSender({
-        ID: "OnSecondChange",
-        Sender: "SSP",
-        Charset: "Shift_JIS",
-        Reference0: "0",
-        Reference1: "0",
-        Reference2: "0",
-        Reference3: "1"
-      });
-    }, 1000);
-  });
-
-
-  function requestSender(headers, callback){
-    var request = new ShioriJK.Message.Request();
-    request.request_line.method = method;
-    request.request_line.protocol = "SHIORI";
-    request.request_line.version = version;
-    request.headers.header["Sender"] = "SSP";
-    request.headers.header["Charset"] = "Shift_JIS";
-    if(version != '3.0' && headers["ID"] != null){
-      headers["Event"] = headers["ID"];
-      delete headers["ID"];
-    }
-    Object.keys(headers).forEach(function(key){
-      request.headers.header[key] = ""+headers[key];
-    });
-    console.log(""+request);
-    ghost.request(""+request, callback ? callback : responseHandler);
-  }
-  function responseHandler(err, response){
-    if(!!err) return console.error(err.stack);
-    console.log(response);
-    var parser = new ShioriJK.Shiori.Response.Parser();
-    parsed = parser.parse(response);
-    if(parsed.status_line.arguments.code === 200){
-      var ss;
-      if(version == '3.0' && typeof parsed.headers.header.Value === "string"){
-        ss = parsed.headers.header.Value;
-      }else if(version != '3.0' && typeof parsed.headers.header.Sentence === "string"){
-        ss = parsed.headers.header.Sentence;
-      }
-      if(ss != null){
-        console.log(ss);
-        ssp.play("\\1\\0"+ss);
-      }
-    }
-    return parsed;
-  }
-
-}).catch(function(err){ alert(err); console.error(err, err.stack); });
-}
-
-function handleFileSelect(event){
-	var file = event.target.files[0];
-	var reader = new FileReader();
-	reader.onload = function(event){
-		var nar = event.target.result;
-		load_nar(nar);
-	};
-	reader.readAsArrayBuffer(file);
-}
-
-window.onload = function(){
-	document.getElementById('nar').addEventListener('change', handleFileSelect, false);
-};
-</script>
-</head>
-<body>
-<h1>如何かテスト</h1>
-<p>
-<a href="https://github.com/Ikagaka" target="_blank">Webベースウェア「如何か」</a>(に組み込まれている拙作SHIORIモジュール)のテスト。
-</p>
-<p>
-IE10+,Fx?,Chrome対応。
-</p>
-<p>
-<label>
-<strong>
-narを選択してください。
-<input type='file' id="nar">
-</strong>
-</label>
-</p>
-<p>
-起動時にSAORIをロードしない華和梨・里々・YAYA・文5・華和梨7のnarか、標準のプラグインしか含めないMiyoJSなら読めるかも。
-</p>
-<p>
-里々は起動時にSAORIをロードするやつがやたら多いのでむしゃくしゃしてSAORIロードを強制的になかったことにしたりしてますので、場合によっては起動しても問題が多いかも。
-</p>
-<h2><strong>起動</strong>確認が取れたゴースト</h2>
-<h3>華和梨</h3>
-<ul>
-<li><a href="http://khmix.sakura.ne.jp/ghost.shtml" target="_blank">GOA Lilith</a></li>
-<li><a href="http://spoon.if.land.to/wiki/index.php?%B2%DA%CF%C2%CD%FC%A5%C6%A5%F3%A5%D7%A5%EC%A1%BC%A5%C8Ghost%A1%D8%A3%CC%A3%F6%A3%B1(%A4%EC%A4%D9%A4%EB%A4%A4%A4%C1)%A1%D9" target="_blank">れべるいち</a></li>
-<li><a href="http://rimuhamate.sakura.ne.jp/KarinDocument/" target="_blank">かりん</a></li>
-<li><a href="http://priest.so.land.to/ghost/wish.html" target="_blank">wish</a></li>
-<li><a href="http://paripari.if.land.to/" target="_blank">パリパリ</a></li>
-<li><a href="http://www11.ocn.ne.jp/~feconf/" target="_blank">ブリュンヒルデ</a></li>
-<li><a href="https://dl.dropboxusercontent.com/u/28020825/kuro8/index.html" target="_blank">偽黒姉・偽ひより</a></li>
-<li><a href="http://ms.shillest.net/shiories.xhtml" target="_blank">SHIORIES</a></li>
-<li><a href="http://www.vector.co.jp/soft/win95/edu/se342728.html" target="_blank">化学っ娘ノエリ</a></li>
-</ul>
-<h3>里々</h3>
-<ul>
-<li><a href="http://www.kuromi.jp/nanika/nanika_unknown.html" target="_blank">里々スクリプト学習ゴースト learning.nar</a></li>
-<li><a href="http://sgmh.sakura.ne.jp/tcg/kit/" target="_blank">ゴーストキット</a></li>
-<li><a href="http://1boshi.eek.jp/ghost.html" target="_blank">アコとなかまたちver2.0</a></li>
-<li><a href="http://1boshi.eek.jp/ghost14.html" target="_blank">神無月コトシロくん</a></li>
-<li><a href="http://haka.sakura.ne.jp/simcity/" target="_blank">偽シムシティ(シェルの問題で表示が不正確)</a></li>
-<li><a href="http://yuidoku.hotcom-web.com/" target="_blank">よろず請け負います</a></li>
-<li><a href="http://review.sakura.ne.jp/?id=324" target="_blank">わはー＆危い</a></li>
-<li><a href="http://priest.so.land.to/ghost/ghost.html" target="_blank">黒桜。</a></li>
-</ul>
-<h3>MiyoJS</h3>
-<ul>
-<li><a href="http://narazaka.net/c/ukagaka/dl.cgi?f=net.narazaka.miyoforwebbw.nar&d=ghost/net.narazaka.miyoforwebbw" target="_blank">MiyoPreview機能限定版</a></li>
-</ul>
-<h3>YAYA</h3>
-<p>現在boostをSTLに置換した影響で、容易に機能を置換できなかった正規表現の「//m,//s,//x」については無効になっています。これらを使用しているゴーストは正しく動かない可能性があります。</p>
-<ul>
-<li><a href="http://ms.shillest.net/yayame.xhtml" target="_blank">紺野ややめ</a></li>
-<li><a href="http://ssp.shillest.net/" target="_blank">Emily/Phase4.5(SSPデフォルトゴースト)</a></li>
-<li><a href="http://www.hironet.jp/ukagaka/ghost/others/index.html" target="_blank">まりか</a></li>
-<li><a href="http://railway.nanika.jp/ghost.html#RAILWAY" target="_blank">レチハルカ</a></li>
-<li><a href="http://cohal.sakura.ne.jp/ghost.htm#mikiandhuskie" target="_blank">ミキ＆はすきい</a></li>
-</ul>
-<h3>文5</h3>
-<p>文4以下の系列は動きません。</p>
-<ul>
-<li><a href="http://umeici.onjn.jp/" target="_blank">紺野あやめ by 文5.8</a></li>
-<li><a href="http://unvollendet.web.fc2.com/ukagaka/ukagaka.htm" target="_blank">Taromati</a></li>
-</ul>
-<h3>華和梨7</h3>
-<p>旧通信プロトコルであるSHIORI/2.6を使っての通信となりますので、バグが出やすいかもしれません。</p>
-<ul>
-<li>．さくら 20%</li>
-</ul>
-<h2>動作報告</h2>
-<p>起動・動作・バグ報告を募集します。</p>
-<p>○○が起動・動作した、動作したが未知っぽい原因でおかしい、その他気づいたことなど、色々お願いします。</p>
-<p>できれば一応IE、Fx、Chrome等の開発者ツールでバグの原因をある程度特定してお願いします。</p>
-<p>Githubユーザーの方は<a href="https://github.com/Ikagaka/Ikagaka.demo/issues" target="_blank">Issues</a>へ。</p>
-<p>そうでない方、あるいは単純な起動報告等は<a href="http://uka.jpn.org/test/read.cgi/unyu/1416718339/l50" target="_blank">如何か開発スレッド</a>へ。</p>
-<ul>
-<li>起動時にSAORIをロードしない華和梨・里々・YAYA・文5・華和梨7・MiyoJSを使用したゴーストが動作します。</li>
-<li>華和梨・里々・文5・華和梨7はSAORI対応を除くフル機能、YAYAは現状では正規表現オプションに制約を持つ機能対応となっています。この制約の元でおかしなところがあればご報告ください。</li>
-<li>ただし華和梨7は旧通信プロトコルであるSHIORI/2.6を使っての通信となるのでそれ由来のバグがあるかもしれません。</li>
-<li>さくらスクリプトは未対応のものが多いですが、対応していそうなやつでバグが出てたらご報告ください。 </li>
-<li>シェル関連も読み込み時エラーや動作時エラーがありえます。動作に関しては未実装なものもあります。これについてもお願いします。</li>
-<li>多重起動はできますが、現状は各ゴーストが単体で動いていて相互の管理がなされていない擬似的なものです。これについてのバグ報告はお待ちください。</li>
-<li>「dlopen」が関連するエラーはSAORIが原因ですので報告していただかなくてかまいません。</li>
-<li>バグ報告はすぐ処理されるとは限りません。忙しい上にやることは山ほどあるのでものによってはめっちゃ放置がありえます。</li>
-</ul>
-</body>
+  <head>
+    <meta charset="UTF-8">
+    <title>Ikagaka Demo</title>
+    <link rel="stylesheet" href="./css/index.css">
+    <!--script(src="#{dir.vendor.js}/es6-shim.js")-->
+    <script src="./vendor/js/bluebird.js"></script>
+    <script src="./vendor/js/zepto.js"></script>
+    <script src="./vendor/js/underscore.js"></script>
+    <script src="./vendor/js/encoding.min.js"></script>
+    <script src="./vendor/js/surfaces_txt2yaml.js"></script>
+    <script src="./vendor/js/shiorijk.js"></script>
+    <script src="./vendor/js/WMDescript.js"></script>
+    <script src="./vendor/js/jszip.min.js"></script>
+    <script src="./vendor/js/XHRProxy.min.js"></script>
+    <script src="./vendor/js/Nar.js"></script>
+    <script src="./vendor/js/SurfaceUtil.js"></script>
+    <script src="./vendor/js/Surface.js"></script>
+    <script src="./vendor/js/Shell.js"></script>
+    <script src="./vendor/js/BalloonSurface.js"></script>
+    <script src="./vendor/js/Balloon.js"></script>
+    <script src="./vendor/js/Scope.js"></script>
+    <script src="./vendor/js/Named.js"></script>
+    <script src="./vendor/js/SakuraScriptPlayer.js"></script>
+    <script src="./vendor/js/Ghost.js"></script>
+    <script src="./js/demo.js"></script>
+  </head>
+  <body>
+    <header>
+      <h1><a href="https://github.com/Ikagaka" target="_blank">如何か</a></h1><small>Ukagaka Web Platform</small>
+    </header>
+    <article>
+      <label>*.nar
+        <input id="nar" type="file">
+      </label>
+      <section>
+        <h2>動作条件</h2>
+        <dl>
+          <dt>ブラウザ</dt>
+          <dd>IE10+,Fx?,Chrome</dd>
+          <dt>ゴースト</dt>
+          <dd>
+            <ul>
+              <li>起動時にSAORIをロードしない華和梨</li>
+              <li>里々</li>
+              <li>起動時にSAORIをロードしないYAYA</li>
+              <li>起動時にSAORIをロードしない文5</li>
+              <li>起動時にSAORIをロードしない華和梨7</li>
+              <li>標準のプラグインしか含めないMiyoJS</li>
+            </ul>
+          </dd>
+          <dt>栞の制限事項</dt>
+          <dd>
+            <ul>
+              <dt>YAYA</dt>
+              <dd>boostをSTLに置換した影響で、容易に機能を置換できなかった正規表現の「//m,//s,//x」については無効になっています。これらを使用しているゴーストは正しく動かない可能性があります。</dd>
+              <dt>華和梨7</dt>
+              <dd>旧通信プロトコルであるSHIORI/2.6を使っての通信となりますので、バグが出やすいかもしれません。</dd>
+            </ul>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>動作報告のお願い</h2>
+        <p>Githubユーザーの方: <a href="https://github.com/Ikagaka/Ikagaka.demo/issues" target="_blank">Issues</a></p>
+        <p>そうでない方・単純な起動報告等: <a href="http://uka.jpn.org/test/read.cgi/unyu/1416718339/l50" target="_blank">如何か開発スレッド</a></p>
+        <p>○○が起動・動作した、動作したが未知っぽい原因でおかしい、その他気づいたことなど、色々お願いします。</p>
+        <p>できれば一応IE、Fx、Chrome等の開発者ツールでバグの原因をある程度特定してお願いします。</p>
+        <ul>
+          <li>上記制約の元で動作します。</li>
+          <li>さくらスクリプトは未対応のものが多いですが、対応していそうなやつでバグが出てたらご報告ください。 </li>
+          <li>シェル関連も読み込み時エラーや動作時エラーがありえます。動作に関しては未実装なものもあります。これについてもお願いします。</li>
+          <li>多重起動はできますが、現状は各ゴーストが単体で動いていて相互の管理がなされていない擬似的なものです。これについてのバグ報告はお待ちください。</li>
+          <li>「dlopen」が関連するエラーはSAORIが原因ですので報告していただかなくてかまいません。</li>
+          <li>バグ報告はすぐ処理されるとは限りません。忙しい上にやることは山ほどあるのでものによってはめっちゃ放置がありえます。</li>
+        </ul>
+      </section>
+    </article>
+    <footer><small>(C) 2014 Ikagaka.demo</small></footer>
+  </body>
 </html>
