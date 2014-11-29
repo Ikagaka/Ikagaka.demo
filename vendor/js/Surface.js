@@ -335,7 +335,9 @@
           return setTimeout(callback);
         };
       })(this))["catch"](function(err) {
-        return console.error(err.stack);
+        if (!!err) {
+          return console.error(err.stack);
+        }
       });
     };
 

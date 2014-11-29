@@ -9,6 +9,7 @@
       this.playing = false;
       this.breakTid = 0;
       this.timeCritical = false;
+      this.wait_default = 80;
     }
 
     SakuraScriptPlayer.prototype.play = function(script, listener) {
@@ -105,14 +106,28 @@
         }, {
           re: /^\\q\[([^\]]+)\]/,
           match: function(group) {
-            var id, title, _ref;
-            _ref = group[1].split(",", 2), title = _ref[0], id = _ref[1];
-            return this.named.scope().blimp().choice(title, id);
+            var blimp;
+            blimp = this.named.scope().blimp();
+            return blimp.choice.apply(blimp, splitargs(group[1]));
+          }
+        }, {
+          re: /^\\__q\[([^\]]+)\]/,
+          match: function(group) {
+            var blimp;
+            blimp = this.named.scope().blimp();
+            return blimp.choiceBegin.apply(blimp, splitargs(group[1]));
+          }
+        }, {
+          re: /^\\__q/,
+          match: function(group) {
+            return this.named.scope().blimp().choiceEnd();
           }
         }, {
           re: /^\\_a\[([^\]]+)\]/,
           match: function(group) {
-            return this.named.scope().blimp().anchorBegin(group[1]);
+            var blimp;
+            blimp = this.named.scope().blimp();
+            return blimp.anchorBegin.apply(blimp, splitargs(group[1]));
           }
         }, {
           re: /^\\_a/,
@@ -184,7 +199,50 @@
             })(this)), 0);
           }
         }, {
+          re: /^\\_u\[0x(\d+)\]/,
+          match: function(group) {
+            this.wait = this.wait_default;
+            return this.named.scope().blimp().talk('&#x' + group[1] + ';');
+          }
+        }, {
+          re: /^\\_m\[0x(\d+)\]/,
+          match: function(group) {
+            this.wait = this.wait_default;
+            return this.named.scope().blimp().talk('&#x' + group[1] + ';');
+          }
+        }, {
+          re: /^\\&\[([^\]]+)\]/,
+          match: function(group) {
+            this.wait = this.wait_default;
+            return this.named.scope().blimp().talk('&' + group[1] + ';');
+          }
+        }, {
           re: /^\\[45Cx67+v8]/,
+          match: function(group) {
+            return this.named.scope().blimp().talk(group[0]);
+          }
+        }, {
+          re: /^\\_[ns+V]/,
+          match: function(group) {
+            return this.named.scope().blimp().talk(group[0]);
+          }
+        }, {
+          re: /^\\__[qt]/,
+          match: function(group) {
+            return this.named.scope().blimp().talk(group[0]);
+          }
+        }, {
+          re: /^\\[f8j]\[.*?\]/,
+          match: function(group) {
+            return this.named.scope().blimp().talk(group[0]);
+          }
+        }, {
+          re: /^\\_[bl!?s]\[.*?\]/,
+          match: function(group) {
+            return this.named.scope().blimp().talk(group[0]);
+          }
+        }, {
+          re: /^\\__[wq]\[.*?\]/,
           match: function(group) {
             return this.named.scope().blimp().talk(group[0]);
           }
@@ -194,8 +252,14 @@
             return this.named.scope().blimp().talk(group[0]);
           }
         }, {
+          re: /^\\!_[v]\[.*?\]/,
+          match: function(group) {
+            return this.named.scope().blimp().talk(group[0]);
+          }
+        }, {
           re: /^./,
           match: function(group) {
+            this.wait = this.wait_default;
             return this.named.scope().blimp().talk(group[0]);
           }
         }
@@ -214,7 +278,7 @@
             }, 10000);
             return;
           }
-          _this.wait = 80;
+          _this.wait = 0;
           tag = tags.find(function(tag) {
             return tag.re.test(script);
           });
