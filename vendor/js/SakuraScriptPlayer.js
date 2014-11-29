@@ -11,13 +11,13 @@
       this.timeCritical = false;
     }
 
-    SakuraScriptPlayer.prototype.play = function(script, listener, context) {
+    SakuraScriptPlayer.prototype.play = function(script, listener) {
       var recur, splitargs, tags;
       if (listener == null) {
         listener = {};
       }
       if (this.playing && this.timeCritical) {
-        this.trigger_all('reject', listener, context);
+        this.trigger_all('reject', listener);
         return;
       }
       this["break"]();
@@ -75,12 +75,12 @@
         }, {
           re: /^\\i(\d)/,
           match: function(group) {
-            return this.named.scope().surface().playAnimation(Number(group[1]));
+            return this.named.scope().surface().play(Number(group[1]));
           }
         }, {
           re: /^\\i\[(\d+)\]/,
           match: function(group) {
-            return this.named.scope().surface().playAnimation(Number(group[1]));
+            return this.named.scope().surface().play(Number(group[1]));
           }
         }, {
           re: /^\\w(\d+)/,
@@ -149,7 +149,7 @@
             this.named.scopes.forEach(function(scope) {
               return scope.surface().yenE();
             });
-            return this.trigger_all('script:destroy', listener, context);
+            return this.trigger_all('script:halt', listener);
           }
         }, {
           re: /^\\\\/,
@@ -179,7 +179,7 @@
           match: function(group) {
             return setTimeout(((function(_this) {
               return function() {
-                return _this.trigger_all('script:raise', listener, context, splitargs(group[1]));
+                return _this.trigger_all('script:raise', listener, splitargs(group[1]));
               };
             })(this)), 0);
           }
@@ -207,9 +207,9 @@
             _this.playing = false;
           }
           if (!_this.playing) {
-            _this.trigger_all('finish', listener, context);
+            _this.trigger_all('finish', listener);
             _this.breakTid = setTimeout(function() {
-              _this.trigger_all('close', listener, context);
+              _this.trigger_all('close', listener);
               return _this["break"]();
             }, 10000);
             return;
@@ -240,7 +240,7 @@
       });
     };
 
-    SakuraScriptPlayer.prototype.on = function(event, callback, context) {
+    SakuraScriptPlayer.prototype.on = function(event, callback) {
       if (!((event != null) && (callback != null))) {
         throw Error('on() event and callback required');
       }
@@ -250,35 +250,26 @@
       if (this.listener[event] == null) {
         this.listener[event] = [];
       }
-      if (!this.listener[event].find(function(e) {
-        return e.callback === callback && e.context === context;
-      })) {
-        this.listener[event].push({
-          callback: callback,
-          context: context || null
-        });
+      if (-1 === this.listener[event].indexOf(callback)) {
+        this.listener[event].push(callback);
       }
       return this;
     };
 
-    SakuraScriptPlayer.prototype.off = function(event, callback, context) {
+    SakuraScriptPlayer.prototype.off = function(event, callback) {
       var index;
-      if ((event != null) && ((callback != null) || context !== void 0)) {
+      if ((event != null) && (callback != null)) {
         if (this.listener[event] != null) {
-          index = this.listener[event].findIndex(function(e) {
-            return ((callback != null) && e.callback === callback) && (context !== void 0 && e.context === context);
-          });
+          index = this.listener[event].indexOf(callback);
           if (index !== -1) {
             this.listener[event].splice(index, 1);
           }
         }
       } else if (event != null) {
         delete this.listener[event];
-      } else if ((callback != null) || context !== void 0) {
+      } else if (callback != null) {
         for (event in this.listener) {
-          index = this.listener[event].findIndex(function(e) {
-            return ((callback != null) && e.callback === callback) && (context !== void 0 && e.context === context);
-          });
+          index = this.listener[event].indexOf(callback);
           if (index !== -1) {
             this.listener[event].splice(index, 1);
           }
@@ -290,28 +281,35 @@
     };
 
     SakuraScriptPlayer.prototype.trigger = function() {
-      var args, elem, event, _i, _len, _ref, _ref1;
+      var args, callback, event, _i, _len, _ref, _ref1;
       event = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
       if (((_ref = this.listener) != null ? _ref[event] : void 0) != null) {
         _ref1 = this.listener[event];
         for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-          elem = _ref1[_i];
+          callback = _ref1[_i];
           setTimeout((function() {
-            return elem.callback.apply(elem.context || this, args);
+            return callback.apply(this, args);
           }), 0);
         }
       }
       return this;
     };
 
-    SakuraScriptPlayer.prototype.trigger_all = function() {
-      var args, context, event, listener;
-      event = arguments[0], listener = arguments[1], context = arguments[2], args = 4 <= arguments.length ? __slice.call(arguments, 3) : [];
+    SakuraScriptPlayer.prototype.trigger_local = function() {
+      var args, event, listener;
+      event = arguments[0], listener = arguments[1], args = 3 <= arguments.length ? __slice.call(arguments, 2) : [];
       if ((listener != null ? listener[event] : void 0) != null) {
         setTimeout((function() {
-          return listener[event].apply(context || this, args);
+          return listener[event].apply(this, args);
         }), 0);
       }
+      return this;
+    };
+
+    SakuraScriptPlayer.prototype.trigger_all = function() {
+      var args, event, listener;
+      event = arguments[0], listener = arguments[1], args = 3 <= arguments.length ? __slice.call(arguments, 2) : [];
+      this.trigger_local.apply(this, [event, listener].concat(args));
       this.trigger.apply(this, [event].concat(args));
       return this;
     };
