@@ -22,7 +22,7 @@
 		"ikagaka.shell.js": "Ikagaka/Shell.js",
 		"ikagaka.balloon.js": "Ikagaka/Balloon.js",
 		"ikagaka.named.js": "Ikagaka/Named.js",
-		"ikagaka.sakurascriptplayer.js": "Ikagaka/SakuraScriptPlayer.js"
+		"ikagaka.sakurascriptplayer.js": ""
 	},
 	"exportsOverride": {
 		"encoding-japanese": {
@@ -41,10 +41,7 @@
 			"js": ["Balloon.js", "BalloonSurface.js"]
 		},
 		"ikagaka.named.js": {
-			"js": ["Named.js", "Scope.js"]
-		},
-		"ikagaka.sakurascriptplayer.js": {
-			"js": "SakuraScriptPlayer.js"
+			"js": ["NamedManager.js", "Named.js", "Scope.js"]
 		}
 	}
 }

@@ -1,19 +1,19 @@
-var NarLoader, Promise, Single;
+var Nanika, NarLoader, Promise;
 
 Promise = this.Promise;
 
 if (this.Ikagaka != null) {
   NarLoader = this.Ikagaka.NarLoader || this.NarLoader;
-  Single = this.Ikagaka.Single || this.Single;
+  Nanika = this.Ikagaka.Nanika || this.Nanika;
 } else {
   NarLoader = this.NarLoader;
-  Single = this.Single;
+  Nanika = this.Nanika;
 }
 
 $(function() {
   return $("#nar").change(function(ev) {
     var narloader;
-    narloader = new NarLoader();
+    narloader = new Nar.Loader();
     return Promise.all([
       new Promise((function(_this) {
         return function(resolve, reject) {
@@ -37,18 +37,37 @@ $(function() {
         };
       })(this))
     ]).then(function(_arg) {
-      var balloon_nar, ghost_nar, single;
+      var balloon_nar, ghost_nar;
       ghost_nar = _arg[0], balloon_nar = _arg[1];
-      single = new Single();
-      return single.load_nar(ghost_nar, balloon_nar, {
-        path: "./vendor/js/",
-        logging: true
-      }).then(function() {
-        return single.run('body');
+      return new Promise(function(resolve, reject) {
+        var balloon;
+        balloon = new Balloon(balloon_nar.directory);
+        return balloon.load(function(err) {
+          if (err != null) {
+            return reject(err);
+          } else {
+            return resolve([ghost_nar, balloon]);
+          }
+        });
       });
     })["catch"](function(err) {
       console.error(err, err.stack);
       return alert(err);
+    }).then(function(_arg) {
+      var balloon, ghost_nar, namedmanager, nanika, nanikamanager;
+      ghost_nar = _arg[0], balloon = _arg[1];
+      console.log(balloon);
+      nanikamanager = {
+        get_balloon: function() {
+          return balloon;
+        }
+      };
+      namedmanager = new NamedManager();
+      $(namedmanager.element).appendTo("body");
+      nanika = new Nanika(nanikamanager, namedmanager, ghost_nar);
+      nanika.options.path = "./vendor/js/";
+      nanika.options.logging = true;
+      return nanika.load();
     });
   });
 });

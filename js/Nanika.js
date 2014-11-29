@@ -1,8 +1,9 @@
-var Named, Promise, SakuraScriptPlayer, Single;
+var NamedManager, Nanika, Promise, SakuraScriptPlayer,
+  __slice = [].slice;
 
 Promise = this.Promise;
 
-Named = this.Named;
+NamedManager = this.NamedManager;
 
 SakuraScriptPlayer = this.SakuraScriptPlayer;
 
@@ -12,99 +13,101 @@ if (typeof require !== "undefined" && require !== null) {
   }
 }
 
-Single = (function() {
-  function Single() {}
+Nanika = (function() {
+  function Nanika(nanikamanager, namedmanager, nar) {
+    this.nanikamanager = nanikamanager;
+    this.namedmanager = namedmanager;
+    this.nar = nar;
+    this.charset = 'UTF-8';
+    this.sender = 'Ikagaka';
+    this.options = {};
+  }
 
-  Single.prototype.error = function(err) {
+  Nanika.prototype.error = function(err) {
     return console.error(err.stack);
   };
 
-  Single.prototype["throw"] = function(err) {
+  Nanika.prototype["throw"] = function(err) {
     if (typeof alert === "function") {
       alert(err);
     }
     throw err;
   };
 
-  Single.prototype.load_nar = function(ghost_nar, balloon_nar, options) {
+  Nanika.prototype.load = function() {
     return Promise.all([
-      new Promise(function(resolve, reject) {
-        var ghost;
-        ghost = new Ghost(ghost_nar.getDirectory(/ghost\/master\//));
-        ghost.path = options.path;
-        ghost.logging = options.logging;
-        return ghost.load(function(err) {
-          if (err != null) {
-            return reject(err);
-          } else {
-            return resolve(ghost);
-          }
-        });
-      }), new Promise(function(resolve, reject) {
-        var shell;
-        shell = new Shell(ghost_nar.getDirectory(/shell\/master\//));
-        return shell.load(function(err) {
-          if (err != null) {
-            return reject(err);
-          } else {
-            return resolve(shell);
-          }
-        });
-      }), new Promise(function(resolve, reject) {
-        var balloon;
-        balloon = new Balloon(balloon_nar.directory);
-        return balloon.load(function(err) {
-          if (err != null) {
-            return reject(err);
-          } else {
-            return resolve(balloon);
-          }
-        });
-      })
+      new Promise((function(_this) {
+        return function(resolve, reject) {
+          _this.ghost = new Ghost(_this.nar.getDirectory(/ghost\/master\//));
+          _this.ghost.path = _this.options.path;
+          _this.ghost.logging = _this.options.logging;
+          return _this.ghost.load(function(err) {
+            if (err != null) {
+              return reject(err);
+            } else {
+              return resolve();
+            }
+          });
+        };
+      })(this)), new Promise((function(_this) {
+        return function(resolve, reject) {
+          var shell;
+          shell = new Shell(_this.nar.getDirectory(/shell\/master\//));
+          return shell.load(function(err) {
+            if (err != null) {
+              return reject(err);
+            } else {
+              _this.shells = {
+                master: shell
+              };
+              return resolve();
+            }
+          });
+        };
+      })(this))
     ]).then((function(_this) {
-      return function(_arg) {
-        var balloon, ghost, shell;
-        ghost = _arg[0], shell = _arg[1], balloon = _arg[2];
-        return _this.load(ghost, shell, balloon);
+      return function() {
+        var balloon;
+        _this.resource = {};
+        balloon = _this.nanikamanager.get_balloon();
+        return _this.materialize(_this.shells['master'], balloon);
+      };
+    })(this)).then((function(_this) {
+      return function() {
+        _this.transaction = new Promise(function(resolve) {
+          return resolve();
+        });
+        _this.set_named_handler();
+        _this.set_ssp_handler();
+        _this.run_version();
+        _this.run_boot();
+        return _this.run_timer();
       };
     })(this))["catch"](this["throw"]);
   };
 
-  Single.prototype.load = function(ghost, shell, balloon) {
-    this.ghost = ghost;
-    this.shell = shell;
-    this.balloon = balloon;
-    this.named = new Named(this.shell, this.balloon);
-    this.ssp = new SakuraScriptPlayer(this.named);
-    this.resource = {};
-    this.charset = 'UTF-8';
-    return this.sender = 'Ikagaka';
-  };
-
-  Single.prototype.run = function(dom) {
-    this.transaction = new Promise(function(resolve) {
-      return resolve();
-    });
-    $(this.named.element).on("IkagakaSurfaceEvent", (function(_this) {
-      return function(ev) {
-        return _this.transaction = _this.transaction.then(function() {
-          return _this.send_request(['GET', 'Sentence'], _this.protocol_version, ev.detail).then(function(response) {
-            return _this.recv_response(response);
-          });
-        });
+  Nanika.prototype.halt = function() {
+    this.transaction = null;
+    this.vanish();
+    return this.ghost.unload((function(_this) {
+      return function(err) {
+        return typeof _this.onhalt === "function" ? _this.onhalt() : void 0;
       };
-    })(this)).appendTo(dom);
-    this.run_version();
-    this.run_boot();
-    return this.run_timer();
+    })(this));
   };
 
-  Single.prototype.stop = function() {
-    $(this.named.element).remove();
-    return this.transaction = null;
+  Nanika.prototype.materialize = function(shell, balloon) {
+    this.namedid = this.namedmanager.materialize(shell, balloon);
+    this.named = this.namedmanager.named(this.namedid);
+    return this.ssp = new SakuraScriptPlayer(this.named);
   };
 
-  Single.prototype.run_version = function() {
+  Nanika.prototype.vanish = function() {
+    this.ssp.off();
+    return this.namedmanager.vanish(this.namedid);
+  };
+
+  Nanika.prototype.run_version = function() {
     return this.transaction = this.transaction.then((function(_this) {
       return function() {
         return _this.send_request(['GET', 'Version'], '2.6', {});
@@ -147,7 +150,7 @@ Single = (function() {
     })(this));
   };
 
-  Single.prototype.run_boot = function() {
+  Nanika.prototype.run_boot = function() {
     return this.transaction = this.transaction.then((function(_this) {
       return function() {
         if (_this.protocol_version === '3.0') {
@@ -166,18 +169,18 @@ Single = (function() {
               Reference0: _this.ghost.descript['name'],
               Reference1: _this.ghost.descript['sakura.name'],
               Reference2: _this.ghost.descript['kero.name'],
-              Reference3: _this.shell.descript['name'],
-              Reference5: _this.balloon.descript['name']
+              Reference3: _this.named.shell.descript['name'],
+              Reference5: _this.named.balloon.descript['name']
             });
           }).then(function() {
             return _this.send_request(['NOTIFY'], _this.protocol_version, {
               ID: "OnNotifyBalloonInfo",
-              Reference0: _this.balloon.descript['name']
+              Reference0: _this.named.balloon.descript['name']
             });
           }).then(function() {
             return _this.send_request(['NOTIFY'], _this.protocol_version, {
               ID: "OnNotifyShellInfo",
-              Reference0: _this.shell.descript['name']
+              Reference0: _this.named.shell.descript['name']
             });
           });
         } else {
@@ -213,14 +216,14 @@ Single = (function() {
       return function() {
         return _this.send_request(['NOTIFY', null], _this.protocol_version, {
           ID: "installedballoonname",
-          Reference0: _this.balloon.descript['name']
+          Reference0: _this.named.balloon.descript['name']
         });
       };
     })(this)).then((function(_this) {
       return function() {
         return _this.send_request(['NOTIFY', null], _this.protocol_version, {
           ID: "installedshellname",
-          Reference0: _this.shell.descript['name']
+          Reference0: _this.named.shell.descript['name']
         });
       };
     })(this)).then((function(_this) {
@@ -269,7 +272,7 @@ Single = (function() {
     })(this));
   };
 
-  Single.prototype.run_timer = function() {
+  Nanika.prototype.run_timer = function() {
     var id_OnMinuteChange, id_OnSecondChange;
     id_OnSecondChange = setInterval((function(_this) {
       return function() {
@@ -309,7 +312,48 @@ Single = (function() {
     })(this), 60000);
   };
 
-  Single.prototype.send_request = function(method, version, headers) {
+  Nanika.prototype.set_named_handler = function() {
+    return $(this.named.element).on("IkagakaSurfaceEvent", (function(_this) {
+      return function(ev) {
+        return _this.transaction = _this.transaction.then(function() {
+          return _this.send_request(['GET', 'Sentence'], _this.protocol_version, ev.detail).then(function(response) {
+            return _this.recv_response(response);
+          });
+        });
+      };
+    })(this));
+  };
+
+  Nanika.prototype.set_ssp_handler = function() {
+    this.ssp.on('script:raise', (function(_this) {
+      return function(_arg) {
+        var id, references;
+        id = _arg[0], references = 2 <= _arg.length ? __slice.call(_arg, 1) : [];
+        return _this.transaction = _this.transaction.then(function() {
+          var headers, index, reference, _i, _len;
+          headers = {
+            ID: id
+          };
+          for (index = _i = 0, _len = references.length; _i < _len; index = ++_i) {
+            reference = references[index];
+            headers["Reference" + index] = reference;
+          }
+          return _this.send_request(['GET'], _this.protocol_version, headers);
+        }).then(function(response) {
+          return _this.recv_response(response);
+        });
+      };
+    })(this));
+    return this.ssp.on('script:halt', (function(_this) {
+      return function(_arg) {
+        var id, references;
+        id = _arg[0], references = 2 <= _arg.length ? __slice.call(_arg, 1) : [];
+        return _this.halt();
+      };
+    })(this));
+  };
+
+  Nanika.prototype.send_request = function(method, version, headers) {
     return new Promise((function(_this) {
       return function(resolve, reject) {
         var key, request, value;
@@ -362,7 +406,7 @@ Single = (function() {
     })(this));
   };
 
-  Single.prototype.recv_response = function(response) {
+  Nanika.prototype.recv_response = function(response) {
     return new Promise((function(_this) {
       return function(resolve, reject) {
         var ss;
@@ -382,7 +426,7 @@ Single = (function() {
     })(this))["catch"](this.error);
   };
 
-  Single.prototype.string_header = function(version) {
+  Nanika.prototype.string_header = function(version) {
     if (version === '3.0') {
       return 'Value';
     } else {
@@ -390,14 +434,14 @@ Single = (function() {
     }
   };
 
-  return Single;
+  return Nanika;
 
 })();
 
 if ((typeof module !== "undefined" && module !== null ? module.exports : void 0) != null) {
-  module.exports = Single;
+  module.exports = Nanika;
 } else if (this.Ikagaka != null) {
-  this.Ikagaka.Single = Single;
+  this.Ikagaka.Nanika = Nanika;
 } else {
-  this.Single = Single;
+  this.Nanika = Nanika;
 }

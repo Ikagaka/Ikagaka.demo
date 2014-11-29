@@ -1,58 +1,61 @@
 Promise = @Promise
-Named = @Named
+NamedManager = @NamedManager
 SakuraScriptPlayer = @SakuraScriptPlayer
 if require?
 	Promise ?= require('bluebird')
 
-class Single
-	constructor: () ->
+class Nanika
+	constructor: (@nanikamanager, @namedmanager, @nar) ->
+		@charset = 'UTF-8'
+		@sender = 'Ikagaka'
+		@options = {}
 	error: (err) ->
 		console.error(err.stack)
 	throw: (err) ->
 		alert?(err)
 		throw err
-	load_nar: (ghost_nar, balloon_nar, options) ->
+	load: ->
 		Promise.all [
-			(new Promise (resolve, reject) ->
-				ghost = new Ghost(ghost_nar.getDirectory(/ghost\/master\//))
-				ghost.path = options.path
-				ghost.logging = options.logging
-				ghost.load (err) ->
-					if err? then reject(err) else resolve(ghost)
-			),
-			(new Promise (resolve, reject) ->
-				shell = new Shell(ghost_nar.getDirectory(/shell\/master\//))
-				shell.load (err) ->
-					if err? then reject(err) else resolve(shell)
-			),
-			(new Promise (resolve, reject) ->
-				balloon = new Balloon(balloon_nar.directory)
-				balloon.load (err) ->
-					if err? then reject(err) else resolve(balloon)
+			(new Promise (resolve, reject) =>
+				@ghost = new Ghost(@nar.getDirectory(/ghost\/master\//))
+				@ghost.path = @options.path
+				@ghost.logging = @options.logging
+				@ghost.load (err) ->
+					if err? then reject(err) else resolve()
+			)
+			(new Promise (resolve, reject) =>
+				shell = new Shell(@nar.getDirectory(/shell\/master\//))
+				shell.load (err) =>
+					if err? then reject(err)
+					else
+						@shells = {master: shell}
+						resolve()
 			)
 		]
-		.then ([ghost, shell, balloon]) => @load ghost, shell, balloon
+		.then =>
+			@resource = {}
+			balloon = @nanikamanager.get_balloon() # draft
+			@materialize(@shells['master'], balloon)
+		.then =>
+			@transaction = new Promise (resolve) -> resolve()
+			@set_named_handler()
+			@set_ssp_handler()
+			@run_version()
+			@run_boot()
+			@run_timer()
 		.catch @throw
-	load: (@ghost, @shell, @balloon) ->
-		@named = new Named(@shell, @balloon)
-		@ssp = new SakuraScriptPlayer(@named)
-		@resource = {}
-		@charset = 'UTF-8'
-		@sender = 'Ikagaka'
-	run: (dom) ->
-		@transaction = new Promise (resolve) -> resolve()
-		$(@named.element)
-		.on "IkagakaSurfaceEvent", (ev) =>
-			@transaction = @transaction.then =>
-				@send_request ['GET', 'Sentence'], @protocol_version, ev.detail
-				.then (response) => @recv_response(response)
-		.appendTo(dom)
-		@run_version()
-		@run_boot()
-		@run_timer()
-	stop: ->
-		$(@named.element).remove()
+	halt: ->
 		@transaction = null
+		@vanish()
+		@ghost.unload (err) =>
+			@onhalt?()
+	materialize: (shell, balloon) ->
+		@namedid = @namedmanager.materialize(shell, balloon)
+		@named = @namedmanager.named(@namedid)
+		@ssp = new SakuraScriptPlayer(@named)
+	vanish: () ->
+		@ssp.off()
+		@namedmanager.vanish(@namedid)
 	run_version: ->
 		@transaction = @transaction
 		.then =>
@@ -102,20 +105,20 @@ class Single
 						Reference0: @ghost.descript['name']
 						Reference1: @ghost.descript['sakura.name']
 						Reference2: @ghost.descript['kero.name']
-						Reference3: @shell.descript['name']
+						Reference3: @named.shell.descript['name']
 						#Reference4: '/path/to/shell'
-						Reference5: @balloon.descript['name']
+						Reference5: @named.balloon.descript['name']
 						#Reference6: '/path/to/balloon'
 				.then =>
 					@send_request ['NOTIFY'], @protocol_version,
 						ID: "OnNotifyBalloonInfo"
-						Reference0: @balloon.descript['name']
+						Reference0: @named.balloon.descript['name']
 						#Reference1: '/path/to/balloon'
 						#Reference2: サーフェス番号リスト [キャラID＋コロン＋カンマ区切り＋スペース] 例：0:0,1,2,3 1:0,1
 				.then =>
 					@send_request ['NOTIFY'], @protocol_version,
 						ID: "OnNotifyShellInfo"
-						Reference0: @shell.descript['name']
+						Reference0: @named.shell.descript['name']
 						#Reference1: '/path/to/shell'
 						#Reference2: サーフェス番号リスト [カンマ区切り] 例：0,1,2,3,4,5,6,7,8,10,11
 				# OnNotifyUserInfo
@@ -139,11 +142,11 @@ class Single
 		.then =>
 			@send_request ['NOTIFY', null], @protocol_version,
 				ID: "installedballoonname"
-				Reference0: @balloon.descript['name']
+				Reference0: @named.balloon.descript['name']
 		.then =>
 			@send_request ['NOTIFY', null], @protocol_version,
 				ID: "installedshellname"
-				Reference0: @shell.descript['name']
+				Reference0: @named.shell.descript['name']
 		# uniqueid
 		.then =>
 			@send_request ['GET', 'String'], @protocol_version,
@@ -191,6 +194,22 @@ class Single
 					Reference3: "1"
 			.then (response) => @recv_response(response)
 		, 60000
+	set_named_handler: () ->
+		$(@named.element).on "IkagakaSurfaceEvent", (ev) => # temporary
+			@transaction = @transaction.then =>
+				@send_request ['GET', 'Sentence'], @protocol_version, ev.detail
+				.then (response) => @recv_response(response)
+	set_ssp_handler: () ->
+		@ssp.on 'script:raise', ([id, references...]) =>
+			@transaction = @transaction
+			.then =>
+				headers = ID: id
+				for reference, index in references
+					headers["Reference" + index] = reference
+				@send_request ['GET'], @protocol_version, headers
+			.then (response) => @recv_response(response)
+		@ssp.on 'script:halt', ([id, references...]) =>
+			@halt()
 	send_request: (method, version, headers) ->
 		new Promise (resolve, reject) =>
 			request = new ShioriJK.Message.Request()
@@ -238,8 +257,8 @@ class Single
 		else 'String' # SHIORI/2.5
 
 if module?.exports?
-  module.exports = Single
+  module.exports = Nanika
 else if @Ikagaka?
-  @Ikagaka.Single = Single
+  @Ikagaka.Nanika = Nanika
 else
-  @Single = Single
+  @Nanika = Nanika

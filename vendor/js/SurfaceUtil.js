@@ -47,38 +47,32 @@
           console.error(elements[0]);
       }
       this.composeElements(elements.slice(1));
-      return void 0;
     };
 
     SurfaceUtil.prototype.base = function(part, x, y) {
       SurfaceUtil.clear(this.cnv);
       this.overlayfast(part, x, y);
-      return void 0;
     };
 
     SurfaceUtil.prototype.overlayfast = function(part, x, y) {
       this.ctx.globalCompositeOperation = "source-over";
       this.ctx.drawImage(part, x, y);
-      return void 0;
     };
 
     SurfaceUtil.prototype.interpolate = function(part, x, y) {
       this.ctx.globalCompositeOperation = "destination-over";
       this.ctx.drawImage(part, x, y);
-      return void 0;
     };
 
     SurfaceUtil.prototype.replace = function(part, x, y) {
       this.ctx.clearRect(x, y, part.width, part.height);
       this.overlayfast(part, x, y);
-      return void 0;
     };
 
     SurfaceUtil.prototype.init = function(cnv) {
       this.cnv.width = cnv.width;
       this.cnv.height = cnv.height;
       this.overlayfast(cnv, 0, 0);
-      return void 0;
     };
 
     SurfaceUtil.choice = function(ary) {
@@ -87,7 +81,6 @@
 
     SurfaceUtil.clear = function(cnv) {
       cnv.width = cnv.width;
-      return void 0;
     };
 
     SurfaceUtil.copy = function(cnv) {
@@ -131,7 +124,6 @@
         console.error(ev);
         return callback(ev.error, null);
       });
-      return void 0;
     };
 
     return SurfaceUtil;

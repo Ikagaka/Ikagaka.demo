@@ -40,7 +40,7 @@
         };
       }
       mergedSurfaces = Shell.mergeSurfacesAndSurfacesFiles(surfaces, this.directory);
-      return Shell.loadSurfaces(mergedSurfaces, (function(_this) {
+      Shell.loadSurfaces(mergedSurfaces, (function(_this) {
         return function(err, loadedSurfaces) {
           return Shell.loadElements(loadedSurfaces, _this.directory, function(err, loadedElmSurfaces) {
             if (!!err) {
@@ -54,11 +54,8 @@
       })(this));
     };
 
-    Shell.prototype.attachSurface = function(canvas, scopeId, surfaceId, callback) {
-      var hits, srfs, type, _ref3, _ref4, _surfaceId;
-      if (callback == null) {
-        callback = function() {};
-      }
+    Shell.prototype.attachSurface = function(canvas, scopeId, surfaceId) {
+      var hit, keys, srfs, type, _ref3, _ref4, _surfaceId;
       type = scopeId === 0 ? "sakura" : "kero";
       if (Array.isArray((_ref3 = this.surfaces.aliases) != null ? (_ref4 = _ref3[type]) != null ? _ref4[surfaceId] : void 0 : void 0)) {
         _surfaceId = SurfaceUtil.choice(this.surfaces.aliases[type][surfaceId]);
@@ -66,20 +63,23 @@
         _surfaceId = surfaceId;
       }
       srfs = this.surfaces.surfaces;
-      hits = Object.keys(srfs).filter(function(name) {
+      keys = Object.keys(srfs);
+      hit = keys.find(function(name) {
         return srfs[name].is === _surfaceId;
       });
-      if (hits.length === 0) {
+      if (!hit) {
         return null;
       }
-      return new Surface(canvas, scopeId, hits[0], this.surfaces, callback);
+      return new Surface(canvas, scopeId, hit, this.surfaces);
     };
 
     Shell.createBases = function(surfaces) {
-      var srfs;
+      var keys, srfs;
       srfs = surfaces.surfaces;
-      Object.keys(srfs).forEach(function(name) {
-        var baseSurface, cnv, elms, sortedElms, srfutil;
+      keys = Object.keys(srfs);
+      keys.forEach(function(name) {
+        var baseSurface, cnv, elms, mapped, sortedElms, srfutil, _keys;
+        delete srfs[name].file;
         if (!srfs[name].baseSurface) {
           cnv = document.createElement("canvas");
           cnv.width = 0;
@@ -90,7 +90,8 @@
           return;
         }
         elms = srfs[name].elements;
-        sortedElms = Object.keys(elms).map(function(key) {
+        _keys = Object.keys(elms);
+        mapped = _keys.map(function(key) {
           return {
             is: elms[key].is,
             x: elms[key].x,
@@ -98,7 +99,8 @@
             canvas: elms[key].canvas,
             type: elms[key].type
           };
-        }).sort(function(elmA, elmB) {
+        });
+        sortedElms = mapped.sort(function(elmA, elmB) {
           if (elmA.is > elmB.is) {
             return 1;
           } else {
@@ -109,17 +111,19 @@
         srfutil = new SurfaceUtil(baseSurface);
         srfutil.composeElements(sortedElms);
         srfs[name].baseSurface = baseSurface;
-        return delete srfs[name].file;
+        return delete srfs[name].elements;
       });
       return surfaces;
     };
 
     Shell.loadSurfaces = function(surfaces, callback) {
-      var promises, srfs;
+      var hits, keys, promises, srfs;
       srfs = surfaces.surfaces;
-      promises = Object.keys(srfs).filter(function(name) {
+      keys = Object.keys(srfs);
+      hits = keys.filter(function(name) {
         return !!srfs[name].file;
-      }).map(function(name) {
+      });
+      promises = hits.map(function(name) {
         return new Promise(function(resolve, reject) {
           return setTimeout(function() {
             var buffer, url;
@@ -144,33 +148,38 @@
         console.error(err, err.stack);
         return callback(err, null);
       });
-      return void 0;
     };
 
     Shell.loadElements = function(surfaces, directory, callback) {
-      var promises, srfs;
+      var elmName, hits, keys, promises, srfName, srfs, _i, _j, _keys, _len, _len1;
       srfs = surfaces.surfaces;
-      promises = Object.keys(srfs).filter(function(name) {
+      keys = Object.keys(srfs);
+      hits = keys.filter(function(name) {
         return !!srfs[name].elements;
-      }).reduce((function(arr, srfName) {
-        return arr.concat(Object.keys(srfs[srfName].elements).map(function(elmName) {
-          var elm;
-          elm = srfs[srfName].elements[elmName];
-          return new Promise(function(resolve, reject) {
+      });
+      promises = [];
+      for (_i = 0, _len = hits.length; _i < _len; _i++) {
+        srfName = hits[_i];
+        _keys = Object.keys(srfs[srfName].elements);
+        for (_j = 0, _len1 = _keys.length; _j < _len1; _j++) {
+          elmName = _keys[_j];
+          promises.push(new Promise(function(resolve, reject) {
+            var elm, file, path, type, x, y;
+            elm = srfs[srfName].elements[elmName];
+            type = elm.type, file = elm.file, x = elm.x, y = elm.y;
+            keys = Object.keys(directory);
+            path = keys.find(function(path) {
+              var a, b;
+              a = path.toLowerCase();
+              b = file.toLowerCase();
+              return a === b || a === (b + ".png").toLowerCase();
+            });
+            if (!path) {
+              return reject(new Error("element " + file + " is not found"));
+            }
             return setTimeout(function() {
-              var buffer, file, hits, type, url, x, y, _file;
-              type = elm.type, file = elm.file, x = elm.x, y = elm.y;
-              hits = Object.keys(directory).filter(function(path) {
-                var a, b;
-                a = path.toLowerCase();
-                b = file.toLowerCase();
-                return a === b || a === b + ".png".toLowerCase();
-              });
-              if (hits.length === 0) {
-                return reject(new Error("element " + file + " is not found"));
-              }
-              _file = hits[hits.length - 1];
-              buffer = (directory[_file] || directory[_file + ".png"]).asArrayBuffer();
+              var buffer, url;
+              buffer = (directory[path] || directory[path + ".png"]).asArrayBuffer();
               url = URL.createObjectURL(new Blob([buffer], {
                 type: "image/png"
               }));
@@ -183,61 +192,66 @@
                 return resolve();
               });
             });
-          });
-        }));
-      }), []);
+          }));
+        }
+      }
       Promise.all(promises).then(function() {
         return callback(null, surfaces);
       })["catch"](function(err) {
         console.error(err, err.stack);
         return callback(err, null);
       });
-      return void 0;
     };
 
     Shell.mergeSurfacesAndSurfacesFiles = function(surfaces, directory) {
-      var srfs;
+      var file, hits, keys, n, name, srfs, tuples, _i, _len, _ref3;
       srfs = surfaces.surfaces;
-      return Object.keys(directory).filter(function(filename) {
+      keys = Object.keys(directory);
+      hits = keys.filter(function(filename) {
         return /^surface\d+\.png$/i.test(filename);
-      }).map(function(filename) {
+      });
+      tuples = hits.map(function(filename) {
         return [Number((/^surface(\d+)\.png$/i.exec(filename) || ["", "-1"])[1]), directory[filename]];
-      }).reduce((function(surfaces, _arg) {
-        var cnv, file, n, name;
-        n = _arg[0], file = _arg[1];
-        name = "surface" + n;
-        if (!srfs[name]) {
-          srfs[name] = {
-            is: n
-          };
-        }
+      });
+      for (_i = 0, _len = tuples.length; _i < _len; _i++) {
+        _ref3 = tuples[_i], n = _ref3[0], file = _ref3[1];
+        name = Object.keys(srfs).find(function(name) {
+          return srfs[name].is === n;
+        });
+        name = name || "surface" + n;
+        srfs[name] = srfs[name] || {
+          is: n
+        };
         srfs[name].file = file;
-        cnv = document.createElement("canvas");
-        cnv.width = 0;
-        cnv.height = 0;
-        srfs[name].baseSurface = cnv;
-        return surfaces;
-      }), surfaces);
+        srfs[name].baseSurface = document.createElement("canvas");
+        srfs[name].baseSurface.width = 0;
+        srfs[name].baseSurface.height = 0;
+      }
+      return surfaces;
     };
 
     Shell.parseSurfaces = function(text) {
-      var data;
-      data = SurfacesTxt2Yaml.txt_to_data(text, {
+      var keys, srfs, surfaces;
+      surfaces = SurfacesTxt2Yaml.txt_to_data(text, {
         compatible: 'ssp-lazy'
       });
-      data.surfaces = Object.keys(data.surfaces).reduce((function(obj, name) {
-        if (typeof data.surfaces[name].is !== "undefined") {
-          obj[name] = data.surfaces[name];
+      srfs = surfaces.surfaces;
+      keys = Object.keys(srfs);
+      surfaces.surfaces = keys.reduce((function(obj, name) {
+        if (typeof srfs[name].is !== "undefined") {
+          obj[name] = srfs[name];
         }
-        if (Array.isArray(data.surfaces[name].base)) {
-          data.surfaces[name].base.forEach(function(key) {
-            return $.extend(true, data.surfaces[name], data.surfaces[key]);
+        if (Array.isArray(srfs[name].base)) {
+          srfs[name].base.forEach(function(key) {
+            return $.extend(true, srfs[name], srfs[key]);
           });
         }
         return obj;
       }), {});
-      return data;
+      return surfaces;
     };
+
+    Shell.SurfaceUtil = SurfaceUtil;
 
     return Shell;
 
