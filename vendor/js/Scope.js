@@ -118,6 +118,7 @@
           return function() {
             var a, args, argv, id, index, _i, _id, _len;
             id = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
+            _this.$blimp.show();
             _id = $(document.createElement("div")).text(id).html();
             a = $("<a />").addClass("ikagaka-anchor").attr("data-id", _id).attr("data-argc", args.length);
             for (index = _i = 0, _len = args.length; _i < _len; index = ++_i) {
@@ -136,6 +137,7 @@
           return function() {
             var a, args, argv, id, index, text, _i, _id, _len, _text;
             text = arguments[0], id = arguments[1], args = 3 <= arguments.length ? __slice.call(arguments, 2) : [];
+            _this.$blimp.show();
             _text = $(document.createElement("div")).text(text).html();
             _id = $(document.createElement("div")).text(id).html();
             a = $("<a />").addClass("ikagaka-choice").html(_text).attr("data-id", _id).attr("data-argc", args.length);
@@ -150,6 +152,7 @@
           return function() {
             var a, args, argv, id, index, _i, _id, _len;
             id = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
+            _this.$blimp.show();
             _id = $(document.createElement("div")).text(id).html();
             a = $("<a />").addClass("ikagaka-choice").attr("data-id", _id).attr("data-argc", args.length);
             for (index = _i = 0, _len = args.length; _i < _len; index = ++_i) {

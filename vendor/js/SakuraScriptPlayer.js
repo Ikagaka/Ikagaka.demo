@@ -136,7 +136,7 @@
             return this.named.scope().blimp().choiceEnd();
           }
         }, {
-          re: /^\\q\d+\[([^\]]+)\]\[([^\]]+)\]/,
+          re: /^\\q(?:\d+)?\[([^\]]+)\]\[([^\]]+)\]/,
           match: function(group, state) {
             state.has_choice = true;
             this.named.scope().blimp().choice(group[2], group[1]);
@@ -339,7 +339,8 @@
       this.timeCritical = false;
       clearTimeout(this.breakTid);
       this.named.scopes.forEach(function(scope) {
-        return scope.blimp(-1).clear();
+        scope.blimp(0).clear();
+        return scope.blimp(-1);
       });
     };
 
