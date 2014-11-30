@@ -102,7 +102,14 @@
         }, {
           re: /^\\\_s/,
           match: function(group, state) {
-            return state.synchronized = !state.synchronized;
+            return state.synchronized = state.synchronized ? false : [0, 1];
+          }
+        }, {
+          re: /^\\\_s\[([^\]]+)\]/,
+          match: function(group, state) {
+            return state.synchronized = state.synchronized ? false : splitargs(group[1]).map(function(n) {
+              return Number(n);
+            });
           }
         }, {
           re: /^\\t/,
@@ -297,8 +304,9 @@
             if (!state.synchronized) {
               return this.named.scope().blimp().talk(group[0]);
             } else {
-              return this.named.scopes.forEach(function(scope) {
-                return scope.blimp().talk(group[0]);
+              return state.synchronized.forEach(function(scopeid) {
+                var _ref;
+                return (_ref = this.named.scopes[scopeid]) != null ? _ref.blimp().talk(group[0]) : void 0;
               });
             }
           }
@@ -309,6 +317,10 @@
         synchronized: false,
         has_choice: false
       };
+      this.named.scopes.forEach(function(scope) {
+        scope.blimp(0);
+        return scope.blimp(-1);
+      });
       (recur = (function(_this) {
         return function() {
           var tag, timeout;
@@ -351,8 +363,7 @@
       this.timeCritical = false;
       clearTimeout(this.breakTid);
       this.named.scopes.forEach(function(scope) {
-        scope.blimp(0).clear();
-        return scope.blimp(-1);
+        return scope.blimp(-1).clear();
       });
     };
 
