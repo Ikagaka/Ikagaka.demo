@@ -30,7 +30,6 @@ $ ->
 			console.error(err, err.stack)
 			alert(err)
 		.then ([ghost_nar, balloon]) ->
-			console.log balloon
 			nanikamanager = get_balloon: -> balloon
 			namedmanager = new NamedManager()
 			$(namedmanager.element).appendTo("body")

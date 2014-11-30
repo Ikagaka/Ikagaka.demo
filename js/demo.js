@@ -56,7 +56,6 @@ $(function() {
     }).then(function(_arg) {
       var balloon, ghost_nar, namedmanager, nanika, nanikamanager;
       ghost_nar = _arg[0], balloon = _arg[1];
-      console.log(balloon);
       nanikamanager = {
         get_balloon: function() {
           return balloon;

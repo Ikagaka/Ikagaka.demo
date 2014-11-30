@@ -373,8 +373,15 @@ Nanika = (function() {
           }
           request.request_line.method = method[0] + ' ' + method[1];
           if (method[1] === 'Sentence' && (headers["ID"] != null)) {
-            headers["Event"] = headers["ID"];
-            delete headers["ID"];
+            if (headers["ID"] === "OnCommunicate") {
+              request.headers.header["Sender"] = headers["Reference0"];
+              request.headers.header["Sentence"] = headers["Reference1"];
+              request.headers.header["Age"] = "0";
+              headers = {};
+            } else {
+              headers["Event"] = headers["ID"];
+              delete headers["ID"];
+            }
           }
         }
         for (key in headers) {

@@ -224,9 +224,15 @@ class Nanika
 					resolve() # through no SHIORI/2.x event
 				method[1] ?= 'Sentence' # default SHIORI/2.2
 				request.request_line.method = method[0] + ' ' + method[1]
-				if method[1] == 'Sentence' and headers["ID"]? # SHIORI/2.2
-					headers["Event"] = headers["ID"]
-					delete headers["ID"]
+				if method[1] == 'Sentence' and headers["ID"]?
+					if headers["ID"] == "OnCommunicate" # SHIORI/2.3b
+						request.headers.header["Sender"] = headers["Reference0"]
+						request.headers.header["Sentence"] = headers["Reference1"]
+						request.headers.header["Age"] = "0"
+						headers = {}
+					else # SHIORI/2.2
+						headers["Event"] = headers["ID"]
+						delete headers["ID"]
 			for key, value of headers
 				request.headers.header[key] = ''+value
 			@ghost.request ""+request, (err, response) ->
