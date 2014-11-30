@@ -37,12 +37,12 @@
         {
           re: /^\\[h0]/,
           match: function(group, state) {
-            return this.named.scope(0).blimp(0);
+            return this.named.scope(0);
           }
         }, {
           re: /^\\[u1]/,
           match: function(group, state) {
-            return this.named.scope(1).blimp(0);
+            return this.named.scope(1);
           }
         }, {
           re: /^\\p\[(\d+)\]/,
@@ -193,6 +193,15 @@
           }
         }, {
           re: /^\\\!\[\s*open\s*,\s*communicatebox\s*\]/,
+          match: function(group, state) {
+            return setTimeout(((function(_this) {
+              return function() {
+                return _this.named.openCommunicateBox();
+              };
+            })(this)), 2000);
+          }
+        }, {
+          re: /^\\__c/,
           match: function(group, state) {
             return setTimeout(((function(_this) {
               return function() {
