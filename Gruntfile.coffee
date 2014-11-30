@@ -162,6 +162,11 @@ module.exports = (grunt) ->
 				dest: '<%= dir.build %>/'
 		# clean
 		clean:
+			bower:
+				src: [
+					'bower_components'
+					'<%= dir.src %>/<%= dir.type.vendor %>'
+				]
 			dist:
 				src: [
 					'<%= dir.dist %>/<%= dir.type.html %>/**/*.html'
@@ -215,6 +220,10 @@ module.exports = (grunt) ->
 		'copy:image'
 		'copy:bin'
 		'copy:vendor'
+	]
+	grunt.registerTask 'bower:update', [
+		'clean:bower'
+		'bower:install'
 	]
 #	grunt.registerTask 'build', [
 #		'default'
