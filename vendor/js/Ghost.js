@@ -208,7 +208,7 @@
           return !!dir["kawari.ini"];
         },
         imports: ["encoding.min.js", "nativeshiori.js", "kawari7.js"],
-        worker: [Ghost.nativeShioriWorkerScript, ["Kawari7Shiori"]]
+        worker: [Ghost.nativeShioriWorkerScript, ["Kawari7"]]
       },
       satori: {
         detect: function(dir) {
