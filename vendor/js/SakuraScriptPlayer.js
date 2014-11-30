@@ -100,6 +100,11 @@
             return state.quick = !state.quick;
           }
         }, {
+          re: /^\\\_s/,
+          match: function(group, state) {
+            return state.synchronized = !state.synchronized;
+          }
+        }, {
           re: /^\\t/,
           match: function(group, state) {
             return this.timeCritical = true;
@@ -289,12 +294,19 @@
           re: /^./,
           match: function(group, state) {
             state.wait = this.wait_default;
-            return this.named.scope().blimp().talk(group[0]);
+            if (!state.synchronized) {
+              return this.named.scope().blimp().talk(group[0]);
+            } else {
+              return this.named.scopes.forEach(function(scope) {
+                return scope.blimp().talk(group[0]);
+              });
+            }
           }
         }
       ];
       state = {
         quick: false,
+        synchronized: false,
         has_choice: false
       };
       (recur = (function(_this) {
