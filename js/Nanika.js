@@ -39,7 +39,7 @@ Nanika = (function() {
       new Promise((function(_this) {
         return function(resolve, reject) {
           _this.ghost = new Ghost(_this.nar.getDirectory(/ghost\/master\//));
-          _this.ghost.path = _this.options.path;
+          _this.ghost.path += _this.options.append_path;
           _this.ghost.logging = _this.options.logging;
           return _this.ghost.load(function(err) {
             if (err != null) {

@@ -18,7 +18,7 @@ class Nanika
 		Promise.all [
 			(new Promise (resolve, reject) =>
 				@ghost = new Ghost(@nar.getDirectory(/ghost\/master\//))
-				@ghost.path = @options.path
+				@ghost.path += @options.append_path
 				@ghost.logging = @options.logging
 				@ghost.load (err) ->
 					if err? then reject(err) else resolve()

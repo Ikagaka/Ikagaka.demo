@@ -65,7 +65,7 @@ $(function() {
       namedmanager = new NamedManager();
       $(namedmanager.element).appendTo("body");
       nanika = new Nanika(nanikamanager, namedmanager, ghost_nar);
-      nanika.options.path = "./vendor/js/";
+      nanika.options.append_path = "./vendor/js/";
       nanika.options.logging = true;
       return nanika.load();
     });

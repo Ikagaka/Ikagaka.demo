@@ -123,6 +123,12 @@
             return this.named.scope().blimp().choiceEnd();
           }
         }, {
+          re: /^\\q\d+\[([^\]]+)\]\[([^\]]+)\]/,
+          match: function(group) {
+            this.named.scope().blimp().choice(group[2], group[1]);
+            return this.named.scope().blimp().br();
+          }
+        }, {
           re: /^\\_a\[([^\]]+)\]/,
           match: function(group) {
             var blimp;
@@ -150,7 +156,7 @@
             return this.named.scope().blimp().clear();
           }
         }, {
-          re: /^\\e/,
+          re: /^\\[ez]/,
           match: function(group) {
             this.playing = false;
             return this.named.scopes.forEach(function(scope) {
