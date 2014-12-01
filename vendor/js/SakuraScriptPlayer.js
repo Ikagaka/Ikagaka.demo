@@ -304,10 +304,12 @@
             if (!state.synchronized) {
               return this.named.scope().blimp().talk(group[0]);
             } else {
-              return state.synchronized.forEach(function(scopeid) {
-                var _ref;
-                return (_ref = this.named.scopes[scopeid]) != null ? _ref.blimp().talk(group[0]) : void 0;
-              });
+              return state.synchronized.forEach((function(_this) {
+                return function(scopeid) {
+                  var _ref;
+                  return (_ref = _this.named.scopes[scopeid]) != null ? _ref.blimp().talk(group[0]) : void 0;
+                };
+              })(this));
             }
           }
         }
