@@ -17,17 +17,23 @@ class Nanika
 	load: ->
 		Promise.all [
 			(new Promise (resolve, reject) =>
+				console.log "initialize ghost"
 				@ghost = new Ghost(@nar.getDirectory(/ghost\/master\//))
 				@ghost.path += @options.append_path
 				@ghost.logging = @options.logging
 				@ghost.load (err) ->
-					if err? then reject(err) else resolve()
+					if err? then reject(err)
+					else
+						console.log "ghost loaded"
+						resolve()
 			)
 			(new Promise (resolve, reject) =>
+				console.log "initialize shell"
 				shell = new Shell(@nar.getDirectory(/shell\/master\//))
 				shell.load (err) =>
 					if err? then reject(err)
 					else
+						console.log "shell loaded"
 						@shells = {master: shell}
 						resolve()
 			)
@@ -36,6 +42,7 @@ class Nanika
 			@resource = {}
 			balloon = @nanikamanager.get_balloon() # draft
 			@materialize(@shells['master'], balloon)
+			console.log "materialize"
 		.then =>
 			@transaction = new Promise (resolve) -> resolve()
 			@set_named_handler()
