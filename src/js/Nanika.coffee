@@ -53,7 +53,9 @@ class Nanika
 		.catch @throw
 	halt: ->
 		@transaction = null
-		@vanish()
+		try
+			@vanish()
+		catch e
 		@ghost.unload (err) =>
 			@onhalt?()
 	materialize: (shell, balloon) ->
@@ -215,8 +217,14 @@ class Nanika
 					headers["Reference" + index] = reference
 				@send_request ['GET'], @protocol_version, headers
 			.then (response) => @recv_response(response)
-		@ssp.on 'script:halt', ([id, references...]) =>
+		@ssp.on 'script:halt', =>
 			@halt()
+	send_close: ->
+		@transaction = @transaction
+		.then =>
+			@send_request ['GET'], @protocol_version,
+				ID: "OnClose"
+		.then (response) => @recv_response(response)
 	send_request: (method, version, headers) ->
 		new Promise (resolve, reject) =>
 			request = new ShioriJK.Message.Request()

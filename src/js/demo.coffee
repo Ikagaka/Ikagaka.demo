@@ -55,12 +55,44 @@ $ ->
 	console.error = (args...) =>
 		error.apply console, args
 		con.error args.join ''
+	$("#nardrop").on 'dragenter', (ev) =>
+		ev.stopPropagation()
+		ev.preventDefault()
+		ev.dataTransfer.dropEffect = 'copy'
+		false
+	$("#nardrop").on 'dragover', (ev) =>
+		ev.stopPropagation()
+		ev.preventDefault()
+		ev.dataTransfer.dropEffect = 'copy'
+		false
+	$("#nardrop").on 'drop', (ev) =>
+		ev.stopPropagation()
+		ev.preventDefault()
+		ev.dataTransfer.dropEffect = 'copy'
+		for file in ev.dataTransfer.files
+			load_nar file
 	$("#nar").change (ev) =>
+		for file in ev.target.files
+			load_nar file
+	nanikas = []
+	nanikas_update = ->
+		nanikas_dom = $('.nanikas').html('')
+		for nanika, index in nanikas
+			nanikas_dom.append $('<div />').text(nanika.ghost.descript.name+" を終了する").on 'click', (
+				(nanika) ->
+					->
+						nanika.onhalt = ->
+							console.log "halted"
+							nanikas.splice(nanikas.indexOf(nanika), 1)
+							nanikas_update()
+						nanika.send_close()
+			)(nanika)
+	load_nar = (file) ->
 		narloader = new Nar.Loader()
 		Promise.all [
 			(new Promise (resolve, reject) =>
-				con.log("load nar : "+ev.target.files[0].name)
-				narloader.loadFromBlob ev.target.files[0], (err, nar) ->
+				con.log("load nar : "+file.name)
+				narloader.loadFromBlob file, (err, nar) ->
 					if err? then reject(err)
 					else resolve(nar)
 			),
@@ -90,5 +122,8 @@ $ ->
 			nanika.options.append_path = "./vendor/js/"
 			nanika.options.logging = true
 			nanika.load()
+			.then ->
+				nanikas.push nanika
+				nanikas_update()
 #	nar = new Nar()
 #	nar.loadFromURL("./vendor/nar/akos.nar", loadHandler.bind(@, nar))

@@ -92,8 +92,13 @@ Nanika = (function() {
   };
 
   Nanika.prototype.halt = function() {
+    var e;
     this.transaction = null;
-    this.vanish();
+    try {
+      this.vanish();
+    } catch (_error) {
+      e = _error;
+    }
     return this.ghost.unload((function(_this) {
       return function(err) {
         return typeof _this.onhalt === "function" ? _this.onhalt() : void 0;
@@ -350,10 +355,22 @@ Nanika = (function() {
       };
     })(this));
     return this.ssp.on('script:halt', (function(_this) {
-      return function(_arg) {
-        var id, references;
-        id = _arg[0], references = 2 <= _arg.length ? __slice.call(_arg, 1) : [];
+      return function() {
         return _this.halt();
+      };
+    })(this));
+  };
+
+  Nanika.prototype.send_close = function() {
+    return this.transaction = this.transaction.then((function(_this) {
+      return function() {
+        return _this.send_request(['GET'], _this.protocol_version, {
+          ID: "OnClose"
+        });
+      };
+    })(this)).then((function(_this) {
+      return function(response) {
+        return _this.recv_response(response);
       };
     })(this));
   };
