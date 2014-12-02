@@ -38,7 +38,7 @@ Nanika = (function() {
     return Promise.all([
       new Promise((function(_this) {
         return function(resolve, reject) {
-          console.log("initialize ghost");
+          console.log("initializing ghost");
           _this.ghost = new Ghost(_this.nar.getDirectory(/ghost\/master\//));
           _this.ghost.path += _this.options.append_path;
           _this.ghost.logging = _this.options.logging;
@@ -54,7 +54,7 @@ Nanika = (function() {
       })(this)), new Promise((function(_this) {
         return function(resolve, reject) {
           var shell;
-          console.log("initialize shell");
+          console.log("initializing shell");
           shell = new Shell(_this.nar.getDirectory(/shell\/master\//));
           return shell.load(function(err) {
             if (err != null) {
@@ -75,7 +75,7 @@ Nanika = (function() {
         _this.resource = {};
         balloon = _this.nanikamanager.get_balloon();
         _this.materialize(_this.shells['master'], balloon);
-        return console.log("materialize");
+        return console.log("materialized");
       };
     })(this)).then((function(_this) {
       return function() {
