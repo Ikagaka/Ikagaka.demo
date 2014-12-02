@@ -44,7 +44,7 @@ article {
 }
 article .nar label {
   display: block;
-  width: 20em;
+  max-width: 20em;
   margin: 0.5em auto;
   padding: 2em;
   text-align: center;
@@ -61,7 +61,7 @@ article .nar:after {
 }
 article .nar .nanikas {
   list-style: none;
-  width: 20em;
+  max-width: 20em;
   margin: 0.5em auto;
   padding: 0em;
 }
