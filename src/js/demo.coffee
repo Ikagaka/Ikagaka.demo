@@ -47,7 +47,7 @@ $ ->
 	console.log = (args...) =>
 		log.apply console, args
 		t = args.join('')
-		unless /SHIORI\/\d\.\d/.test t
+		unless /SHIORI\/\d\.\d|^\[object Object\]$/.test t
 			con.log t
 	console.warn = (args...) =>
 		warn.apply console, args

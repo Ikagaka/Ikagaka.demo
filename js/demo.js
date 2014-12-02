@@ -75,7 +75,7 @@ $(function() {
       args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
       log.apply(console, args);
       t = args.join('');
-      if (!/SHIORI\/\d\.\d/.test(t)) {
+      if (!/SHIORI\/\d\.\d|^\[object Object\]$/.test(t)) {
         return con.log(t);
       }
     };
