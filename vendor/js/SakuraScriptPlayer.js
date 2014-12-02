@@ -12,6 +12,18 @@
       this.wait_default = 80;
       this.timeout_default = 15000;
       this.choicetimeout_default = 30000;
+      this["continue"] = null;
+      $(this.named.element).on("IkagakaSurfaceEvent", (function(_this) {
+        return function(_arg) {
+          var ID, fn;
+          ID = _arg.detail.ID;
+          if (!!_this["continue"] && ID === "OnBalloonClick") {
+            fn = _this["continue"];
+            _this["continue"] = null;
+            return fn();
+          }
+        };
+      })(this));
     }
 
     SakuraScriptPlayer.prototype.play = function(script, listener) {
@@ -115,6 +127,12 @@
           re: /^\\t/,
           match: function(group, state) {
             return this.timeCritical = true;
+          }
+        }, {
+          re: /^\\x/,
+          match: function(group, state) {
+            state.click_wait = true;
+            return this.named.scope(0);
           }
         }, {
           re: /^\\\!\[\s*set\s*,\s*choicetimeout\s*,\s*(-?\d+)\s*\]/,
@@ -317,7 +335,8 @@
       state = {
         quick: false,
         synchronized: false,
-        has_choice: false
+        has_choice: false,
+        click_wait: false
       };
       this.named.scopes.forEach(function(scope) {
         scope.blimp(0);
@@ -355,7 +374,14 @@
               return '';
             });
           }
-          return _this.breakTid = setTimeout(recur, state.quick ? 0 : state.wait);
+          if (state.click_wait) {
+            return _this["continue"] = function() {
+              state.click_wait = false;
+              return recur();
+            };
+          } else {
+            return _this.breakTid = setTimeout(recur, state.quick ? 0 : state.wait);
+          }
         };
       })(this))();
     };
@@ -365,6 +391,7 @@
       this.timeCritical = false;
       clearTimeout(this.breakTid);
       this.named.scopes.forEach(function(scope) {
+        console.log(scope.blimp(-1));
         return scope.blimp(-1).clear();
       });
     };

@@ -204,6 +204,7 @@ class Nanika
 			.then (response) => @recv_response(response)
 		, 60000
 	set_named_handler: () ->
+		@named.load()
 		$(@named.element).on "IkagakaSurfaceEvent", (ev) => # temporary
 			@transaction = @transaction.then =>
 				@send_request ['GET', 'Sentence'], @protocol_version, ev.detail

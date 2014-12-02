@@ -7,104 +7,88 @@
 
   Scope = (function() {
     function Scope(scopeId, shell, balloon) {
-      var $style;
       this.scopeId = scopeId;
       this.shell = shell;
       this.balloon = balloon;
       this.$scope = $("<div />").addClass("scope");
-      $style = $("<style scoped />").html(this.style);
       this.$surface = $("<div />").addClass("surface");
       this.$surfaceCanvas = $("<canvas width='10' height='100' />").addClass("surfaceCanvas");
       this.$blimp = $("<div />").addClass("blimp");
       this.$blimpCanvas = $("<canvas width='0' height='0' />").addClass("blimpCanvas");
       this.$blimpText = $("<div />").addClass("blimpText");
-      this.$surface.append(this.$surfaceCanvas);
-      this.$blimp.append(this.$blimpCanvas);
-      this.$blimp.append(this.$blimpText);
-      this.$scope.append($style);
-      this.$scope.append(this.$surface);
-      this.$scope.append(this.$blimp);
       this.element = this.$scope[0];
       this.destructors = [];
-      this.currentSurface = null;
-      this.currentBalloon = null;
+      this.currentSurface = this.shell.attachSurface(this.$surfaceCanvas[0], this.scopeId, 0);
+      this.currentBalloon = this.balloon.attachSurface(this.$blimpCanvas[0], this.scopeId, 0);
       this.isBalloonLeft = true;
-      this.talkInsertPointStack = [this.$blimpText];
       this.insertPoint = this.$blimpText;
+      this.$blimp.append(this.$blimpCanvas);
+      this.$blimp.append(this.$blimpText);
+      this.$surface.append(this.$surfaceCanvas);
+      this.$scope.append(this.$surface);
+      this.$scope.append(this.$blimp);
       this.$scope.css({
         "bottom": "0px",
         "right": (this.scopeId * 240) + "px"
       });
       this.surface(0);
-      setTimeout((function(_this) {
-        return function() {
-          _this.surface(0);
-          _this.blimp(0);
-          _this.$surface.hide();
-          return _this.$blimp.hide();
-        };
-      })(this));
+      this.blimp(0);
+      this.surface(-1);
+      this.blimp(-1);
     }
 
     Scope.prototype.surface = function(surfaceId) {
-      var tmp, type;
+      var prevSrfId, tmp, type;
       type = this.scopeId === 0 ? "sakura" : "kero";
+      if (Number(surfaceId) < 0) {
+        this.$surface.hide();
+        return this.currentSurface;
+      }
       if (surfaceId != null) {
-        if (surfaceId === -1) {
-          this.$surface.hide();
-        } else {
-          this.$surface.show();
-        }
-        if (!!this.currentSurface) {
-          this.currentSurface.destructor();
-        }
+        prevSrfId = this.currentSurface.surfaces.surfaces[this.currentSurface.surfaceName].is;
+        this.currentSurface.destructor();
         tmp = this.shell.attachSurface(this.$surfaceCanvas[0], this.scopeId, surfaceId);
-        if (!!tmp) {
-          this.currentSurface = tmp;
+        if (!tmp) {
+          tmp = this.shell.attachSurface(this.$surfaceCanvas[0], this.scopeId, prevSrfId);
         }
-        this.$scope.width(this.$surfaceCanvas.width());
-        this.$scope.height(this.$surfaceCanvas.height());
+        this.currentSurface = tmp;
+        this.$scope.width(this.$surfaceCanvas[0].width);
+        this.$scope.height(this.$surfaceCanvas[0].height);
+        this.$surface.show();
       }
       return this.currentSurface;
     };
 
     Scope.prototype.blimp = function(balloonId) {
-      var b, descript, h, l, r, t, type, w;
-      type = this.scopeId === 0 ? "sakura" : "kero";
-      if (balloonId != null) {
-        if (balloonId === -1) {
-          this.$blimp.hide();
-        } else {
-          this.$blimp.show();
-        }
-        if (!!this.currentBalloon) {
+      var b, descript, h, l, r, t, tmp, type, w;
+      if (Number(balloonId) < 0) {
+        this.$blimp.hide();
+      } else {
+        if (balloonId != null) {
           this.currentBalloon.destructor();
-        }
-        this.currentBalloon = this.balloon.attachSurface(this.$blimpCanvas[0], this.scopeId, balloonId);
-        if (!!this.currentBalloon) {
+          tmp = this.balloon.attachSurface(this.$blimpCanvas[0], this.scopeId, balloonId);
+          this.currentBalloon = tmp;
+          this.$blimp.show();
           descript = this.currentBalloon.descript;
-          this.$blimp.css({
-            "width": this.$blimpCanvas.width(),
-            "height": this.$blimpCanvas.height()
-          });
+          type = this.scopeId === 0 ? "sakura" : "kero";
           this.$blimp.css({
             "top": Number(this.shell.descript["" + type + ".balloon.offsety"] || 0)
           });
           if (this.isBalloonLeft) {
             this.$blimp.css({
-              "left": Number(this.shell.descript["" + type + ".balloon.offsetx"] || 0) + -1 * this.$blimpCanvas.width()
+              "left": Number(this.shell.descript["" + type + ".balloon.offsetx"] || 0) + -1 * this.$blimpCanvas[0].width
             });
           } else {
             this.$blimp.css({
-              "left": Number(this.shell.descript["" + type + ".balloon.offsetx"] || 0) + this.$surfaceCanvas.width()
+              "left": Number(this.shell.descript["" + type + ".balloon.offsetx"] || 0) + this.$surfaceCanvas[0].width
             });
           }
           t = descript["origin.y"] || descript["validrect.top"] || "10";
           r = descript["validrect.right"] || "10";
           b = descript["validrect.bottom"] || "10";
           l = descript["origin.x"] || descript["validrect.left"] || "10";
-          w = this.$blimpCanvas.width();
-          h = this.$blimpCanvas.height();
+          w = this.$blimpCanvas[0].width;
+          h = this.$blimpCanvas[0].height;
           this.$blimpText.css({
             "top": "" + t + "px",
             "left": "" + l + "px",
@@ -116,16 +100,19 @@
       return {
         anchorBegin: (function(_this) {
           return function() {
-            var a, args, argv, id, index, _i, _id, _len;
+            var $a, args, argv, id, index, _i, _id, _len;
             id = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
             _this.$blimp.show();
             _id = $(document.createElement("div")).text(id).html();
-            a = $("<a />").addClass("ikagaka-anchor").attr("data-id", _id).attr("data-argc", args.length);
+            $a = $("<a />");
+            $a.addClass("ikagaka-anchor");
+            $a.attr("data-id", _id);
+            $a.attr("data-argc", args.length);
             for (index = _i = 0, _len = args.length; _i < _len; index = ++_i) {
               argv = args[index];
-              a.attr("data-argv" + index, argv);
+              $a.attr("data-argv" + index, argv);
             }
-            _this.insertPoint = a.appendTo(_this.$blimpText);
+            _this.insertPoint = $a.appendTo(_this.$blimpText);
           };
         })(this),
         anchorEnd: (function(_this) {
@@ -135,31 +122,38 @@
         })(this),
         choice: (function(_this) {
           return function() {
-            var a, args, argv, id, index, text, _i, _id, _len, _text;
+            var $a, args, argv, id, index, text, _i, _id, _len, _text;
             text = arguments[0], id = arguments[1], args = 3 <= arguments.length ? __slice.call(arguments, 2) : [];
             _this.$blimp.show();
             _text = $(document.createElement("div")).text(text).html();
             _id = $(document.createElement("div")).text(id).html();
-            a = $("<a />").addClass("ikagaka-choice").html(_text).attr("data-id", _id).attr("data-argc", args.length);
+            $a = $("<a />");
+            $a.addClass("ikagaka-choice");
+            $a.html(_text);
+            $a.attr("data-id", _id);
+            $a.attr("data-argc", args.length);
             for (index = _i = 0, _len = args.length; _i < _len; index = ++_i) {
               argv = args[index];
-              a.attr("data-argv" + index, argv);
+              $a.attr("data-argv" + index, argv);
             }
-            a.appendTo(_this.insertPoint);
+            $a.appendTo(_this.insertPoint);
           };
         })(this),
         choiceBegin: (function(_this) {
           return function() {
-            var a, args, argv, id, index, _i, _id, _len;
+            var $a, args, argv, id, index, _i, _id, _len;
             id = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
             _this.$blimp.show();
             _id = $(document.createElement("div")).text(id).html();
-            a = $("<a />").addClass("ikagaka-choice").attr("data-id", _id).attr("data-argc", args.length);
+            $a = $("<a />");
+            $a.addClass("ikagaka-choice");
+            $a.attr("data-id", _id);
+            $a.attr("data-argc", args.length);
             for (index = _i = 0, _len = args.length; _i < _len; index = ++_i) {
               argv = args[index];
-              a.attr("data-argv" + index, argv);
+              $a.attr("data-argv" + index, argv);
             }
-            _this.insertPoint = a.appendTo(_this.$blimpText);
+            _this.insertPoint = $a.appendTo(_this.$blimpText);
           };
         })(this),
         choiceEnd: (function(_this) {
@@ -192,8 +186,6 @@
         })(this)
       };
     };
-
-    Scope.prototype.style = ".scope {\n  position: absolute;\n  pointer-events: none;\n  user-select: none;\n  -webkit-tap-highlight-color: transparent;\n}\n.surface {}\n.surfaceCanvas {\n  pointer-events: auto;\n}\n.blimp {\n  position: absolute;\n  top: 0px;\n  left: 0px;\n  pointer-events: auto;\n}\n.blimpCanvas {\n  position: absolute;\n  top: 0px;\n  left: 0px;\n}\n.blimpText {\n  position: absolute;\n  top: 0px;\n  left: 0px;\n  overflow-y: scroll;\n  white-space: pre;\n  white-space: pre-wrap;\n  white-space: pre-line;\n  word-wrap: break-word;\n}\n.blimpText a {\n  text-decoration: underline;\n  cursor: pointer;\n}\n.blimpText a:hover { background-color: yellow; }\n.blimpText a.ikagaka-choice { color: blue; }\n.blimpText a.ikagaka-anchor { color: red; }";
 
     return Scope;
 

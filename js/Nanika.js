@@ -323,6 +323,7 @@ Nanika = (function() {
   };
 
   Nanika.prototype.set_named_handler = function() {
+    this.named.load();
     return $(this.named.element).on("IkagakaSurfaceEvent", (function(_this) {
       return function(ev) {
         return _this.transaction = _this.transaction.then(function() {
