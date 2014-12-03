@@ -51,7 +51,7 @@
 
     SurfaceUtil.prototype.base = function(part, x, y) {
       SurfaceUtil.clear(this.cnv);
-      this.overlayfast(part, x, y);
+      this.init(part, x, y);
     };
 
     SurfaceUtil.prototype.overlayfast = function(part, x, y) {
@@ -69,10 +69,16 @@
       this.overlayfast(part, x, y);
     };
 
-    SurfaceUtil.prototype.init = function(cnv) {
+    SurfaceUtil.prototype.init = function(cnv, x, y) {
+      if (x == null) {
+        x = 0;
+      }
+      if (y == null) {
+        y = 0;
+      }
       this.cnv.width = cnv.width;
       this.cnv.height = cnv.height;
-      this.overlayfast(cnv, 0, 0);
+      this.overlayfast(cnv, x, y);
     };
 
     SurfaceUtil.choice = function(ary) {

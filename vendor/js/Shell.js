@@ -77,14 +77,9 @@
       srfs = surfaces.surfaces;
       keys = Object.keys(srfs);
       keys.forEach(function(name) {
-        var baseSurface, cnv, elms, mapped, sortedElms, srfutil, _keys;
+        var baseSurface, elms, mapped, sortedElms, srfutil, _keys;
         delete srfs[name].file;
-        if (!srfs[name].baseSurface) {
-          cnv = document.createElement("canvas");
-          cnv.width = 0;
-          cnv.height = 0;
-          srfs[name].baseSurface = cnv;
-        }
+        delete srfs[name].base;
         if (!srfs[name].elements) {
           return;
         }
@@ -106,7 +101,7 @@
             return -1;
           }
         });
-        baseSurface = sortedElms[0].canvas || srfs[name].baseSurface;
+        baseSurface = srfs[name].baseSurface || sortedElms[0].canvas;
         srfutil = new SurfaceUtil(baseSurface);
         srfutil.composeElements(sortedElms);
         srfs[name].baseSurface = baseSurface;
@@ -174,7 +169,11 @@
               return a === b || a === (b + ".png").toLowerCase();
             });
             if (!path) {
-              return reject(new Error("element " + file + " is not found"));
+              elm.canvas = document.createElement("canvas");
+              elm.canvas.width = 1;
+              elm.canvas.height = 1;
+              resolve();
+              return;
             }
             return setTimeout(function() {
               var buffer, url;

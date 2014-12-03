@@ -877,13 +877,13 @@ SurfacesTxt2Yaml.ScopeParser.surface = (function(_super) {
       case 'insert':
       case 'start':
       case 'stop':
-        args.animation_id = 'animation' + args_str;
+        args.animation_id = 'animation' + args_str.match(/\[?(.*)\]?/)[1];
         break;
       case 'alternativestart':
       case 'alternativestop':
         args.animation_ids = (function() {
           var _i, _len, _ref3, _results;
-          _ref3 = args_str.split(',');
+          _ref3 = args_str.match(/[\(\[]?(.*)[\]\)]?/)[1].split(/[.,]/);
           _results = [];
           for (_i = 0, _len = _ref3.length; _i < _len; _i++) {
             animation_id = _ref3[_i];

@@ -1,9 +1,7 @@
-var NamedManager, Nanika, Promise, SakuraScriptPlayer,
+var Nanika, Promise, SakuraScriptPlayer,
   __slice = [].slice;
 
 Promise = this.Promise;
-
-NamedManager = this.NamedManager;
 
 SakuraScriptPlayer = this.SakuraScriptPlayer;
 

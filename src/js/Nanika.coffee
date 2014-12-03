@@ -1,5 +1,4 @@
 Promise = @Promise
-NamedManager = @NamedManager
 SakuraScriptPlayer = @SakuraScriptPlayer
 if require?
 	Promise ?= require('bluebird')
