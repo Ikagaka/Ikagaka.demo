@@ -96,7 +96,7 @@
             return this.named.scope().surface().play(Number(group[1]));
           }
         }, {
-          re: /^\\w(\d+)/,
+          re: /^\\w(\d)/,
           match: function(group, state) {
             return state.wait = Number(group[1]) * 100;
           }
