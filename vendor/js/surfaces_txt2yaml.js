@@ -195,7 +195,7 @@ SurfacesTxt2Yaml.Parser = (function() {
               if (parsed_data[scope][scope_id_value] == null) {
                 parsed_data[scope][scope_id_value] = {};
               }
-              if (scope_id.length !== 1) {
+              if (scope_id_str !== scope_id_value) {
                 if (parsed_data[scope][scope_id_value].base == null) {
                   parsed_data[scope][scope_id_value].base = [];
                 }

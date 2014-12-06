@@ -68,6 +68,8 @@
           this.currentBalloon.destructor();
           tmp = this.balloon.attachSurface(this.$blimpCanvas[0], this.scopeId, balloonId);
           this.currentBalloon = tmp;
+          this.$blimp.width(this.$blimpCanvas[0].width);
+          this.$blimp.height(this.$blimpCanvas[0].height);
           this.$blimp.show();
           descript = this.currentBalloon.descript;
           type = this.scopeId === 0 ? "sakura" : "kero";
@@ -102,6 +104,7 @@
           return function() {
             var $a, args, argv, id, index, _i, _id, _len;
             id = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
+            _this.$blimpText.find(".blink").hide();
             _this.$blimp.show();
             _id = $(document.createElement("div")).text(id).html();
             $a = $("<a />");
@@ -124,6 +127,7 @@
           return function() {
             var $a, args, argv, id, index, text, _i, _id, _len, _text;
             text = arguments[0], id = arguments[1], args = 3 <= arguments.length ? __slice.call(arguments, 2) : [];
+            _this.$blimpText.find(".blink").hide();
             _this.$blimp.show();
             _text = $(document.createElement("div")).text(text).html();
             _id = $(document.createElement("div")).text(id).html();
@@ -143,6 +147,7 @@
           return function() {
             var $a, args, argv, id, index, _i, _id, _len;
             id = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
+            _this.$blimpText.find(".blink").hide();
             _this.$blimp.show();
             _id = $(document.createElement("div")).text(id).html();
             $a = $("<a />");
@@ -164,12 +169,13 @@
         talk: (function(_this) {
           return function(text) {
             var _text;
+            _this.$blimpText.find(".blink").hide();
             _text = $(document.createElement("div")).text(text).html();
             if (!!_this.currentSurface) {
               _this.currentSurface.talk();
             }
             _this.$blimp.show();
-            _this.insertPoint.html(_this.insertPoint.html() + _text);
+            _this.insertPoint.append(_text);
             _this.$blimpText[0].scrollTop = 999;
           };
         })(this),
@@ -181,7 +187,12 @@
         })(this),
         br: (function(_this) {
           return function() {
-            _this.insertPoint.html(_this.insertPoint.html() + "<br />");
+            _this.insertPoint.append("<br />");
+          };
+        })(this),
+        showWait: (function(_this) {
+          return function() {
+            _this.$blimpText.append("<br /><br />").append("<div class='blink'>...</div>");
           };
         })(this)
       };

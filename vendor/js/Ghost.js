@@ -78,64 +78,79 @@
         throw new Error("descript.txt not found");
       }
       this.directory = directory;
-      buffer = this.directory["descript.txt"].asArrayBuffer();
+      buffer = this.directory["descript.txt"];
       descriptTxt = Nar.convert(buffer);
       this.descript = Nar.parseDescript(descriptTxt);
       this.server = null;
     }
 
-    Ghost.prototype.load = function(callback) {
-      var args, buffers, directory, fn, imports, keys, shiori, _ref, _ref1;
-      if (!this.directory[this.descript["shiori"]] && !this.directory["shiori.dll"]) {
-        setTimeout(callback.bind(null, new Error("shiori not found")));
-        return;
-      }
-      keys = Object.keys(Ghost.shiories);
-      shiori = keys.find((function(_this) {
-        return function(shiori) {
-          return Ghost.shiories[shiori].detect(_this.directory);
-        };
-      })(this));
-      if (!shiori) {
-        setTimeout(callback.bind(null, new Error("unkown shiori")));
-        return;
-      }
-      if (Ghost.shiories[shiori].worker == null) {
-        setTimeout(callback.bind(null, new Error("unsupport shiori")));
-        return;
-      }
-      _ref = Ghost.shiories[shiori].worker, fn = _ref[0], args = _ref[1];
-      imports = (Ghost.shiories[shiori].imports || []).map((function(_this) {
-        return function(src) {
-          return _this.path + src;
-        };
-      })(this));
-      this.server = new ServerWorker(fn, args, imports);
-      _ref1 = Ghost.createTransferable(this.directory), directory = _ref1[0], buffers = _ref1[1];
-      this.server.request("load", directory, buffers, function(err, code) {
-        return callback(err, code);
-      });
-      this.directory = null;
-    };
-
-    Ghost.prototype.request = function(request, callback) {
-      if (this.logging) {
-        console.log(request);
-      }
-      this.server.request("request", request, (function(_this) {
-        return function(err, response) {
-          if (_this.logging) {
-            console.log(response);
+    Ghost.prototype.load = function() {
+      return new Promise((function(_this) {
+        return function(resolve, reject) {
+          var args, buffers, directory, fn, imports, keys, shiori, _ref, _ref1;
+          if (!_this.directory[_this.descript["shiori"]] && !_this.directory["shiori.dll"]) {
+            return reject("shiori not found");
           }
-          return callback(err, response);
+          keys = Object.keys(Ghost.shiories);
+          shiori = keys.find(function(shiori) {
+            return Ghost.shiories[shiori].detect(_this.directory);
+          });
+          if (!shiori) {
+            return reject("unkown shiori");
+          }
+          if (Ghost.shiories[shiori].worker == null) {
+            return reject("unsupport shiori");
+          }
+          _ref = Ghost.shiories[shiori].worker, fn = _ref[0], args = _ref[1];
+          imports = (Ghost.shiories[shiori].imports || []).map(function(src) {
+            return _this.path + src;
+          });
+          _this.server = new ServerWorker(fn, args, imports);
+          _ref1 = Ghost.createTransferable(_this.directory), directory = _ref1[0], buffers = _ref1[1];
+          _this.server.request("load", directory, buffers, function(err, code) {
+            if (err != null) {
+              return reject(err);
+            } else {
+              return resolve(code);
+            }
+          });
+          return _this.directory = null;
         };
       })(this));
     };
 
-    Ghost.prototype.unload = function(callback) {
-      this.server.request("unload", function(err, code) {
-        return callback(err, code);
-      });
+    Ghost.prototype.request = function(request) {
+      return new Promise((function(_this) {
+        return function(resolve, reject) {
+          if (_this.logging) {
+            console.log(request);
+          }
+          return _this.server.request("request", request, function(err, response) {
+            if (err != null) {
+              return reject(err);
+            } else {
+              if (_this.logging) {
+                console.log(response);
+              }
+              return resolve(response);
+            }
+          });
+        };
+      })(this));
+    };
+
+    Ghost.prototype.unload = function() {
+      return new Promise((function(_this) {
+        return function(resolve, reject) {
+          return _this.server.request("unload", function(err, code) {
+            if (err != null) {
+              return reject(err);
+            } else {
+              return resolve(code);
+            }
+          });
+        };
+      })(this));
     };
 
     Ghost.prototype.path = location.protocol + "//" + location.host + location.pathname.split("/").reverse().slice(1).reverse().join("/") + "/";
@@ -257,7 +272,7 @@
       return hits.reduce((function(_arg, key) {
         var buffer, buffers, _dic;
         _dic = _arg[0], buffers = _arg[1];
-        buffer = dic[key].asArrayBuffer();
+        buffer = dic[key];
         _dic[key] = buffer;
         buffers.push(buffer);
         return [_dic, buffers];

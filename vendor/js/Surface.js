@@ -31,42 +31,42 @@
       this.lastEventType = "";
       $(this.element).on("contextmenu", (function(_this) {
         return function(ev) {
-          return _this.processMouseEvent(ev, "OnMouseClick", function($ev) {
+          return _this.processMouseEvent(ev, "mouseclick", function($ev) {
             return $(_this.element).trigger($ev);
           });
         };
       })(this));
       $(this.element).on("click", (function(_this) {
         return function(ev) {
-          return _this.processMouseEvent(ev, "OnMouseClick", function($ev) {
+          return _this.processMouseEvent(ev, "mouseclick", function($ev) {
             return $(_this.element).trigger($ev);
           });
         };
       })(this));
       $(this.element).on("dblclick", (function(_this) {
         return function(ev) {
-          return _this.processMouseEvent(ev, "OnMouseDoubleClick", function($ev) {
+          return _this.processMouseEvent(ev, "mousedblclick", function($ev) {
             return $(_this.element).trigger($ev);
           });
         };
       })(this));
       $(this.element).on("mousedown", (function(_this) {
         return function(ev) {
-          return _this.processMouseEvent(ev, "OnMouseDown", function($ev) {
+          return _this.processMouseEvent(ev, "mousedown", function($ev) {
             return $(_this.element).trigger($ev);
           });
         };
       })(this));
       $(this.element).on("mousemove", (function(_this) {
         return function(ev) {
-          return _this.processMouseEvent(ev, "OnMouseMove", function($ev) {
+          return _this.processMouseEvent(ev, "mousemove", function($ev) {
             return $(_this.element).trigger($ev);
           });
         };
       })(this));
       $(this.element).on("mouseup", (function(_this) {
         return function(ev) {
-          return _this.processMouseEvent(ev, "OnMouseUp", function($ev) {
+          return _this.processMouseEvent(ev, "mouseup", function($ev) {
             return $(_this.element).trigger($ev);
           });
         };
@@ -360,12 +360,12 @@
           return _this.animations[name].is === animationId;
         };
       })(this));
-      if (hit) {
-        return void 0;
+      if (!hit) {
+        return;
       }
       anim = this.animations[hit];
       if (anim.patterns.length === 0) {
-        return void 0;
+        return;
       }
       interval = anim.interval;
       pattern = anim.patterns[anim.patterns.length - 1];
@@ -408,13 +408,13 @@
       if (Surface.isHit(ev.target, offsetX, offsetY)) {
         ev.preventDefault();
         detail = {
-          "ID": eventName,
-          "Reference0": offsetX | 0,
-          "Reference1": offsetY | 0,
-          "Reference2": 0,
-          "Reference3": this.scopeId,
-          "Reference4": "",
-          "Reference5": (ev.button === 2 ? 1 : 0)
+          "type": eventName,
+          "offsetX": offsetX | 0,
+          "offsetY": offsetY | 0,
+          "wheel": 0,
+          "scope": this.scopeId,
+          "region": "",
+          "button": (ev.button === 2 ? 1 : 0)
         };
         keys = Object.keys(this.regions);
         sorted = keys.sort(function(a, b) {
@@ -432,12 +432,12 @@
           };
         })(this));
         if (!!hit) {
-          detail["Reference4"] = this.regions[hit].name;
+          detail["region"] = this.regions[hit].name;
           $(ev.target).css({
             "cursor": "pointer"
           });
         }
-        callback($.Event('IkagakaSurfaceEvent', {
+        callback($.Event('IkagakaDOMEvent', {
           detail: detail,
           bubbles: true
         }));

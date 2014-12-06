@@ -15,27 +15,23 @@ class Nanika
 		throw err
 	load: ->
 		Promise.all [
-			(new Promise (resolve, reject) =>
+			(=>
 				console.log "initializing ghost"
 				@ghost = new Ghost(@nar.getDirectory(/ghost\/master\//))
 				@ghost.path += @options.append_path
 				@ghost.logging = @options.logging
-				@ghost.load (err) ->
-					if err? then reject(err)
-					else
-						console.log "ghost loaded"
-						resolve()
-			)
-			(new Promise (resolve, reject) =>
+				@ghost.load()
+				.then ->
+					console.log "ghost loaded"
+			)()
+			(=>
 				console.log "initializing shell"
 				shell = new Shell(@nar.getDirectory(/shell\/master\//))
-				shell.load (err) =>
-					if err? then reject(err)
-					else
-						console.log "shell loaded"
-						@shells = {master: shell}
-						resolve()
-			)
+				shell.load()
+				.then =>
+					console.log "shell loaded"
+					@shells = {master: shell}
+			)()
 		]
 		.then =>
 			@resource = {}
@@ -55,7 +51,8 @@ class Nanika
 		try
 			@vanish()
 		catch e
-		@ghost.unload (err) =>
+		@ghost.unload()
+		.then =>
 			@onhalt?()
 	materialize: (shell, balloon) ->
 		@namedid = @namedmanager.materialize(shell, balloon)
@@ -203,11 +200,107 @@ class Nanika
 			.then (response) => @recv_response(response)
 		, 60000
 	set_named_handler: () ->
+		mouseevents = [
+			{type: 'mousedown', id: 'OnMouseDown'}
+			{type: 'mousemove', id: 'OnMouseMove'}
+			{type: 'mouseup', id: 'OnMouseUp'}
+			{type: 'mouseclick', id: 'OnMouseClick'}
+			{type: 'mousedblclick', id: 'OnMouseDoubleClick'}
+		]
+		for event in mouseevents
+			@named.on event.type, ((id) =>
+				(event) =>
+					@transaction = @transaction.then =>
+						@send_request ['GET', 'Sentence'], @protocol_version,
+							ID: id
+							Reference0: event.offsetX
+							Reference1: event.offsetY
+							Reference2: event.wheel
+							Reference3: event.scope
+							Reference4: event.region
+							Reference5: event.button
+						.then (response) => @recv_response(response)
+			)(event.id)
+		@named.on 'choiceselect', (event) =>
+			if /^On/.test event.id # On
+				@transaction = @transaction.then =>
+					headers =
+						ID: event.id
+					for value, index in event.args
+						headers["Reference#{index}"] = value
+					@send_request ['GET', 'Sentence'], @protocol_version, headers
+					.then (response) => @recv_response(response)
+			else if event.args.length # Ex
+				@transaction = @transaction.then =>
+					headers =
+						ID: 'OnChoiceSelectEx'
+						Reference0: event.text
+						Reference1: event.id
+					for value, index in event.args
+						headers["Reference#{index + 2}"] = value
+					@send_request ['GET', 'Sentence'], @protocol_version, headers
+					.then (response) => @recv_response(response)
+			else # normal
+				@transaction = @transaction.then =>
+					@send_request ['GET', 'Sentence'], @protocol_version,
+						ID: 'OnChoiceSelect'
+						Reference0: event.id
+					.then (response) => @recv_response(response)
+		@named.on 'anchorselect', (event) =>
+			if /^On/.test event.id # On
+				@transaction = @transaction.then =>
+					headers =
+						ID: event.id
+					for value, index in event.args
+						headers["Reference#{index}"] = value
+					@send_request ['GET', 'Sentence'], @protocol_version, headers
+					.then (response) => @recv_response(response)
+			else if event.args.length # Ex
+				@transaction = @transaction.then =>
+					headers =
+						ID: 'OnAnchorSelectEx'
+						Reference0: event.text
+						Reference1: event.id
+					for value, index in event.args
+						headers["Reference#{index + 2}"] = value
+					@send_request ['GET', 'Sentence'], @protocol_version, headers
+					.then (response) => @recv_response(response)
+			else # normal
+				@transaction = @transaction.then =>
+					@send_request ['GET', 'Sentence'], @protocol_version,
+						ID: 'OnAnchorSelect'
+						Reference0: event.id
+					.then (response) => @recv_response(response)
+		@named.on 'userinput', (event) =>
+			if event.content?
+				@transaction = @transaction.then =>
+					@send_request ['GET', 'Sentence'], @protocol_version,
+						ID: 'OnUserInput'
+						Reference0: event.id
+						Reference1: event.content
+					.then (response) => @recv_response(response)
+			else
+				@transaction = @transaction.then =>
+					@send_request ['GET', 'Sentence'], @protocol_version,
+						ID: 'OnUserInputCancel'
+						Reference0: event.id
+						Reference1: 'close'
+					.then (response) => @recv_response(response)
+		@named.on 'communicateinput', (event) =>
+			if event.content?
+				@transaction = @transaction.then =>
+					@send_request ['GET', 'Sentence'], @protocol_version,
+						ID: 'OnCommunicate'
+						Reference0: event.sender
+						Reference1: event.content
+					.then (response) => @recv_response(response)
+			else
+				@transaction = @transaction.then =>
+					@send_request ['GET', 'Sentence'], @protocol_version,
+						ID: 'OnCommunicateInputCancel'
+						Reference1: 'cancel'
+					.then (response) => @recv_response(response)
 		@named.load()
-		$(@named.element).on "IkagakaSurfaceEvent", (ev) => # temporary
-			@transaction = @transaction.then =>
-				@send_request ['GET', 'Sentence'], @protocol_version, ev.detail
-				.then (response) => @recv_response(response)
 	set_ssp_handler: () ->
 		@ssp.on 'script:raise', ([id, references...]) =>
 			@transaction = @transaction
@@ -250,9 +343,11 @@ class Nanika
 						delete headers["ID"]
 			for key, value of headers
 				request.headers.header[key] = ''+value
-			@ghost.request ""+request, (err, response) ->
-				if err? then reject(err)
-				else resolve(response)
+			@ghost.request ""+request
+			.then (response) ->
+				resolve(response)
+			.catch (err) ->
+				reject(err)
 		.catch @throw
 		.then (response_str) =>
 			unless response_str? then return

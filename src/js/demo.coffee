@@ -105,10 +105,11 @@ $ ->
 			),
 		]
 		.then ([ghost_nar, balloon_nar]) ->
-			new Promise (resolve, reject) ->
-				balloon = new Balloon(balloon_nar.directory)
-				balloon.load (err) ->
-					if err? then reject(err) else resolve([ghost_nar, balloon])
+			balloon = new Balloon(balloon_nar.getDirectory(/^/))
+			balloon.load()
+			.then ->
+				console.log "balloon loaded"
+				[ghost_nar, balloon]
 		.catch (err) ->
 			console.error(err, err.stack)
 			alert(err)

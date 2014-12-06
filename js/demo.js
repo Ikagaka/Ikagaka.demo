@@ -189,18 +189,12 @@ $(function() {
         };
       })(this))
     ]).then(function(_arg) {
-      var balloon_nar, ghost_nar;
+      var balloon, balloon_nar, ghost_nar;
       ghost_nar = _arg[0], balloon_nar = _arg[1];
-      return new Promise(function(resolve, reject) {
-        var balloon;
-        balloon = new Balloon(balloon_nar.directory);
-        return balloon.load(function(err) {
-          if (err != null) {
-            return reject(err);
-          } else {
-            return resolve([ghost_nar, balloon]);
-          }
-        });
+      balloon = new Balloon(balloon_nar.getDirectory(/^/));
+      return balloon.load().then(function() {
+        console.log("balloon loaded");
+        return [ghost_nar, balloon];
       });
     })["catch"](function(err) {
       console.error(err, err.stack);

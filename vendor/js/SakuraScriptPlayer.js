@@ -13,11 +13,10 @@
       this.timeout_default = 15000;
       this.choicetimeout_default = 30000;
       this["continue"] = null;
-      $(this.named.element).on("IkagakaSurfaceEvent", (function(_this) {
-        return function(_arg) {
-          var ID, fn;
-          ID = _arg.detail.ID;
-          if (!!_this["continue"] && ID === "OnBalloonClick") {
+      this.named.on("balloonclick", (function(_this) {
+        return function(ev) {
+          var fn;
+          if (!!_this["continue"]) {
             fn = _this["continue"];
             _this["continue"] = null;
             return fn();
@@ -132,7 +131,7 @@
           re: /^\\x/,
           match: function(group, state) {
             state.click_wait = true;
-            return this.named.scope(0);
+            return this.named.scope(0).blimp().showWait();
           }
         }, {
           re: /^\\\!\[\s*set\s*,\s*choicetimeout\s*,\s*(-?\d+)\s*\]/,

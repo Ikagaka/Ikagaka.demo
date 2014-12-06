@@ -34,39 +34,29 @@ Nanika = (function() {
 
   Nanika.prototype.load = function() {
     return Promise.all([
-      new Promise((function(_this) {
-        return function(resolve, reject) {
+      ((function(_this) {
+        return function() {
           console.log("initializing ghost");
           _this.ghost = new Ghost(_this.nar.getDirectory(/ghost\/master\//));
           _this.ghost.path += _this.options.append_path;
           _this.ghost.logging = _this.options.logging;
-          return _this.ghost.load(function(err) {
-            if (err != null) {
-              return reject(err);
-            } else {
-              console.log("ghost loaded");
-              return resolve();
-            }
+          return _this.ghost.load().then(function() {
+            return console.log("ghost loaded");
           });
         };
-      })(this)), new Promise((function(_this) {
-        return function(resolve, reject) {
+      })(this))(), ((function(_this) {
+        return function() {
           var shell;
           console.log("initializing shell");
           shell = new Shell(_this.nar.getDirectory(/shell\/master\//));
-          return shell.load(function(err) {
-            if (err != null) {
-              return reject(err);
-            } else {
-              console.log("shell loaded");
-              _this.shells = {
-                master: shell
-              };
-              return resolve();
-            }
+          return shell.load().then(function() {
+            console.log("shell loaded");
+            return _this.shells = {
+              master: shell
+            };
           });
         };
-      })(this))
+      })(this))()
     ]).then((function(_this) {
       return function() {
         var balloon;
@@ -97,8 +87,8 @@ Nanika = (function() {
     } catch (_error) {
       e = _error;
     }
-    return this.ghost.unload((function(_this) {
-      return function(err) {
+    return this.ghost.unload().then((function(_this) {
+      return function() {
         return typeof _this.onhalt === "function" ? _this.onhalt() : void 0;
       };
     })(this));
@@ -321,16 +311,189 @@ Nanika = (function() {
   };
 
   Nanika.prototype.set_named_handler = function() {
-    this.named.load();
-    return $(this.named.element).on("IkagakaSurfaceEvent", (function(_this) {
-      return function(ev) {
-        return _this.transaction = _this.transaction.then(function() {
-          return _this.send_request(['GET', 'Sentence'], _this.protocol_version, ev.detail).then(function(response) {
-            return _this.recv_response(response);
+    var event, mouseevents, _i, _len;
+    mouseevents = [
+      {
+        type: 'mousedown',
+        id: 'OnMouseDown'
+      }, {
+        type: 'mousemove',
+        id: 'OnMouseMove'
+      }, {
+        type: 'mouseup',
+        id: 'OnMouseUp'
+      }, {
+        type: 'mouseclick',
+        id: 'OnMouseClick'
+      }, {
+        type: 'mousedblclick',
+        id: 'OnMouseDoubleClick'
+      }
+    ];
+    for (_i = 0, _len = mouseevents.length; _i < _len; _i++) {
+      event = mouseevents[_i];
+      this.named.on(event.type, ((function(_this) {
+        return function(id) {
+          return function(event) {
+            return _this.transaction = _this.transaction.then(function() {
+              return _this.send_request(['GET', 'Sentence'], _this.protocol_version, {
+                ID: id,
+                Reference0: event.offsetX,
+                Reference1: event.offsetY,
+                Reference2: event.wheel,
+                Reference3: event.scope,
+                Reference4: event.region,
+                Reference5: event.button
+              }).then(function(response) {
+                return _this.recv_response(response);
+              });
+            });
+          };
+        };
+      })(this))(event.id));
+    }
+    this.named.on('choiceselect', (function(_this) {
+      return function(event) {
+        if (/^On/.test(event.id)) {
+          return _this.transaction = _this.transaction.then(function() {
+            var headers, index, value, _j, _len1, _ref;
+            headers = {
+              ID: event.id
+            };
+            _ref = event.args;
+            for (index = _j = 0, _len1 = _ref.length; _j < _len1; index = ++_j) {
+              value = _ref[index];
+              headers["Reference" + index] = value;
+            }
+            return _this.send_request(['GET', 'Sentence'], _this.protocol_version, headers).then(function(response) {
+              return _this.recv_response(response);
+            });
           });
-        });
+        } else if (event.args.length) {
+          return _this.transaction = _this.transaction.then(function() {
+            var headers, index, value, _j, _len1, _ref;
+            headers = {
+              ID: 'OnChoiceSelectEx',
+              Reference0: event.text,
+              Reference1: event.id
+            };
+            _ref = event.args;
+            for (index = _j = 0, _len1 = _ref.length; _j < _len1; index = ++_j) {
+              value = _ref[index];
+              headers["Reference" + (index + 2)] = value;
+            }
+            return _this.send_request(['GET', 'Sentence'], _this.protocol_version, headers).then(function(response) {
+              return _this.recv_response(response);
+            });
+          });
+        } else {
+          return _this.transaction = _this.transaction.then(function() {
+            return _this.send_request(['GET', 'Sentence'], _this.protocol_version, {
+              ID: 'OnChoiceSelect',
+              Reference0: event.id
+            }).then(function(response) {
+              return _this.recv_response(response);
+            });
+          });
+        }
       };
     })(this));
+    this.named.on('anchorselect', (function(_this) {
+      return function(event) {
+        if (/^On/.test(event.id)) {
+          return _this.transaction = _this.transaction.then(function() {
+            var headers, index, value, _j, _len1, _ref;
+            headers = {
+              ID: event.id
+            };
+            _ref = event.args;
+            for (index = _j = 0, _len1 = _ref.length; _j < _len1; index = ++_j) {
+              value = _ref[index];
+              headers["Reference" + index] = value;
+            }
+            return _this.send_request(['GET', 'Sentence'], _this.protocol_version, headers).then(function(response) {
+              return _this.recv_response(response);
+            });
+          });
+        } else if (event.args.length) {
+          return _this.transaction = _this.transaction.then(function() {
+            var headers, index, value, _j, _len1, _ref;
+            headers = {
+              ID: 'OnAnchorSelectEx',
+              Reference0: event.text,
+              Reference1: event.id
+            };
+            _ref = event.args;
+            for (index = _j = 0, _len1 = _ref.length; _j < _len1; index = ++_j) {
+              value = _ref[index];
+              headers["Reference" + (index + 2)] = value;
+            }
+            return _this.send_request(['GET', 'Sentence'], _this.protocol_version, headers).then(function(response) {
+              return _this.recv_response(response);
+            });
+          });
+        } else {
+          return _this.transaction = _this.transaction.then(function() {
+            return _this.send_request(['GET', 'Sentence'], _this.protocol_version, {
+              ID: 'OnAnchorSelect',
+              Reference0: event.id
+            }).then(function(response) {
+              return _this.recv_response(response);
+            });
+          });
+        }
+      };
+    })(this));
+    this.named.on('userinput', (function(_this) {
+      return function(event) {
+        if (event.content != null) {
+          return _this.transaction = _this.transaction.then(function() {
+            return _this.send_request(['GET', 'Sentence'], _this.protocol_version, {
+              ID: 'OnUserInput',
+              Reference0: event.id,
+              Reference1: event.content
+            }).then(function(response) {
+              return _this.recv_response(response);
+            });
+          });
+        } else {
+          return _this.transaction = _this.transaction.then(function() {
+            return _this.send_request(['GET', 'Sentence'], _this.protocol_version, {
+              ID: 'OnUserInputCancel',
+              Reference0: event.id,
+              Reference1: 'close'
+            }).then(function(response) {
+              return _this.recv_response(response);
+            });
+          });
+        }
+      };
+    })(this));
+    this.named.on('communicateinput', (function(_this) {
+      return function(event) {
+        if (event.content != null) {
+          return _this.transaction = _this.transaction.then(function() {
+            return _this.send_request(['GET', 'Sentence'], _this.protocol_version, {
+              ID: 'OnCommunicate',
+              Reference0: event.sender,
+              Reference1: event.content
+            }).then(function(response) {
+              return _this.recv_response(response);
+            });
+          });
+        } else {
+          return _this.transaction = _this.transaction.then(function() {
+            return _this.send_request(['GET', 'Sentence'], _this.protocol_version, {
+              ID: 'OnCommunicateInputCancel',
+              Reference1: 'cancel'
+            }).then(function(response) {
+              return _this.recv_response(response);
+            });
+          });
+        }
+      };
+    })(this));
+    return this.named.load();
   };
 
   Nanika.prototype.set_ssp_handler = function() {
@@ -409,12 +572,10 @@ Nanika = (function() {
           value = headers[key];
           request.headers.header[key] = '' + value;
         }
-        return _this.ghost.request("" + request, function(err, response) {
-          if (err != null) {
-            return reject(err);
-          } else {
-            return resolve(response);
-          }
+        return _this.ghost.request("" + request).then(function(response) {
+          return resolve(response);
+        })["catch"](function(err) {
+          return reject(err);
         });
       };
     })(this))["catch"](this["throw"]).then((function(_this) {
