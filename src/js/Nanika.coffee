@@ -127,7 +127,7 @@ class Nanika extends EventEmitter
 		try
 			@vanish_named()
 		catch e
-			console.error e
+			console.error e.stack
 		@ghost.unload()
 		.then =>
 			@emit 'halted'

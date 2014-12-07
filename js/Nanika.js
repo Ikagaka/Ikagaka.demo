@@ -216,7 +216,7 @@ Nanika = (function(_super) {
       this.vanish_named();
     } catch (_error) {
       e = _error;
-      console.error(e);
+      console.error(e.stack);
     }
     this.ghost.unload().then((function(_this) {
       return function() {
