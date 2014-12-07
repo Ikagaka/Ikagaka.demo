@@ -1,66 +1,138 @@
 Promise = @Promise
 SakuraScriptPlayer = @SakuraScriptPlayer
-if require?
-	Promise ?= require('bluebird')
+EventEmitter = @EventEmitter2
 
-class Nanika
-	constructor: (@nanikamanager, @namedmanager, @nar) ->
+class Nanika extends EventEmitter
+	constructor: (@nanikamanager, @storage, @namedmanager, @ghostpath, @profile, @options) ->
 		@charset = 'UTF-8'
 		@sender = 'Ikagaka'
+		@state = 'init'
 		@options = {}
 	error: (err) ->
 		console.error(err.stack)
 	throw: (err) ->
 		alert?(err)
 		throw err
-	load: ->
-		Promise.all [
-			(=>
-				console.log "initializing ghost"
-				@ghost = new Ghost(@nar.getDirectory(/ghost\/master\//))
-				@ghost.path += @options.append_path
-				@ghost.logging = @options.logging
-				@ghost.load()
-				.then ->
-					console.log "ghost loaded"
-			)()
-			(=>
-				console.log "initializing shell"
-				shell = new Shell(@nar.getDirectory(/shell\/master\//))
-				shell.load()
-				.then =>
-					console.log "shell loaded"
-					@shells = {master: shell}
-			)()
-		]
+	load_ghost: ->
+		console.log "initializing ghost"
+		ghost = new Ghost(@storage.ghost_master(@ghostpath).asArrayBuffer())
+		ghost.path += @options.append_path
+		ghost.logging = @options.logging
+		ghost.load()
+		.then ->
+			console.log "ghost loaded"
+			ghost
+	load_shell: (shellpath) ->
+		console.log "initializing shell"
+		shell = new Shell(@storage.shell(@ghostpath, shellpath).asArrayBuffer())
+		shell.load()
 		.then =>
+			console.log "shell loaded"
+			@profile.profile.shellpath = shellpath
+			shell
+	load_balloon: (balloonpath) ->
+		console.log "initializing balloon"
+		balloon = new Balloon(@storage.balloon(balloonpath).asArrayBuffer())
+		balloon.load()
+		.then =>
+			console.log "balloon loaded"
+			@profile.profile.balloonpath = balloonpath
+			balloon
+	boot: (event, args) ->
+		shellpath = @profile.profile.shellpath || 'master'
+		balloonpath = @profile.profile.balloonpath || @nanikamanager.profile.profile.balloonpath
+		Promise.all [@load_ghost(), @materialize_named(shellpath, balloonpath)]
+		.then ([ghost]) =>
+			@ghost = ghost
 			@resource = {}
-			balloon = @nanikamanager.get_balloon() # draft
-			@materialize(@shells['master'], balloon)
 			console.log "materialized"
 		.then =>
 			@transaction = new Promise (resolve) -> resolve()
+			@state = 'running'
 			@set_named_handler()
 			@set_ssp_handler()
 			@run_version()
-			@run_boot()
+			@run_pre_boot()
+			@run_boot(event, args)
 			@run_timer()
 		.catch @throw
+	change_named: (shellpath, balloonpath) ->
+		if @named?
+			@vanish_named()
+		@materialize_named(shellpath, balloonpath)
+	materialize_named: (shellpath, balloonpath) ->
+		Promise.all [@load_shell(shellpath), @load_balloon(balloonpath)]
+		.then ([shell, balloon]) =>
+			@namedid = @namedmanager.materialize(shell, balloon)
+			@named = @namedmanager.named(@namedid)
+			@ssp = new SakuraScriptPlayer(@named)
+			return
+	vanish_named: ->
+		if @ssp?
+			@ssp.off()
+			delete @ssp
+		if @namedid?
+			@namedmanager.vanish(@namedid)
+			delete @named
+			delete @namedid
+	send_halt: (event, args) ->
+		@transaction = @transaction
+		.then =>
+			switch event
+				when 'close'
+					@send_request ['GET'], @protocol_version,
+						ID: "OnClose"
+						Reference0: args.reason
+					.then (response) =>
+						if response.status_line.code != 200
+							@halt()
+						else
+							@recv_response response,
+								finish: => @halt()
+				when 'closeall'
+					@send_request ['GET'], @protocol_version,
+						ID: "OnCloseAll"
+						Reference0: args.reason
+					.then (response) =>
+						if response.status_line.code == 200
+							@recv_response response,
+								finish: => @halt()
+						else
+							@send_request ['GET'], @protocol_version,
+								ID: "OnClose"
+							.then (response) =>
+								if response.status_line.code != 200
+									@halt()
+								else
+									@recv_response response,
+										finish: => @halt()
+				when 'change'
+					@send_request ['GET'], @protocol_version,
+						ID: "OnGhostChanging"
+						Reference0: args.to.sakuraname
+						Reference1: args.reason
+						Reference2: args.to.name
+					.then (response) =>
+						if response.status_line.code != 200
+							@halt()
+						else
+							@recv_response response,
+								finish: => @halt()
+				else throw 'unknown event'
 	halt: ->
+		if @state == 'halted'
+			return
+		@state = 'halted'
 		@transaction = null
 		try
-			@vanish()
+			@vanish_named()
 		catch e
+			console.error e
 		@ghost.unload()
 		.then =>
-			@onhalt?()
-	materialize: (shell, balloon) ->
-		@namedid = @namedmanager.materialize(shell, balloon)
-		@named = @namedmanager.named(@namedid)
-		@ssp = new SakuraScriptPlayer(@named)
-	vanish: () ->
-		@ssp.off()
-		@namedmanager.vanish(@namedid)
+			@emit 'halted'
+			@removeAllListeners()
+		return
 	run_version: ->
 		@transaction = @transaction
 		.then =>
@@ -90,7 +162,7 @@ class Nanika
 					@send_request ['GET'], @protocol_version,
 						ID: 'craftmanw'
 				.then (response) => @resource.craftmanw = response.headers.header.Value
-	run_boot: ->
+	run_pre_boot: ->
 		@transaction = @transaction
 		.then =>
 			if @protocol_version == '3.0'
@@ -167,12 +239,35 @@ class Nanika
 		.then (response) => @resource["kero.recommendsites"] = response.headers.get_separated2(@string_header(@protocol_version))
 		# OnBatteryNotify
 		# rateofusegraph
+	run_boot: (event, args) ->
+		@transaction = @transaction
 		.then =>
-			@send_request ['GET'], @protocol_version,
-				ID: "OnBoot"
-				Reference0: "0"
-				Reference6: ""
-				Reference7: ""
+			switch event
+				when 'firstboot'
+					@send_request ['GET'], @protocol_version,
+						ID: "OnFirstBoot"
+						Reference0: args.vanishcount
+				when 'boot'
+					@send_request ['GET'], @protocol_version,
+						ID: "OnBoot"
+						Reference0: @named.shell.descript.name
+						Reference6: if args.halt then 'halt' else ''
+						Reference7: if args.halt then args.halt else ''
+				when 'change'
+					@send_request ['GET'], @protocol_version,
+						ID: "OnGhostChanged"
+						Reference0: args.from.sakuraname
+						Reference1: args.from.script
+						Reference2: args.from.name
+						Reference7: @named.shell.descript.name
+				when 'call'
+					@send_request ['GET'], @protocol_version,
+						ID: "OnGhostCalled"
+						Reference0: args.from.sakuraname
+						Reference1: args.from.script
+						Reference2: args.from.name
+						Reference7: @named.shell.descript.name
+				else throw 'unknown event'
 		.then (response) => @recv_response(response)
 	run_timer: ->
 		id_OnSecondChange = setInterval =>
@@ -314,12 +409,6 @@ class Nanika
 			.then (response) => @recv_response(response)
 		@ssp.on 'script:halt', =>
 			@halt()
-	send_close: ->
-		@transaction = @transaction
-		.then =>
-			@send_request ['GET'], @protocol_version,
-				ID: "OnClose"
-		.then (response) => @recv_response(response)
 	send_request: (method, version, headers) ->
 		new Promise (resolve, reject) =>
 			request = new ShioriJK.Message.Request()
@@ -358,7 +447,7 @@ class Nanika
 			response = parser.parse(response_str)
 			if response.headers.header.Charset? then @charset = response.headers.header.Charset
 			response
-	recv_response: (response) ->
+	recv_response: (response, listener) ->
 		new Promise (resolve, reject) =>
 			if response.status_line.code == 200
 				ss = null
@@ -367,16 +456,38 @@ class Nanika
 				else
 					ss = response.headers.header.Sentence
 				if ss? and (typeof ss == "string" or ss instanceof String)
-					@ssp.play(ss)
+					@ssp.play(ss, listener)
 			resolve(response)
 		.catch @error
+	get_sentence: (headers, callback) ->
+		@transaction = @transaction
+		.then =>
+			@send_request ['GET', 'Sentence'], @protocol_version, headers
+		.then if callback? then callback else (response) => @recv_response(response)
+	get_string: (headers, callback) ->
+		@transaction = @transaction
+		.then =>
+			@send_request ['GET', 'String'], @protocol_version, headers
+		.then callback
+	notify_ownerghostname: (headers) ->
+		@transaction = @transaction
+		.then =>
+			@send_request ['NOTIFY', 'OwnerGhostName'], @protocol_version, headers
+	notify_otherghostname: (headers) ->
+		@transaction = @transaction
+		.then =>
+			@send_request ['NOTIFY', 'OtherGhostName'], @protocol_version, headers
+	notify: (headers) ->
+		@transaction = @transaction
+		.then =>
+			@send_request ['NOTIFY', null], @protocol_version, headers
 	string_header: (version) ->
 		if version == '3.0' then 'Value'
 		else 'String' # SHIORI/2.5
 
 if module?.exports?
-  module.exports = Nanika
+	module.exports = Nanika
 else if @Ikagaka?
-  @Ikagaka.Nanika = Nanika
+	@Ikagaka.Nanika = Nanika
 else
-  @Nanika = Nanika
+	@Nanika = Nanika

@@ -1,4 +1,4 @@
-var Console, Nanika, NarLoader, Promise,
+var Console, Nanika, NanikaStorage, NarLoader, Promise,
   __slice = [].slice;
 
 Promise = this.Promise;
@@ -6,9 +6,11 @@ Promise = this.Promise;
 if (this.Ikagaka != null) {
   NarLoader = this.Ikagaka.NarLoader || this.NarLoader;
   Nanika = this.Ikagaka.Nanika || this.Nanika;
+  NanikaStorage = this.Ikagaka.NanikaStorage || this.Nanika;
 } else {
   NarLoader = this.NarLoader;
   Nanika = this.Nanika;
+  NanikaStorage = this.NanikaStorage;
 }
 
 Console = (function() {
@@ -64,7 +66,7 @@ Console = (function() {
 })();
 
 $(function() {
-  var con, error, load_nar, log, nanikas, nanikas_update, warn;
+  var balloon_nar, con, error, load_nar, log, namedmanager, nanikamanager, nanikas, nanikas_update, profile, storage, warn;
   con = new Console("body");
   log = console.log;
   warn = console.warn;
@@ -141,81 +143,51 @@ $(function() {
   })(this));
   nanikas = [];
   nanikas_update = function() {
-    var index, nanika, nanikas_dom, _i, _len, _results;
+    var dirpath, nanika, nanikas_dom, _ref, _results;
     nanikas_dom = $('.nanikas').html('');
+    _ref = nanikamanager.nanikas;
     _results = [];
-    for (index = _i = 0, _len = nanikas.length; _i < _len; index = ++_i) {
-      nanika = nanikas[index];
+    for (dirpath in _ref) {
+      nanika = _ref[dirpath];
       _results.push(nanikas_dom.append($('<div />').text(nanika.ghost.descript.name + " を終了する").on('click', (function(nanika) {
         return function() {
-          nanika.onhalt = function() {
-            console.log("halted");
-            nanikas.splice(nanikas.indexOf(nanika), 1);
-            return nanikas_update();
-          };
-          return nanika.send_close();
+          return nanika.send_halt('close', {
+            reason: 'user'
+          });
         };
       })(nanika))));
     }
     return _results;
   };
+  storage = new NanikaStorage();
+  profile = new Profile.Baseware();
+  profile.profile.balloonpath = 'origin';
+  namedmanager = new NamedManager();
+  $(namedmanager.element).appendTo("body");
+  nanikamanager = new NanikaManager(storage, profile, namedmanager, {
+    append_path: './vendor/js/',
+    logging: true
+  });
+  nanikamanager.on('ghost.booted', nanikas_update);
+  nanikamanager.on('ghost.halted', nanikas_update);
+  balloon_nar = './vendor/nar/origin.nar';
+  console.log("load nar : " + balloon_nar);
+  NarLoader.loadFromURL(balloon_nar).then(function(nar) {
+    console.log("nar loaded : " + balloon_nar);
+    return storage.install_nar(nar);
+  });
   return load_nar = function(file) {
-    var narloader;
-    narloader = new Nar.Loader();
-    return Promise.all([
-      new Promise((function(_this) {
-        return function(resolve, reject) {
-          con.log("load nar : " + file.name);
-          return narloader.loadFromBlob(file, function(err, nar) {
-            if (err != null) {
-              return reject(err);
-            } else {
-              return resolve(nar);
-            }
-          });
-        };
-      })(this)), new Promise((function(_this) {
-        return function(resolve, reject) {
-          var balloon_nar;
-          balloon_nar = './vendor/nar/origin.nar';
-          con.log("load nar : " + balloon_nar);
-          return narloader.loadFromURL(balloon_nar, function(err, nar) {
-            if (err != null) {
-              return reject(err);
-            } else {
-              return resolve(nar);
-            }
-          });
-        };
-      })(this))
-    ]).then(function(_arg) {
-      var balloon, balloon_nar, ghost_nar;
-      ghost_nar = _arg[0], balloon_nar = _arg[1];
-      balloon = new Balloon(balloon_nar.getDirectory(/^/));
-      return balloon.load().then(function() {
-        console.log("balloon loaded");
-        return [ghost_nar, balloon];
-      });
+    console.log("load nar : " + file.name);
+    return NarLoader.loadFromBlob(file).then(function(nar) {
+      console.log("nar loaded : " + file.name);
+      storage.install_nar(nar);
+      return nar;
     })["catch"](function(err) {
       console.error(err, err.stack);
       return alert(err);
-    }).then(function(_arg) {
-      var balloon, ghost_nar, namedmanager, nanika, nanikamanager;
-      ghost_nar = _arg[0], balloon = _arg[1];
-      console.log("nar loaded");
-      nanikamanager = {
-        get_balloon: function() {
-          return balloon;
-        }
-      };
-      namedmanager = new NamedManager();
-      $(namedmanager.element).appendTo("body");
-      nanika = new Nanika(nanikamanager, namedmanager, ghost_nar);
-      nanika.options.append_path = "./vendor/js/";
-      nanika.options.logging = true;
-      return nanika.load().then(function() {
-        nanikas.push(nanika);
-        return nanikas_update();
+    }).then(function(nar) {
+      return nanikamanager.boot(nar.install.directory, 'boot', {
+        halt: null
       });
     });
   };

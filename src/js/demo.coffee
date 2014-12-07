@@ -2,9 +2,11 @@ Promise = @Promise
 if @Ikagaka?
 	NarLoader = @Ikagaka.NarLoader || @NarLoader
 	Nanika = @Ikagaka.Nanika || @Nanika
+	NanikaStorage = @Ikagaka.NanikaStorage || @Nanika
 else
 	NarLoader = @NarLoader
 	Nanika = @Nanika
+	NanikaStorage = @NanikaStorage
 
 class Console
 	constructor: (dom) ->
@@ -77,54 +79,37 @@ $ ->
 	nanikas = []
 	nanikas_update = ->
 		nanikas_dom = $('.nanikas').html('')
-		for nanika, index in nanikas
+		for dirpath, nanika of nanikamanager.nanikas
 			nanikas_dom.append $('<div />').text(nanika.ghost.descript.name+" を終了する").on 'click', (
 				(nanika) ->
-					->
-						nanika.onhalt = ->
-							console.log "halted"
-							nanikas.splice(nanikas.indexOf(nanika), 1)
-							nanikas_update()
-						nanika.send_close()
+					-> nanika.send_halt('close', reason: 'user')
 			)(nanika)
+	
+	storage = new NanikaStorage()
+	profile = new Profile.Baseware()
+	profile.profile.balloonpath = 'origin'
+	namedmanager = new NamedManager()
+	$(namedmanager.element).appendTo("body")
+	nanikamanager = new NanikaManager(storage, profile, namedmanager, append_path: './vendor/js/', logging: true)
+	nanikamanager.on 'ghost.booted', nanikas_update
+	nanikamanager.on 'ghost.halted', nanikas_update
+	balloon_nar = './vendor/nar/origin.nar'
+	console.log("load nar : "+balloon_nar)
+	NarLoader.loadFromURL balloon_nar
+	.then (nar) ->
+		console.log("nar loaded : "+balloon_nar)
+		storage.install_nar(nar)
 	load_nar = (file) ->
-		narloader = new Nar.Loader()
-		Promise.all [
-			(new Promise (resolve, reject) =>
-				con.log("load nar : "+file.name)
-				narloader.loadFromBlob file, (err, nar) ->
-					if err? then reject(err)
-					else resolve(nar)
-			),
-			(new Promise (resolve, reject) =>
-				balloon_nar = './vendor/nar/origin.nar'
-				con.log("load nar : "+balloon_nar)
-				narloader.loadFromURL balloon_nar, (err, nar) ->
-					if err? then reject(err)
-					else resolve(nar)
-			),
-		]
-		.then ([ghost_nar, balloon_nar]) ->
-			balloon = new Balloon(balloon_nar.getDirectory(/^/))
-			balloon.load()
-			.then ->
-				console.log "balloon loaded"
-				[ghost_nar, balloon]
+		console.log("load nar : "+file.name)
+		NarLoader.loadFromBlob file
+		.then (nar) ->
+			console.log("nar loaded : "+file.name)
+			storage.install_nar(nar)
+			nar
 		.catch (err) ->
 			console.error(err, err.stack)
 			alert(err)
-		.then ([ghost_nar, balloon]) ->
-			console.log("nar loaded")
-			nanikamanager = get_balloon: -> balloon
-			namedmanager = new NamedManager()
-			$(namedmanager.element).appendTo("body")
-			nanika = new Nanika(nanikamanager, namedmanager, ghost_nar)
-#			nanika.options.path = "./vendor/js/"
-			nanika.options.append_path = "./vendor/js/"
-			nanika.options.logging = true
-			nanika.load()
-			.then ->
-				nanikas.push nanika
-				nanikas_update()
+		.then (nar) ->
+			nanikamanager.boot(nar.install.directory, 'boot', halt: null)
 #	nar = new Nar()
 #	nar.loadFromURL("./vendor/nar/akos.nar", loadHandler.bind(@, nar))

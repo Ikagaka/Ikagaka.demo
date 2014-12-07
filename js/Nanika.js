@@ -1,23 +1,29 @@
-var Nanika, Promise, SakuraScriptPlayer,
+
+
+var EventEmitter, Nanika, Promise, SakuraScriptPlayer,
+  __hasProp = {}.hasOwnProperty,
+  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   __slice = [].slice;
 
 Promise = this.Promise;
 
 SakuraScriptPlayer = this.SakuraScriptPlayer;
 
-if (typeof require !== "undefined" && require !== null) {
-  if (Promise == null) {
-    Promise = require('bluebird');
-  }
-}
+EventEmitter = this.EventEmitter2;
 
-Nanika = (function() {
-  function Nanika(nanikamanager, namedmanager, nar) {
+Nanika = (function(_super) {
+  __extends(Nanika, _super);
+
+  function Nanika(nanikamanager, storage, namedmanager, ghostpath, profile, options) {
     this.nanikamanager = nanikamanager;
+    this.storage = storage;
     this.namedmanager = namedmanager;
-    this.nar = nar;
+    this.ghostpath = ghostpath;
+    this.profile = profile;
+    this.options = options;
     this.charset = 'UTF-8';
     this.sender = 'Ikagaka';
+    this.state = 'init';
     this.options = {};
   }
 
@@ -32,37 +38,54 @@ Nanika = (function() {
     throw err;
   };
 
-  Nanika.prototype.load = function() {
-    return Promise.all([
-      ((function(_this) {
-        return function() {
-          console.log("initializing ghost");
-          _this.ghost = new Ghost(_this.nar.getDirectory(/ghost\/master\//));
-          _this.ghost.path += _this.options.append_path;
-          _this.ghost.logging = _this.options.logging;
-          return _this.ghost.load().then(function() {
-            return console.log("ghost loaded");
-          });
-        };
-      })(this))(), ((function(_this) {
-        return function() {
-          var shell;
-          console.log("initializing shell");
-          shell = new Shell(_this.nar.getDirectory(/shell\/master\//));
-          return shell.load().then(function() {
-            console.log("shell loaded");
-            return _this.shells = {
-              master: shell
-            };
-          });
-        };
-      })(this))()
-    ]).then((function(_this) {
+  Nanika.prototype.load_ghost = function() {
+    var ghost;
+    console.log("initializing ghost");
+    ghost = new Ghost(this.storage.ghost_master(this.ghostpath).asArrayBuffer());
+    ghost.path += this.options.append_path;
+    ghost.logging = this.options.logging;
+    return ghost.load().then(function() {
+      console.log("ghost loaded");
+      return ghost;
+    });
+  };
+
+  Nanika.prototype.load_shell = function(shellpath) {
+    var shell;
+    console.log("initializing shell");
+    shell = new Shell(this.storage.shell(this.ghostpath, shellpath).asArrayBuffer());
+    return shell.load().then((function(_this) {
       return function() {
-        var balloon;
+        console.log("shell loaded");
+        _this.profile.profile.shellpath = shellpath;
+        return shell;
+      };
+    })(this));
+  };
+
+  Nanika.prototype.load_balloon = function(balloonpath) {
+    var balloon;
+    console.log("initializing balloon");
+    balloon = new Balloon(this.storage.balloon(balloonpath).asArrayBuffer());
+    return balloon.load().then((function(_this) {
+      return function() {
+        console.log("balloon loaded");
+        _this.profile.profile.balloonpath = balloonpath;
+        return balloon;
+      };
+    })(this));
+  };
+
+  Nanika.prototype.boot = function(event, args) {
+    var balloonpath, shellpath;
+    shellpath = this.profile.profile.shellpath || 'master';
+    balloonpath = this.profile.profile.balloonpath || this.nanikamanager.profile.profile.balloonpath;
+    return Promise.all([this.load_ghost(), this.materialize_named(shellpath, balloonpath)]).then((function(_this) {
+      return function(_arg) {
+        var ghost;
+        ghost = _arg[0];
+        _this.ghost = ghost;
         _this.resource = {};
-        balloon = _this.nanikamanager.get_balloon();
-        _this.materialize(_this.shells['master'], balloon);
         return console.log("materialized");
       };
     })(this)).then((function(_this) {
@@ -70,39 +93,137 @@ Nanika = (function() {
         _this.transaction = new Promise(function(resolve) {
           return resolve();
         });
+        _this.state = 'running';
         _this.set_named_handler();
         _this.set_ssp_handler();
         _this.run_version();
-        _this.run_boot();
+        _this.run_pre_boot();
+        _this.run_boot(event, args);
         return _this.run_timer();
       };
     })(this))["catch"](this["throw"]);
   };
 
-  Nanika.prototype.halt = function() {
-    var e;
-    this.transaction = null;
-    try {
-      this.vanish();
-    } catch (_error) {
-      e = _error;
+  Nanika.prototype.change_named = function(shellpath, balloonpath) {
+    if (this.named != null) {
+      this.vanish_named();
     }
-    return this.ghost.unload().then((function(_this) {
-      return function() {
-        return typeof _this.onhalt === "function" ? _this.onhalt() : void 0;
+    return this.materialize_named(shellpath, balloonpath);
+  };
+
+  Nanika.prototype.materialize_named = function(shellpath, balloonpath) {
+    return Promise.all([this.load_shell(shellpath), this.load_balloon(balloonpath)]).then((function(_this) {
+      return function(_arg) {
+        var balloon, shell;
+        shell = _arg[0], balloon = _arg[1];
+        _this.namedid = _this.namedmanager.materialize(shell, balloon);
+        _this.named = _this.namedmanager.named(_this.namedid);
+        _this.ssp = new SakuraScriptPlayer(_this.named);
       };
     })(this));
   };
 
-  Nanika.prototype.materialize = function(shell, balloon) {
-    this.namedid = this.namedmanager.materialize(shell, balloon);
-    this.named = this.namedmanager.named(this.namedid);
-    return this.ssp = new SakuraScriptPlayer(this.named);
+  Nanika.prototype.vanish_named = function() {
+    if (this.ssp != null) {
+      this.ssp.off();
+      delete this.ssp;
+    }
+    if (this.namedid != null) {
+      this.namedmanager.vanish(this.namedid);
+      delete this.named;
+      return delete this.namedid;
+    }
   };
 
-  Nanika.prototype.vanish = function() {
-    this.ssp.off();
-    return this.namedmanager.vanish(this.namedid);
+  Nanika.prototype.send_halt = function(event, args) {
+    return this.transaction = this.transaction.then((function(_this) {
+      return function() {
+        switch (event) {
+          case 'close':
+            return _this.send_request(['GET'], _this.protocol_version, {
+              ID: "OnClose",
+              Reference0: args.reason
+            }).then(function(response) {
+              if (response.status_line.code !== 200) {
+                return _this.halt();
+              } else {
+                return _this.recv_response(response, {
+                  finish: function() {
+                    return _this.halt();
+                  }
+                });
+              }
+            });
+          case 'closeall':
+            return _this.send_request(['GET'], _this.protocol_version, {
+              ID: "OnCloseAll",
+              Reference0: args.reason
+            }).then(function(response) {
+              if (response.status_line.code === 200) {
+                return _this.recv_response(response, {
+                  finish: function() {
+                    return _this.halt();
+                  }
+                });
+              } else {
+                return _this.send_request(['GET'], _this.protocol_version, {
+                  ID: "OnClose"
+                }).then(function(response) {
+                  if (response.status_line.code !== 200) {
+                    return _this.halt();
+                  } else {
+                    return _this.recv_response(response, {
+                      finish: function() {
+                        return _this.halt();
+                      }
+                    });
+                  }
+                });
+              }
+            });
+          case 'change':
+            return _this.send_request(['GET'], _this.protocol_version, {
+              ID: "OnGhostChanging",
+              Reference0: args.to.sakuraname,
+              Reference1: args.reason,
+              Reference2: args.to.name
+            }).then(function(response) {
+              if (response.status_line.code !== 200) {
+                return _this.halt();
+              } else {
+                return _this.recv_response(response, {
+                  finish: function() {
+                    return _this.halt();
+                  }
+                });
+              }
+            });
+          default:
+            throw 'unknown event';
+        }
+      };
+    })(this));
+  };
+
+  Nanika.prototype.halt = function() {
+    var e;
+    if (this.state === 'halted') {
+      return;
+    }
+    this.state = 'halted';
+    this.transaction = null;
+    try {
+      this.vanish_named();
+    } catch (_error) {
+      e = _error;
+      console.error(e);
+    }
+    this.ghost.unload().then((function(_this) {
+      return function() {
+        _this.emit('halted');
+        return _this.removeAllListeners();
+      };
+    })(this));
   };
 
   Nanika.prototype.run_version = function() {
@@ -148,7 +269,7 @@ Nanika = (function() {
     })(this));
   };
 
-  Nanika.prototype.run_boot = function() {
+  Nanika.prototype.run_pre_boot = function() {
     return this.transaction = this.transaction.then((function(_this) {
       return function() {
         if (_this.protocol_version === '3.0') {
@@ -254,14 +375,44 @@ Nanika = (function() {
       return function(response) {
         return _this.resource["kero.recommendsites"] = response.headers.get_separated2(_this.string_header(_this.protocol_version));
       };
-    })(this)).then((function(_this) {
+    })(this));
+  };
+
+  Nanika.prototype.run_boot = function(event, args) {
+    return this.transaction = this.transaction.then((function(_this) {
       return function() {
-        return _this.send_request(['GET'], _this.protocol_version, {
-          ID: "OnBoot",
-          Reference0: "0",
-          Reference6: "",
-          Reference7: ""
-        });
+        switch (event) {
+          case 'firstboot':
+            return _this.send_request(['GET'], _this.protocol_version, {
+              ID: "OnFirstBoot",
+              Reference0: args.vanishcount
+            });
+          case 'boot':
+            return _this.send_request(['GET'], _this.protocol_version, {
+              ID: "OnBoot",
+              Reference0: _this.named.shell.descript.name,
+              Reference6: args.halt ? 'halt' : '',
+              Reference7: args.halt ? args.halt : ''
+            });
+          case 'change':
+            return _this.send_request(['GET'], _this.protocol_version, {
+              ID: "OnGhostChanged",
+              Reference0: args.from.sakuraname,
+              Reference1: args.from.script,
+              Reference2: args.from.name,
+              Reference7: _this.named.shell.descript.name
+            });
+          case 'call':
+            return _this.send_request(['GET'], _this.protocol_version, {
+              ID: "OnGhostCalled",
+              Reference0: args.from.sakuraname,
+              Reference1: args.from.script,
+              Reference2: args.from.name,
+              Reference7: _this.named.shell.descript.name
+            });
+          default:
+            throw 'unknown event';
+        }
       };
     })(this)).then((function(_this) {
       return function(response) {
@@ -525,20 +676,6 @@ Nanika = (function() {
     })(this));
   };
 
-  Nanika.prototype.send_close = function() {
-    return this.transaction = this.transaction.then((function(_this) {
-      return function() {
-        return _this.send_request(['GET'], _this.protocol_version, {
-          ID: "OnClose"
-        });
-      };
-    })(this)).then((function(_this) {
-      return function(response) {
-        return _this.recv_response(response);
-      };
-    })(this));
-  };
-
   Nanika.prototype.send_request = function(method, version, headers) {
     return new Promise((function(_this) {
       return function(resolve, reject) {
@@ -597,7 +734,7 @@ Nanika = (function() {
     })(this));
   };
 
-  Nanika.prototype.recv_response = function(response) {
+  Nanika.prototype.recv_response = function(response, listener) {
     return new Promise((function(_this) {
       return function(resolve, reject) {
         var ss;
@@ -609,12 +746,56 @@ Nanika = (function() {
             ss = response.headers.header.Sentence;
           }
           if ((ss != null) && (typeof ss === "string" || ss instanceof String)) {
-            _this.ssp.play(ss);
+            _this.ssp.play(ss, listener);
           }
         }
         return resolve(response);
       };
     })(this))["catch"](this.error);
+  };
+
+  Nanika.prototype.get_sentence = function(headers, callback) {
+    return this.transaction = this.transaction.then((function(_this) {
+      return function() {
+        return _this.send_request(['GET', 'Sentence'], _this.protocol_version, headers);
+      };
+    })(this)).then(callback != null ? callback : (function(_this) {
+      return function(response) {
+        return _this.recv_response(response);
+      };
+    })(this));
+  };
+
+  Nanika.prototype.get_string = function(headers, callback) {
+    return this.transaction = this.transaction.then((function(_this) {
+      return function() {
+        return _this.send_request(['GET', 'String'], _this.protocol_version, headers);
+      };
+    })(this)).then(callback);
+  };
+
+  Nanika.prototype.notify_ownerghostname = function(headers) {
+    return this.transaction = this.transaction.then((function(_this) {
+      return function() {
+        return _this.send_request(['NOTIFY', 'OwnerGhostName'], _this.protocol_version, headers);
+      };
+    })(this));
+  };
+
+  Nanika.prototype.notify_otherghostname = function(headers) {
+    return this.transaction = this.transaction.then((function(_this) {
+      return function() {
+        return _this.send_request(['NOTIFY', 'OtherGhostName'], _this.protocol_version, headers);
+      };
+    })(this));
+  };
+
+  Nanika.prototype.notify = function(headers) {
+    return this.transaction = this.transaction.then((function(_this) {
+      return function() {
+        return _this.send_request(['NOTIFY', null], _this.protocol_version, headers);
+      };
+    })(this));
   };
 
   Nanika.prototype.string_header = function(version) {
@@ -627,7 +808,7 @@ Nanika = (function() {
 
   return Nanika;
 
-})();
+})(EventEmitter);
 
 if ((typeof module !== "undefined" && module !== null ? module.exports : void 0) != null) {
   module.exports = Nanika;
