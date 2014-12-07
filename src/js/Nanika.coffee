@@ -230,6 +230,8 @@ class Nanika
 						headers["Reference#{index}"] = value
 					@send_request ['GET', 'Sentence'], @protocol_version, headers
 					.then (response) => @recv_response(response)
+			else if /^script:/.test event.id # script:
+				@ssp.play(event.id.replace /^script:/, '')
 			else if event.args.length # Ex
 				@transaction = @transaction.then =>
 					headers =

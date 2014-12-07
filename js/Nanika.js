@@ -369,6 +369,8 @@ Nanika = (function() {
               return _this.recv_response(response);
             });
           });
+        } else if (/^script:/.test(event.id)) {
+          return _this.ssp.play(event.id.replace(/^script:/, ''));
         } else if (event.args.length) {
           return _this.transaction = _this.transaction.then(function() {
             var headers, index, value, _j, _len1, _ref;
