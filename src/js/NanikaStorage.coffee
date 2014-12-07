@@ -54,7 +54,7 @@ class NanikaStorage
 	install_package: (nar, ghost) ->
 		for child in nar.listChildren()
 			directory = nar.getDirectory(child)
-			if directory.files.length
+			if Object.keys(directory.files).length
 				@install_nar directory, ghost
 	uninstall_ghost: (directory) ->
 		delete @ghosts[directory]

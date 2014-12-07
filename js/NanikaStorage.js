@@ -107,7 +107,7 @@ NanikaStorage = (function() {
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       child = _ref[_i];
       directory = nar.getDirectory(child);
-      if (directory.files.length) {
+      if (Object.keys(directory.files).length) {
         _results.push(this.install_nar(directory, ghost));
       } else {
         _results.push(void 0);
