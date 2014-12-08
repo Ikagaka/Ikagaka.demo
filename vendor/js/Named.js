@@ -144,8 +144,8 @@
           _this.$named.on("click", ".blimp", onblimpclick);
           _this.$named.on("dblclick", ".blimp", onblimpdblclick);
           return _this.destructors.push(function() {
-            this.$named.off("click", ".blimp", onblimpclick);
-            return this.$named.off("dblclick", ".blimp", onblimpdblclick);
+            _this.$named.off("click", ".blimp", onblimpclick);
+            return _this.$named.off("dblclick", ".blimp", onblimpdblclick);
           });
         });
       })(this)();

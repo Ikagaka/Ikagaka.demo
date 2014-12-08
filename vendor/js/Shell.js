@@ -308,6 +308,7 @@
       surfaces = SurfacesTxt2Yaml.txt_to_data(text, {
         compatible: 'ssp-lazy'
       });
+      surfaces.surfaces = surfaces.surfaces || {};
       srfs = surfaces.surfaces;
       keys = Object.keys(srfs);
       surfaces.surfaces = keys.reduce((function(obj, name) {

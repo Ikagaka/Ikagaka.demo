@@ -21,7 +21,7 @@
       this.baseSurface = srf.baseSurface;
       this.regions = srf.regions || {};
       this.animations = srf.animations || {};
-      this.bufferCanvas = SurfaceUtil.copy(this.baseSurface);
+      this.bufferCanvas = SurfaceUtil.copy(this.baseSurface || document.createElement("canvas"));
       this.stopFlags = {};
       this.layers = {};
       this.destructed = false;
@@ -209,7 +209,7 @@
     };
 
     Surface.prototype.render = function() {
-      var keys, mapped, patterns, sorted, srfs, util, util2;
+      var base, keys, mapped, patterns, sorted, srfs, util, util2;
       srfs = this.surfaces.surfaces;
       keys = Object.keys(this.layers);
       sorted = keys.sort(function(layerNumA, layerNumB) {
@@ -248,15 +248,18 @@
       })(this)), []);
       SurfaceUtil.clear(this.bufferCanvas);
       util = new SurfaceUtil(this.bufferCanvas);
-      util.composeElements([
-        {
-          "type": "base",
-          "canvas": this.baseSurface
-        }
-      ].concat(patterns));
-      SurfaceUtil.clear(this.element);
-      util2 = new SurfaceUtil(this.element);
-      util2.init(this.bufferCanvas);
+      if (!!this.baseSurface || patterns.length > 0) {
+        base = this.baseSurface || patterns[0].canvas;
+        util.composeElements([
+          {
+            "type": "base",
+            "canvas": base
+          }
+        ].concat(patterns));
+        SurfaceUtil.clear(this.element);
+        util2 = new SurfaceUtil(this.element);
+        util2.init(this.bufferCanvas);
+      }
     };
 
     Surface.prototype.play = function(animationId, callback) {
@@ -432,6 +435,7 @@
           };
         })(this));
         if (!!hit) {
+          ev.stopPropagation();
           detail["region"] = this.regions[hit].name;
           $(ev.target).css({
             "cursor": "pointer"
@@ -456,13 +460,13 @@
             _ev.initMouseEvent(ev.type, ev.bubbles, ev.cancelable, ev.view, ev.detail, ev.screenX, ev.screenY, ev.clientX, ev.clientY, ev.ctrlKey, ev.altKey, ev.shiftKey, ev.metaKey, ev.button, ev.relatedTarget);
           }
           elm.dispatchEvent(_ev);
-        } else if (/^touch/.test(ev.type)) {
+        } else if (/^touch/.test(ev.type) && !!document.createTouchList) {
           this.isPointerEventsShimed = true;
           this.lastEventType = ev.type;
           ev.preventDefault();
           ev.stopPropagation();
           touches = document.createTouchList();
-          touches[0] = document.createTouch(document.body);
+          touches[0] = document.createTouch(document.body, ev.target, 0, ev.pageX, ev.pageY, ev.screenX, ev.screenY, ev.clientX, ev.clientY, 1, 1, 0, 1.0);
           _ev = document.createEvent("TouchEvent");
           _ev.initTouchEvent(touches, touches, touches, ev.type, ev.view, ev.screenX, ev.screenY, ev.clientX, ev.clientY, ev.ctrlKey, ev.altKey, ev.shiftKey, ev.metaKey);
           elm.dispatchEvent(_ev);
