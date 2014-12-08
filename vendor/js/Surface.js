@@ -83,14 +83,14 @@
             });
           });
           $(_this.element).on("touchend", function(ev) {
-            _this.processMouseEvent(ev, "OnMouseUp", function($ev) {
+            _this.processMouseEvent(ev, "mouseup", function($ev) {
               return $(_this.element).trigger($ev);
             });
-            _this.processMouseEvent(ev, "OnMouseClick", function($ev) {
+            _this.processMouseEvent(ev, "click", function($ev) {
               return $(_this.element).trigger($ev);
             });
             if (Date.now() - touchStartTime < 500 && touchCount % 2 === 0) {
-              return _this.processMouseEvent(ev, "OnMouseDoubleClick", function($ev) {
+              return _this.processMouseEvent(ev, "dblclick", function($ev) {
                 return $(_this.element).trigger($ev);
               });
             }
@@ -98,7 +98,7 @@
           return $(_this.element).on("touchstart", function(ev) {
             touchCount++;
             touchStartTime = Date.now();
-            _this.processMouseEvent(ev, "OnMouseDown", function($ev) {
+            _this.processMouseEvent(ev, "mousemove", function($ev) {
               return $(_this.element).trigger($ev);
             });
             clearTimeout(tid);
@@ -435,7 +435,9 @@
           };
         })(this));
         if (!!hit) {
-          ev.stopPropagation();
+          if (/^touch/.test(ev.type)) {
+            ev.stopPropagation();
+          }
           detail["region"] = this.regions[hit].name;
           $(ev.target).css({
             "cursor": "pointer"
