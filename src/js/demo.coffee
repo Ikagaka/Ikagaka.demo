@@ -104,12 +104,28 @@ $ ->
 		NarLoader.loadFromBlob file
 		.then (nar) ->
 			console.log("nar loaded : "+file.name)
-			storage.install_nar(nar)
-			nar
+			try
+				install_results = storage.install_nar(nar)
+			catch err
+				console.error 'install failure'
+				console.error err.stack
+				return
+			unless install_results?
+				console.error 'install not accepted'
+				return
+			ghost = null
+			balloon = null
+			for install_result in install_results
+				if install_result.type == 'ghost'
+					ghost = install_result
+				else if install_result.type == 'balloon'
+					balloon = install_result
+			if ghost?
+				if balloon?
+					profile.ghost(ghost.directory).profile.balloonpath = balloon.directory
+				nanikamanager.boot(ghost.directory, 'boot', halt: null)
 		.catch (err) ->
 			console.error(err, err.stack)
 			alert(err)
-		.then (nar) ->
-			nanikamanager.boot(nar.install.directory, 'boot', halt: null)
 #	nar = new Nar()
 #	nar.loadFromURL("./vendor/nar/akos.nar", loadHandler.bind(@, nar))

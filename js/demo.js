@@ -179,16 +179,41 @@ $(function() {
   return load_nar = function(file) {
     console.log("load nar : " + file.name);
     return NarLoader.loadFromBlob(file).then(function(nar) {
+      var balloon, err, ghost, install_result, install_results, _i, _len;
       console.log("nar loaded : " + file.name);
-      storage.install_nar(nar);
-      return nar;
+      try {
+        install_results = storage.install_nar(nar);
+      } catch (_error) {
+        err = _error;
+        console.error('install failure');
+        console.error(err.stack);
+        return;
+      }
+      if (install_results == null) {
+        console.error('install not accepted');
+        return;
+      }
+      ghost = null;
+      balloon = null;
+      for (_i = 0, _len = install_results.length; _i < _len; _i++) {
+        install_result = install_results[_i];
+        if (install_result.type === 'ghost') {
+          ghost = install_result;
+        } else if (install_result.type === 'balloon') {
+          balloon = install_result;
+        }
+      }
+      if (ghost != null) {
+        if (balloon != null) {
+          profile.ghost(ghost.directory).profile.balloonpath = balloon.directory;
+        }
+        return nanikamanager.boot(ghost.directory, 'boot', {
+          halt: null
+        });
+      }
     })["catch"](function(err) {
       console.error(err, err.stack);
       return alert(err);
-    }).then(function(nar) {
-      return nanikamanager.boot(nar.install.directory, 'boot', {
-        halt: null
-      });
     });
   };
 });
