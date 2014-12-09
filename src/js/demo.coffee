@@ -92,7 +92,7 @@ $ ->
 	$(namedmanager.element).appendTo("body")
 	nanikamanager = new NanikaManager(storage, profile, namedmanager, append_path: './vendor/js/', logging: true)
 	nanikamanager.on 'ghost.booted', nanikas_update
-	nanikamanager.on 'ghost.halted', nanikas_update
+	nanikamanager.on 'ghost.halted', -> console.log 'halted'; nanikas_update()
 	balloon_nar = './vendor/nar/origin.nar'
 	console.log("load nar : "+balloon_nar)
 	NarLoader.loadFromURL balloon_nar

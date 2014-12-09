@@ -169,7 +169,10 @@ $(function() {
     logging: true
   });
   nanikamanager.on('ghost.booted', nanikas_update);
-  nanikamanager.on('ghost.halted', nanikas_update);
+  nanikamanager.on('ghost.halted', function() {
+    console.log('halted');
+    return nanikas_update();
+  });
   balloon_nar = './vendor/nar/origin.nar';
   console.log("load nar : " + balloon_nar);
   NarLoader.loadFromURL(balloon_nar).then(function(nar) {
