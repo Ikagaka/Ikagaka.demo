@@ -223,6 +223,17 @@
       return new NanikaDirectory(directory, options);
     };
 
+    NanikaDirectory.prototype.hasElement = function(elempath) {
+      var elempathre, path;
+      elempathre = this.pathToRegExp(elempath);
+      for (path in this.files) {
+        if (elempathre.test(path)) {
+          return true;
+        }
+      }
+      return false;
+    };
+
     NanikaDirectory.prototype.pathToRegExp = function(path) {
       return new RegExp('^' + this.path.canonical(path).replace(/(\W)/g, '\\$1') + '(?:$|/)');
     };
