@@ -51,9 +51,6 @@ article .nar label {
   color: #fff;
   background: #06f;
 }
-article .nar label input[type="file"] {
-  display: none;
-}
 article .nar:after {
   content: "";
   display: block;
