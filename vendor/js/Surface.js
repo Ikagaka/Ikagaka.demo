@@ -86,7 +86,7 @@
             _this.processMouseEvent(ev, "mouseup", function($ev) {
               return $(_this.element).trigger($ev);
             });
-            _this.processMouseEvent(ev, "click", function($ev) {
+            _this.processMouseEvent(ev, "mouseclick", function($ev) {
               return $(_this.element).trigger($ev);
             });
             if (Date.now() - touchStartTime < 500 && touchCount % 2 === 0) {
@@ -98,7 +98,7 @@
           return $(_this.element).on("touchstart", function(ev) {
             touchCount++;
             touchStartTime = Date.now();
-            _this.processMouseEvent(ev, "mousemove", function($ev) {
+            _this.processMouseEvent(ev, "mousedown", function($ev) {
               return $(_this.element).trigger($ev);
             });
             clearTimeout(tid);
@@ -162,8 +162,9 @@
             default:
               if (/^bind(?:\+(\d+))/.test(interval)) {
 
+              } else {
+                return console.warn(_this.animations[name]);
               }
-              return console.error(_this.animations[name]);
           }
         };
       })(this));
@@ -429,9 +430,52 @@
         });
         hit = sorted.find((function(_this) {
           return function(name) {
-            var bottom, right, _ref3;
-            _ref3 = _this.regions[name], name = _ref3.name, left = _ref3.left, top = _ref3.top, right = _ref3.right, bottom = _ref3.bottom;
-            return ((left < offsetX && offsetX < right) && (top < offsetY && offsetY < bottom)) || ((right < offsetX && offsetX < left) && (bottom < offsetY && offsetY < top));
+            var bottom, coordinates, deg, height, ptC, radius, right, tuples, type, width, _ref3;
+            _ref3 = _this.regions[name], type = _ref3.type, name = _ref3.name, left = _ref3.left, top = _ref3.top, right = _ref3.right, bottom = _ref3.bottom, coordinates = _ref3.coordinates, radius = _ref3.radius;
+            switch (type) {
+              case "rect":
+                return ((left < offsetX && offsetX < right) && (top < offsetY && offsetY < bottom)) || ((right < offsetX && offsetX < left) && (bottom < offsetY && offsetY < top));
+              case "ellipse":
+                width = Math.abs(right - left);
+                height = Math.abs(bottom - top);
+                return Math.pow((offsetX - (left + width / 2)) / (width / 2), 2) + Math.pow((offsetY - (top + height / 2)) / (height / 2), 2) < 1;
+              case "circle":
+                return Math.pow(offsetX - (top + radius), 2) + Math.pow(offsetY - (left + radius), 2) / Math.pow(radius / 2, 2) < 1;
+              case "polygon":
+                ptC = {
+                  x: offsetX,
+                  y: offsetY
+                };
+                tuples = coordinates.reduce((function(arr, _arg, i) {
+                  var x, y;
+                  x = _arg.x, y = _arg.y;
+                  arr.push([coordinates[i], (!!coordinates[i + 1] ? coordinates[i + 1] : coordinates[0])]);
+                  return arr;
+                }), []);
+                deg = tuples.reduce((function(sum, _arg) {
+                  var absA, absB, dotP, ptA, ptB, rad, vctA, vctB;
+                  ptA = _arg[0], ptB = _arg[1];
+                  vctA = [ptA.x - ptC.x, ptA.y - ptC.y];
+                  vctB = [ptB.x - ptC.x, ptB.y - ptC.y];
+                  dotP = vctA[0] * vctB[0] + vctA[1] * vctB[1];
+                  absA = Math.sqrt(vctA.map(function(a) {
+                    return Math.pow(a, 2);
+                  }).reduce(function(a, b) {
+                    return a + b;
+                  }));
+                  absB = Math.sqrt(vctB.map(function(a) {
+                    return Math.pow(a, 2);
+                  }).reduce(function(a, b) {
+                    return a + b;
+                  }));
+                  rad = Math.acos(dotP / (absA * absB));
+                  return sum + rad;
+                }), 0);
+                return deg / (2 * Math.PI) >= 1;
+              default:
+                console.warn(_this.surfaceName, name, _this.regions[name]);
+                return false;
+            }
           };
         })(this));
         if (!!hit) {

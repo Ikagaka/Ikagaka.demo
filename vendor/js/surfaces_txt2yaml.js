@@ -651,6 +651,22 @@ SurfacesTxt2Yaml.ScopeParser.surface = (function(_super) {
         return this.match_collisionex_4(data.animations[id], result);
       }
     }, {
+      test: /^\s*animation(\d+)\.collisionex(\d+),([^,]+),(circle),([-0-9]+),([-0-9]+),([-0-9]+)$/,
+      match: function(data, result) {
+        var id, _is;
+        _is = (result.splice(1, 1))[0] - 0;
+        id = 'animation' + _is;
+        if (data.animations == null) {
+          data.animations = {};
+        }
+        if (data.animations[id] == null) {
+          data.animations[id] = {
+            is: _is
+          };
+        }
+        return this.match_collisionex_3(data.animations[id], result);
+      }
+    }, {
       test: /^\s*animation(\d+)\.collisionex(\d+),([^,]+),polygon,(.+)$/,
       match: function(data, result) {
         var id, _is;
@@ -675,6 +691,11 @@ SurfacesTxt2Yaml.ScopeParser.surface = (function(_super) {
       test: /^\s*collisionex(\d+),([^,]+),(rect|ellipse),([-0-9]+),([-0-9]+),([-0-9]+),([-0-9]+)$/,
       match: function(data, result) {
         return this.match_collisionex_4(data, result);
+      }
+    }, {
+      test: /^\s*collisionex(\d+),([^,]+),(circle),([-0-9]+),([-0-9]+),([-0-9]+)$/,
+      match: function(data, result) {
+        return this.match_collisionex_3(data, result);
       }
     }, {
       test: /^\s*collisionex(\d+),([^,]+),polygon,(.+)$/,
@@ -1045,6 +1066,35 @@ SurfacesTxt2Yaml.ScopeParser.surface = (function(_super) {
       top: top,
       right: right,
       bottom: bottom
+    };
+    return true;
+  };
+
+  surface.prototype.match_collisionex_3 = function(data, result) {
+    var center_x, center_y, id, name, radius, type, _is, _ref;
+    _ref = result.slice(1, 8), _is = _ref[0], name = _ref[1], type = _ref[2], center_x = _ref[3], center_y = _ref[4], radius = _ref[5];
+    _is -= 0;
+    center_x -= 0;
+    center_y -= 0;
+    radius -= 0;
+    id = 'collision' + _is;
+    if (data.regions == null) {
+      data.regions = {};
+    }
+    if (data.regions[id] != null) {
+      this.warnthrow('collisionex duplication found : ' + _is, this.options.check_surface_scope_duplication);
+      while (data.regions[id] != null) {
+        id = 'collision' + ++_is;
+      }
+      this.warnthrow(' replace to : ' + _is, this.options.check_surface_scope_duplication);
+    }
+    data.regions[id] = {
+      is: _is,
+      type: type,
+      name: name,
+      center_x: center_x,
+      center_y: center_y,
+      radius: radius
     };
     return true;
   };

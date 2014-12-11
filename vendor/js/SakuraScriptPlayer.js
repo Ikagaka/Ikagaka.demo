@@ -19,6 +19,7 @@
           if (!!_this["continue"]) {
             fn = _this["continue"];
             _this["continue"] = null;
+            _this.named.scope(0);
             return fn();
           }
         };
