@@ -98,7 +98,7 @@
           srfs = surfaces.surfaces;
           keys = Object.keys(srfs);
           keys.forEach(function(name) {
-            var baseSurface, elms, mapped, sortedElms, srfutil, _keys, _ref3;
+            var baseSurface, elms, mapped, sortedElms, srfutil, _baseSurface, _keys, _ref3;
             sortedElms = [];
             if (!!srfs[name].elements) {
               elms = srfs[name].elements;
@@ -126,11 +126,10 @@
               console.warn(name + " does not have base surface");
               return;
             }
-            baseSurface = SurfaceUtil.copy(baseSurface);
-            baseSurface = SurfaceUtil.transImage(baseSurface);
-            srfutil = new SurfaceUtil(baseSurface);
+            _baseSurface = SurfaceUtil.copy(baseSurface);
+            srfutil = new SurfaceUtil(_baseSurface);
             srfutil.composeElements(sortedElms);
-            return srfs[name].baseSurface = baseSurface;
+            return srfs[name].baseSurface = _baseSurface;
           });
           return resolve(surfaces);
         });
@@ -241,31 +240,32 @@
             type: "image/png"
           }));
           return SurfaceUtil.loadImage(url, function(err, img) {
-            var cnv;
+            var cnv, pnafilename;
             if (!!err) {
               URL.revokeObjectURL(url);
               return reject(err);
             } else {
-              cnv = SurfaceUtil.copy(img);
               URL.revokeObjectURL(url);
-              filename = filename.replace(/\.png$/, ".pna");
-              if (!directory[filename.replace(/\.png$/, ".pna")]) {
-                return resolve(SurfaceUtil.transImage(cnv));
+              pnafilename = filename.replace(/\.png$/i, ".pna");
+              cnv = SurfaceUtil.transImage(img);
+              if (!directory[pnafilename]) {
+                return resolve(SurfaceUtil.transImage(img));
               } else {
-                buffer = directory[filename];
+                buffer = directory[pnafilename];
                 url = URL.createObjectURL(new Blob([buffer], {
                   type: "image/png"
                 }));
-                return SurfaceUtil.loadImage(url, function(err, img) {
+                return SurfaceUtil.loadImage(url, function(err, pnaimg) {
                   var pnacnv;
                   if (!!err) {
                     URL.revokeObjectURL(url);
-                    return resolve(SurfaceUtil.transImage(cnv));
+                    console.warn("cannot read pna file", filename, pnafilename, err);
+                    return resolve(SurfaceUtil.transImage(img));
                   } else {
-                    pnacnv = SurfaceUtil.copy(img);
+                    cnv = SurfaceUtil.copy(img);
+                    pnacnv = SurfaceUtil.copy(pnaimg);
                     URL.revokeObjectURL(url);
-                    cnv = SurfaceUtil.pna(cnv, pnacnv);
-                    return resolve(cnv);
+                    return resolve(SurfaceUtil.pna(cnv, pnacnv));
                   }
                 });
               }
