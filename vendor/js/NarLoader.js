@@ -42,12 +42,12 @@
       return new Promise(function(resolve, reject) {
         var reader;
         reader = new FileReader();
-        reader.addEventListener("load", function() {
+        reader.onload = function() {
           return resolve(reader.result);
-        });
-        reader.addEventListener("error", function(event) {
+        };
+        reader.onerror = function(event) {
           return reject(event.target.error);
-        });
+        };
         return reader.readAsArrayBuffer(blob);
       }).then(this.loadFromBuffer);
     };
