@@ -430,8 +430,8 @@
         });
         hit = sorted.find((function(_this) {
           return function(name) {
-            var bottom, coordinates, deg, height, ptC, radius, right, tuples, type, width, _ref3;
-            _ref3 = _this.regions[name], type = _ref3.type, name = _ref3.name, left = _ref3.left, top = _ref3.top, right = _ref3.right, bottom = _ref3.bottom, coordinates = _ref3.coordinates, radius = _ref3.radius;
+            var bottom, center_x, center_y, coordinates, deg, height, ptC, radius, right, tuples, type, width, _ref3;
+            _ref3 = _this.regions[name], type = _ref3.type, name = _ref3.name, left = _ref3.left, top = _ref3.top, right = _ref3.right, bottom = _ref3.bottom, coordinates = _ref3.coordinates, radius = _ref3.radius, center_x = _ref3.center_x, center_y = _ref3.center_y;
             switch (type) {
               case "rect":
                 return ((left < offsetX && offsetX < right) && (top < offsetY && offsetY < bottom)) || ((right < offsetX && offsetX < left) && (bottom < offsetY && offsetY < top));
@@ -440,7 +440,7 @@
                 height = Math.abs(bottom - top);
                 return Math.pow((offsetX - (left + width / 2)) / (width / 2), 2) + Math.pow((offsetY - (top + height / 2)) / (height / 2), 2) < 1;
               case "circle":
-                return Math.pow(offsetX - (top + radius), 2) + Math.pow(offsetY - (left + radius), 2) / Math.pow(radius / 2, 2) < 1;
+                return Math.pow((offsetX - center_x) / radius, 2) + Math.pow((offsetY - center_y) / radius, 2) < 1;
               case "polygon":
                 ptC = {
                   x: offsetX,
