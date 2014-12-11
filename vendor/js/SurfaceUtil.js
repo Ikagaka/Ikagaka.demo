@@ -20,7 +20,7 @@
           this.base(canvas, offsetX, offsetY);
           break;
         case "overlay":
-          this.overlayfast(canvas, offsetX + x, offsetY + y);
+          this.overlay(canvas, offsetX + x, offsetY + y);
           break;
         case "overlayfast":
           this.overlayfast(canvas, offsetX + x, offsetY + y);
@@ -52,6 +52,15 @@
     SurfaceUtil.prototype.base = function(part, x, y) {
       SurfaceUtil.clear(this.cnv);
       this.init(part, x, y);
+    };
+
+    SurfaceUtil.prototype.overlay = function(part, x, y) {
+      this.ctx.globalCompositeOperation = "source-over";
+      if (this.cnv.width < part.width || this.cnv.height < part.height) {
+        this.base(part, x, y);
+      } else {
+        this.ctx.drawImage(part, x, y);
+      }
     };
 
     SurfaceUtil.prototype.overlayfast = function(part, x, y) {
