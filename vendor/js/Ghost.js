@@ -2,7 +2,7 @@
 (function() {
   var Ghost, Nar, ServerWorker, Worker,
     __slice = [].slice;
-
+  if(typeof URL == "undefined") URL = webkitURL;
   Nar = this.Nar || this.Ikagaka.Nar || require("ikagaka.nar.js");
 
   Worker = this.Worker;
