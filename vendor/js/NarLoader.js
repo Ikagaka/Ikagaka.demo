@@ -39,12 +39,17 @@
     };
 
     NarLoader.loadFromBlob = function(blob) {
-      var url;
-      url = URL.createObjectURL(blob);
-      return this.loadFromURL(url).then(function(directory) {
-        URL.revokeObjectURL(url);
-        return directory;
-      });
+      return new Promise(function(resolve, reject) {
+        var reader;
+        reader = new FileReader();
+        reader.addEventListener("load", function() {
+          return resolve(reader.result);
+        });
+        reader.addEventListener("error", function(event) {
+          return reject(event.target.error);
+        });
+        return reader.readAsArrayBuffer(blob);
+      }).then(this.loadFromBuffer);
     };
 
     NarLoader.unzip = function(buffer) {
