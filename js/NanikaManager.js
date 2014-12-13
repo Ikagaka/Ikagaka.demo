@@ -20,29 +20,35 @@ NanikaManager = (function(_super) {
   }
 
   NanikaManager.prototype.boot = function(dirpath, event, args) {
-    var nanika, profile;
-    profile = this.profile.ghost(dirpath);
-    nanika = new Nanika(this, this.storage, this.namedmanager, dirpath, profile, this.options);
-    nanika.on('halted', (function(_this) {
-      return function() {
-        nanika = _this.nanikas[dirpath];
-        delete _this.nanikas[dirpath];
-        return _this.emit('ghost.halted', dirpath, nanika);
-      };
-    })(this));
-    nanika.options.append_path = "./vendor/js/";
-    nanika.options.logging = true;
-    return nanika.boot(event, args).then((function(_this) {
-      return function() {
-        _this.nanikas[dirpath] = nanika;
-        switch (event) {
-          case 'boot':
-            return _this.emit('ghost.booted', dirpath, nanika);
-          case 'change':
-            return _this.emit('ghost.changed', dirpath, nanika);
-          case 'call':
-            return _this.emit('ghost.called', dirpath, nanika);
+    return new Promise((function(_this) {
+      return function(resolve, reject) {
+        var nanika, profile;
+        if (_this.nanikas[dirpath] != null) {
+          reject(new Error("ghost [" + dirpath + "] already running"));
         }
+        profile = _this.profile.ghost(dirpath);
+        nanika = new Nanika(_this, _this.storage, _this.namedmanager, dirpath, profile, _this.options);
+        nanika.on('halted', function() {
+          nanika = _this.nanikas[dirpath];
+          delete _this.nanikas[dirpath];
+          return _this.emit('ghost.halted', dirpath, nanika);
+        });
+        nanika.options.append_path = "./vendor/js/";
+        nanika.options.logging = true;
+        return nanika.boot(event, args).then(function() {
+          _this.nanikas[dirpath] = nanika;
+          switch (event) {
+            case 'boot':
+              _this.emit('ghost.booted', dirpath, nanika);
+              break;
+            case 'change':
+              _this.emit('ghost.changed', dirpath, nanika);
+              break;
+            case 'call':
+              _this.emit('ghost.called', dirpath, nanika);
+          }
+          return resolve();
+        });
       };
     })(this));
   };

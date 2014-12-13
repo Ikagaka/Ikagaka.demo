@@ -6,32 +6,43 @@ NanikaStorage = (function() {
     this.balloons = balloons != null ? balloons : {};
   }
 
-  NanikaStorage.prototype.ghost = function(dirpath) {
+  NanikaStorage.prototype.ghost = function(dirpath, directory) {
     if (this.ghosts[dirpath] == null) {
       throw new Error("ghost not found at [" + dirpath + "]");
+    }
+    if (directory != null) {
+      this.ghosts[dirpath] = directory;
     }
     return this.ghosts[dirpath];
   };
 
-  NanikaStorage.prototype.balloon = function(dirpath) {
+  NanikaStorage.prototype.balloon = function(dirpath, directory) {
     if (this.balloons[dirpath] == null) {
       throw new Error("balloon not found at [" + dirpath + "]");
+    }
+    if (directory != null) {
+      this.balloons[dirpath] = directory;
     }
     return this.balloons[dirpath];
   };
 
-  NanikaStorage.prototype.ghost_master = function(dirpath) {
+  NanikaStorage.prototype.ghost_master = function(dirpath, directory) {
     var ghost;
+    if (directory != null) {
+      this.ghost(dirpath, this.ghost(dirpath).removeElements('ghost/master').addDirectory(directory.wrapDirectory('ghost/master')));
+    }
     ghost = this.ghost(dirpath);
-    console.log(ghost);
     if (!ghost.hasElement('ghost/master')) {
       throw new Error("ghost/master not found at [" + dirpath + "]");
     }
     return ghost.getDirectory('ghost/master');
   };
 
-  NanikaStorage.prototype.shell = function(dirpath, shellpath) {
+  NanikaStorage.prototype.shell = function(dirpath, shellpath, directory) {
     var ghost;
+    if (directory != null) {
+      this.ghost(dirpath, this.ghost(dirpath).removeElements('shell/' + shellpath).addDirectory(directory.wrapDirectory('shell/' + shellpath)));
+    }
     ghost = this.ghost(dirpath);
     if (!ghost.hasElement('shell/' + shellpath)) {
       throw new Error("shell/" + shellpath + " not found at [" + dirpath + "]");

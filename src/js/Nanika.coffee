@@ -1,5 +1,6 @@
 Promise = @Promise
 SakuraScriptPlayer = @SakuraScriptPlayer
+NanikaDirectory = @NanikaDirectory
 EventEmitter = @EventEmitter2
 
 class Nanika extends EventEmitter
@@ -15,10 +16,11 @@ class Nanika extends EventEmitter
 		throw err
 	load_ghost: ->
 		console.log "initializing ghost"
-		ghost = new Ghost(@storage.ghost_master(@ghostpath).asArrayBuffer())
-		ghost.path += @options.append_path
+		ghost = new Ghost("/ghost/#{@ghostpath}/ghost/master/", @storage.ghost_master(@ghostpath).asArrayBuffer(), @options.append_path)
 		ghost.logging = @options.logging
-		ghost.load()
+		ghost.push()
+		.then ->
+			ghost.load()
 		.then ->
 			console.log "ghost loaded"
 			ghost
@@ -130,6 +132,9 @@ class Nanika extends EventEmitter
 			console.error e.stack
 		@ghost.unload()
 		.then =>
+			@ghost.pull()
+		.then (directory) =>
+			@storage.ghost_master(@ghostpath, new NanikaDirectory(directory))
 			@emit 'halted'
 			@removeAllListeners()
 		return

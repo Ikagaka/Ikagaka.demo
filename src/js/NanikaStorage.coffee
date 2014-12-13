@@ -1,17 +1,24 @@
 class NanikaStorage
 	constructor: (@ghosts={}, @balloons={}) ->
-	ghost: (dirpath) ->
+	ghost: (dirpath, directory) ->
 		unless @ghosts[dirpath]? then throw new Error "ghost not found at [#{dirpath}]"
+		if directory?
+			@ghosts[dirpath] = directory
 		@ghosts[dirpath]
-	balloon: (dirpath) ->
+	balloon: (dirpath, directory) ->
 		unless @balloons[dirpath]? then throw new Error "balloon not found at [#{dirpath}]"
+		if directory?
+			@balloons[dirpath] = directory
 		@balloons[dirpath]
-	ghost_master: (dirpath) ->
+	ghost_master: (dirpath, directory) ->
+		if directory?
+			@ghost dirpath, @ghost(dirpath).removeElements('ghost/master').addDirectory(directory.wrapDirectory('ghost/master'))
 		ghost = @ghost(dirpath)
-		console.log ghost
 		unless ghost.hasElement('ghost/master') then throw new Error "ghost/master not found at [#{dirpath}]"
 		ghost.getDirectory('ghost/master')
-	shell: (dirpath, shellpath) ->
+	shell: (dirpath, shellpath, directory) ->
+		if directory?
+			@ghost dirpath, @ghost(dirpath).removeElements('shell/' + shellpath).addDirectory(directory.wrapDirectory('shell/' + shellpath))
 		ghost = @ghost(dirpath)
 		unless ghost.hasElement('shell/' + shellpath) then throw new Error "shell/#{shellpath} not found at [#{dirpath}]"
 		ghost.getDirectory('shell/' + shellpath)

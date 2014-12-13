@@ -4,20 +4,17 @@ if(typeof require !== "undefined" && require !== null){
 	Encoding = require('encoding-japanese');
 }
 
-NativeShiori = function(shiori, storage){
+NativeShiori = function(shiori, debug){
 	this.Module = shiori.Module;
 	this.FS = shiori.FS;
-	this.storage = storage;
+	this.debug = debug;
 	this._load = this.Module.cwrap('load', 'number', ['number','number']);
 	this._request = this.Module.cwrap('request', 'number', ['number','number']);
 	this._unload = this.Module.cwrap('unload', 'number');
 };
 
 NativeShiori.prototype.load = function(dirpath){
-	if(this.storage){
-		this._load_FS(dirpath);
-	}
-	
+	if(this.debug) console.log('nativeshiori.load()', dirpath);
 	var dirpath_raw = Encoding.convert(Encoding.stringToCode(dirpath), 'UTF8', 'UNICODE');
 	var dir = this._alloc_string(dirpath_raw);
 	
@@ -25,6 +22,7 @@ NativeShiori.prototype.load = function(dirpath){
 };
 
 NativeShiori.prototype.request = function(request){
+	if(this.debug) console.log('nativeshiori.request()\n', request);
 	var request_raw = Encoding.convert(Encoding.stringToCode(request), this.detect_shiori_charset(request), 'UNICODE');
 	var req = this._alloc_string(request_raw);
 	var len = this._alloc_long(req.size);
@@ -38,11 +36,23 @@ NativeShiori.prototype.request = function(request){
 	this.Module._free(len.ptr);
 	this.Module._free(res_ptr);
 	
+	if(this.debug) console.log('nativeshiori.request() returns\n', response);
 	return response;
 };
 
 NativeShiori.prototype.unload = function(){
+	if(this.debug) console.log('nativeshiori.unload()');
 	return this._unload();
+};
+
+NativeShiori.prototype.push = function(dirpath, storage){
+	if(this.debug) console.log('nativeshiori.push()', dirpath, storage);
+	this._push_FS(dirpath, storage);
+};
+
+NativeShiori.prototype.pull = function(dirpath){
+	if(this.debug) console.log('nativeshiori.pull()', dirpath);
+	return this._pull_FS(dirpath);
 };
 
 NativeShiori.prototype.detect_shiori_charset = function(str){
@@ -79,9 +89,10 @@ NativeShiori.prototype._alloc_long = function(n){
 	return {ptr: ptr, size: size, heap: heap};
 };
 
-NativeShiori.prototype._load_FS = function(base_directory){
+NativeShiori.prototype._push_FS = function(base_directory, storage){
+	if(this.debug) console.log('nativeshiori._push_FS()', base_directory, storage);
 	var filepath;
-	for(filepath in this.storage){
+	for(filepath in storage){
 		var dirname = this._dirname(filepath);
 		var dir = this._catfile(base_directory, dirname);
 		try{
@@ -90,11 +101,29 @@ NativeShiori.prototype._load_FS = function(base_directory){
 			this._mkpath(dir);
 		}
 		if(! /\/$/.test(filepath)){
-			var content = new Uint8Array(this.storage[filepath]);
+			var content = new Uint8Array(storage[filepath]);
 			var file = this._catfile(base_directory, filepath);
+			if(this.debug) console.log('nativeshiori._push_FS() writeFile:', file);
 			this.FS.writeFile(file, content, {encoding: 'binary'});
 		}
 	}
+};
+
+NativeShiori.prototype._pull_FS = function(base_directory){
+	if(this.debug) console.log('nativeshiori._pull_FS()', base_directory);
+	var storage = {};
+	var elements = this._readdirAll(base_directory);
+	var filepath;
+	var i = 0;
+	for(i = 0; i < elements.length; ++i){
+		var filepath = elements[i];
+		var file = this._catfile(base_directory, filepath);
+		if(this.debug) console.log('nativeshiori._pull_FS() readFile/unlink:', file);
+		var content = this.FS.readFile(file, {encoding: 'binary'});
+		this.FS.unlink(file);
+		storage[filepath] = content.buffer;
+	}
+	return storage;
 };
 
 NativeShiori.prototype._catfile = function(){
@@ -104,28 +133,66 @@ NativeShiori.prototype._catfile = function(){
 		var token = arguments[i];
 		path += token.replace(/^\/?/, '/').replace(/\/?$/, '');
 	}
-	return path;
+	return path.replace(/\/\/+/, '/').replace(/\/?$/, '');
 };
 
+NativeShiori.prototype._catfile_rel = function(){
+	return NativeShiori.prototype._catfile.apply(this, arguments).replace(/^\//, '');
+}
+
 NativeShiori.prototype._dirname = function(path){
-	return path.replace(/\/?[^\/]*$/, '');
+	return path.replace(/\/?[^\/]*\/?$/, '');
 };
 
 NativeShiori.prototype._mkpath = function(path){
+	if(this.debug) console.log('nativeshiori._mkpath()', path);
 	var FS = this.FS;
+	var _dirname = this._dirname;
+	var debug = this.debug;
 	var mkdir;
-	mkdir = function(hierarchy){
-		var path = hierarchy.join('/').replace(/\/$/, "");
+	mkdir = function(path){
+		if(!path) path = '/';
 		try{
 			FS.stat(path);
 		}catch(e){
-			mkdir(hierarchy.slice(0, hierarchy.length - 2));
+			mkdir(_dirname(path));
+			if(debug) console.log('nativeshiori._mkpath() mkdir:', path);
 			FS.mkdir(path);
 		}
 	};
-	var hierarchy = path.split(/\//);
-	mkdir(hierarchy);
+	mkdir(path);
 	return true;
+};
+
+NativeShiori.prototype._readdirAll = function(path){ // not contain directory
+	if(this.debug) console.log('nativeshiori._readdirAll()', path);
+	var FS = this.FS;
+	var _catfile = this._catfile;
+	var _catfile_rel = this._catfile_rel;
+	var debug = this.debug;
+	var readdir;
+	readdir = function(basepath, path){
+		var abspath = _catfile(basepath, path);
+		if(debug) console.log('nativeshiori._readdirAll() readdir:', abspath);
+		var children = FS.readdir(abspath);
+		var elements = [];
+		var i = 0;
+		for(i = 0; i < children.length; ++i){
+			var child = children[i];
+			if(child == '.' || child == '..') continue;
+			var childpath = _catfile_rel(path, child);
+			var childabspath = _catfile(basepath, childpath);
+			var stat = FS.stat(childabspath);
+			if(FS.isDir(stat.mode)){
+				elements = elements.concat(readdir(basepath, childpath));
+			}else{
+				elements.push(childpath);
+			}
+		}
+		return elements;
+	};
+	elements = readdir(path, '');
+	return elements;
 };
 
 if((typeof module !== "undefined" && module !== null) && (module.exports != null)) module.exports = NativeShiori;

@@ -1,6 +1,6 @@
 
 
-var EventEmitter, Nanika, Promise, SakuraScriptPlayer,
+var EventEmitter, Nanika, NanikaDirectory, Promise, SakuraScriptPlayer,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   __slice = [].slice;
@@ -8,6 +8,8 @@ var EventEmitter, Nanika, Promise, SakuraScriptPlayer,
 Promise = this.Promise;
 
 SakuraScriptPlayer = this.SakuraScriptPlayer;
+
+NanikaDirectory = this.NanikaDirectory;
 
 EventEmitter = this.EventEmitter2;
 
@@ -41,10 +43,11 @@ Nanika = (function(_super) {
   Nanika.prototype.load_ghost = function() {
     var ghost;
     console.log("initializing ghost");
-    ghost = new Ghost(this.storage.ghost_master(this.ghostpath).asArrayBuffer());
-    ghost.path += this.options.append_path;
+    ghost = new Ghost("/ghost/" + this.ghostpath + "/ghost/master/", this.storage.ghost_master(this.ghostpath).asArrayBuffer(), this.options.append_path);
     ghost.logging = this.options.logging;
-    return ghost.load().then(function() {
+    return ghost.push().then(function() {
+      return ghost.load();
+    }).then(function() {
       console.log("ghost loaded");
       return ghost;
     });
@@ -220,6 +223,11 @@ Nanika = (function(_super) {
     }
     this.ghost.unload().then((function(_this) {
       return function() {
+        return _this.ghost.pull();
+      };
+    })(this)).then((function(_this) {
+      return function(directory) {
+        _this.storage.ghost_master(_this.ghostpath, new NanikaDirectory(directory));
         _this.emit('halted');
         return _this.removeAllListeners();
       };
