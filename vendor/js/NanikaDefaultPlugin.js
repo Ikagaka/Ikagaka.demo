@@ -576,13 +576,13 @@
   NanikaPlugin.version = {
     initialize: function(nanika) {
       return nanika.on('materialized', function() {
-        nanika.request('version', null, function(response_args, response) {
+        return nanika.request('version', null, function(response_args, response) {
           if (response.status_line.code === 200 && response.status_line.version !== '3.0') {
             nanika.protocol_version = '2.6';
             nanika.resource.version = response.headers.header.Version;
             nanika.resource.name = response.headers.header.ID;
             nanika.resource.craftman = response.headers.header.Craftman;
-            return nanika.resource.craftmanw = response.headers.header.Craftman;
+            nanika.resource.craftmanw = response.headers.header.Craftman;
           } else {
             nanika.protocol_version = '3.0';
             nanika.request('version', null, function(response_args) {
@@ -594,12 +594,12 @@
             nanika.request('craftman', null, function(response_args) {
               return nanika.resource.craftman = response_args.value;
             });
-            return nanika.request('craftmanw', null, function(response_args) {
+            nanika.request('craftmanw', null, function(response_args) {
               return nanika.resource.craftmanw = response_args.value;
             });
           }
+          return nanika.emit('version.set');
         });
-        return nanika.emit('version.set');
       });
     }
   };
