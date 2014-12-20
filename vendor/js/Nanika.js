@@ -189,6 +189,9 @@
           request_definition = event_definition.request;
           if (request_definition instanceof Function) {
             _ref = request_definition(_this, request_args, optionals), method = _ref.method, submethod = _ref.submethod, id = _ref.id, headers = _ref.headers;
+            if (method == null) {
+              method = 'GET';
+            }
           } else if (request_definition instanceof Object) {
             headers_definition = request_definition.headers;
             if (headers_definition instanceof Function) {
@@ -271,7 +274,7 @@
             }
           }
           _this.emit("response." + event, response_args, optionals);
-          if (method === 'GET' && (submethod === 'Sentence' || (submethod == null))) {
+          if (method === 'GET' && ((submethod == null) || submethod === 'Sentence')) {
             if ((response_args.value != null) && (typeof response_args.value === "string" || response_args.value instanceof String)) {
               _this.ssp.play(response_args.value, {
                 'finish': function() {
