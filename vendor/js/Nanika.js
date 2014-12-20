@@ -98,17 +98,22 @@
         return function(_arg) {
           var ghost;
           ghost = _arg[0];
-          _this.ghost = ghost;
-          _this.resource = {};
-          _this.protocol_version = '2.6';
-          _this.transaction = new Promise(function(resolve) {
-            return resolve();
+          return new Promise(function(resolve, reject) {
+            _this.ghost = ghost;
+            _this.resource = {};
+            _this.protocol_version = '2.6';
+            _this.transaction = new Promise(function(resolve) {
+              return resolve();
+            });
+            _this.initialize_plugins();
+            _this.state = 'running';
+            _this.log("materialized");
+            _this.on('version.set', function() {
+              return resolve();
+            });
+            _this.emit('materialized');
+            return _this.named.load();
           });
-          _this.initialize_plugins();
-          _this.state = 'running';
-          _this.log("materialized");
-          _this.emit('materialized');
-          return _this.named.load();
         };
       })(this))["catch"](this["throw"]);
     };
