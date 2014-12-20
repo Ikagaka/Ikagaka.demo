@@ -93,6 +93,7 @@ ShioriJK.RequestLine = (function() {
             case 'TEACH':
             case 'GET String':
             case 'NOTIFY OwnerGhostName':
+            case 'NOTIFY OtherGhostName':
             case 'TRANSLATE Sentence':
               break;
             default:
@@ -146,7 +147,7 @@ ShioriJK.RequestLine = (function() {
       case '2.0':
         switch (method) {
           case 'GET Version':
-          case 'NOTIFY':
+          case 'NOTIFY OwnerGhostName':
           case 'GET Sentence':
           case 'GET Word':
           case 'GET Status':
@@ -161,7 +162,7 @@ ShioriJK.RequestLine = (function() {
         break;
       case '2.3':
         switch (method) {
-          case 'NOTIFY':
+          case 'NOTIFY OtherGhostName':
           case 'GET Sentence':
             is_valid = true;
         }
@@ -184,6 +185,7 @@ ShioriJK.RequestLine = (function() {
           case 'GET Status':
           case 'GET String':
           case 'NOTIFY OwnerGhostName':
+          case 'NOTIFY OtherGhostName':
           case 'GET Version':
           case 'TRANSLATE Sentence':
             is_valid = true;
