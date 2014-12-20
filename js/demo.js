@@ -151,7 +151,7 @@ $(function() {
       nanika = _ref[dirpath];
       _results.push(nanikas_dom.append($('<div />').text(nanika.ghost.descript.name + " を終了する").on('click', (function(nanika) {
         return function() {
-          return nanika.send_halt('close', {
+          return nanika.request('close', {
             reason: 'user'
           });
         };

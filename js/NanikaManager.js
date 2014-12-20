@@ -16,6 +16,7 @@ NanikaManager = (function(_super) {
     this.profile = profile;
     this.namedmanager = namedmanager;
     this.options = options;
+    this.setMaxListeners(0);
     this.nanikas = {};
   }
 
@@ -27,7 +28,7 @@ NanikaManager = (function(_super) {
           reject(new Error("ghost [" + dirpath + "] already running"));
         }
         profile = _this.profile.ghost(dirpath);
-        nanika = new Nanika(_this, _this.storage, _this.namedmanager, dirpath, profile, _this.options);
+        nanika = new Nanika(_this, _this.storage, _this.namedmanager, dirpath, profile, NanikaPlugin, NanikaEventDefinition, _this.options);
         nanika.on('halted', function() {
           nanika = _this.nanikas[dirpath];
           delete _this.nanikas[dirpath];
@@ -35,8 +36,13 @@ NanikaManager = (function(_super) {
         });
         nanika.options.append_path = "./vendor/js/";
         nanika.options.logging = true;
-        return nanika.boot(event, args).then(function() {
+        return nanika.materialize(event, args).then(function() {
           _this.nanikas[dirpath] = nanika;
+          nanika.request('boot', {
+            shell_name: 'master',
+            halted: false,
+            halted_ghost: null
+          });
           switch (event) {
             case 'boot':
               _this.emit('ghost.booted', dirpath, nanika);
@@ -72,10 +78,14 @@ NanikaManager = (function(_super) {
   };
 
   NanikaManager.prototype.halt = function(dirpath, event, args) {
+    var nanika;
     if (this.nanikas[dirpath] == null) {
       throw "ghost [" + dirpath + "] not running";
     }
-    return this.nanikas.send_halt(event, args);
+    nanika = this.nanikas[dirpath];
+    return nanika.request('close', {
+      reason: 'user'
+    });
   };
 
   return NanikaManager;

@@ -82,7 +82,7 @@ $ ->
 		for dirpath, nanika of nanikamanager.nanikas
 			nanikas_dom.append $('<div />').text(nanika.ghost.descript.name+" を終了する").on 'click', (
 				(nanika) ->
-					-> nanika.send_halt('close', reason: 'user')
+					-> nanika.request 'close', reason: 'user'
 			)(nanika)
 	
 	storage = new NanikaStorage()
