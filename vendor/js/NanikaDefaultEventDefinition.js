@@ -63,44 +63,6 @@
     NanikaEventDefinition = {};
   }
 
-  NanikaEventDefinition.firstboot = {
-    request: {
-      id: 'OnFirstBoot',
-      headers: {
-        vanish_count: 0
-      }
-    }
-  };
-
-  NanikaEventDefinition.boot = {
-    request: {
-      id: 'OnBoot',
-      headers: {
-        shell_name: 0,
-        halted: {
-          name: 6,
-          value: function(value, nanika, request_args, optionals) {
-            if (value) {
-              return 'halt';
-            } else {
-              return '';
-            }
-          }
-        },
-        halted_ghost: {
-          name: 7,
-          value: function(value, nanika, request_args, optionals) {
-            if (value != null) {
-              return value;
-            } else {
-              return '';
-            }
-          }
-        }
-      }
-    }
-  };
-
   NanikaEventDefinition.calling = {
     request: {
       id: 'OnGhostCalling',
@@ -113,7 +75,7 @@
     }
   };
 
-  NanikaEventDefinition.call_complete = {
+  NanikaEventDefinition.callcomplete = {
     request: {
       id: 'OnGhostCallComplete',
       headers: {
@@ -125,7 +87,7 @@
     }
   };
 
-  NanikaEventDefinition.other_booted = {
+  NanikaEventDefinition.otherbooted = {
     request: {
       id: 'OnOtherGhostBooted',
       headers: {
@@ -137,7 +99,7 @@
     }
   };
 
-  NanikaEventDefinition.other_changed = {
+  NanikaEventDefinition.otherchanged = {
     request: {
       id: 'OnOtherGhostChanged',
       headers: {
@@ -153,7 +115,7 @@
     }
   };
 
-  NanikaEventDefinition.other_closed = {
+  NanikaEventDefinition.otherclosed = {
     request: {
       id: 'OnOtherGhostClosed',
       headers: {
@@ -329,8 +291,16 @@
           _ref = args.args;
           for (index = _i = 0, _len = _ref.length; _i < _len; index = ++_i) {
             value = _ref[index];
-            headers["Reference" + (index + 2)] = value;
+            if (value != null) {
+              headers["Reference" + (index + 2)] = value;
+            }
           }
+        }
+        if (args.age != null) {
+          headers.Age = args.age;
+        }
+        if (args.surface != null) {
+          headers.Surface = args.surface;
         }
         return headers;
       }

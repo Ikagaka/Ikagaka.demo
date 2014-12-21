@@ -179,13 +179,25 @@
     NanikaPlugin = {};
   }
 
-  NanikaPlugin.close = {
+  NanikaPlugin.communicate = {
     initialize: function(nanika) {
-      nanika.on('ssp.finish.close', function() {
-        return nanika.halt();
-      });
-      return nanika.on('ssp.finish.changing', function() {
-        return nanika.halt();
+      return nanika.on('materialized', function() {
+        return nanika.on('ssp.finish', function(response_args, response) {
+          var args, index, name, result, value;
+          if (response_args.Reference0 != null) {
+            args = [];
+            for (name in response_args) {
+              value = response_args[name];
+              if (result = name.match(/^Reference(\d+)$/)) {
+                index = result[1] - 1;
+                if (index) {
+                  args[index] = value;
+                }
+              }
+            }
+            return nanika.nanikamanager.communicate(nanika.ghost.descript.sakuraname, response_args.Reference0, response_args.value, args, response_args.Age, response_args.Surface);
+          }
+        });
       });
     }
   };
@@ -478,7 +490,7 @@
           });
         });
         return nanika.ssp.on('script:halt', function() {
-          return nanika.halt();
+          return nanika.halt('ssp.script.halt');
         });
       });
     }

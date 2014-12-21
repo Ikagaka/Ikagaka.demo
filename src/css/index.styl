@@ -11,7 +11,7 @@ a
 	position fixed
 	top 0
 	left 0
-	width 40em
+	width 30em
 	height 20em
 	background rgba(255,255,255,0.5)
 	overflow auto
@@ -42,30 +42,49 @@ header
 article
 	margin 0.5em
 	line-height 140%
-	.nar
-		label
-			display block
-			max-width 20em
-			margin 0.5em auto
-			padding 2em
-			text-align center
-			color #fff
-			background #06f
-		&:after
-			content ""
-			display block
-			clear both
-		.nanikas
+	.ikagaka
+		.ghosts
+			border-top 1px solid #999
 			list-style none
-			max-width 20em
+			max-width 50em
 			margin 0.5em auto
 			padding 0em
-			*
-				display block
-				margin 0.5em auto
-				padding 0.5em
-				background #ccc
-				cursor pointer
+			li
+				border-bottom 1px solid #999
+				margin 0em auto
+				padding 0.2em
+				.name
+					font-weight bold
+				button.change, button.call, button.close, .install
+					display inline-block
+					border none
+					color #fff
+					font-size medium
+					margin 0 0.2em
+					padding 0.5em
+				button.change
+					background #06f
+				button.call
+					background #0c0
+				button.close
+					background #f00
+				.install
+					background #f90
+				ul.list
+					list-style none
+					li
+						border-bottom none
+						margin 0.2em 0
+						&.ok
+							color #fff
+							cursor pointer
+						&.ng
+							color #999
+							background #ccc
+				.change .list li
+					background #06f
+				.call .list li
+					background #0c0
 	h2
 		margin 0.5em 0
 		padding 0.5em 0

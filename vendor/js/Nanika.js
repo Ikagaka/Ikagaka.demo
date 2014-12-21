@@ -99,7 +99,12 @@
           var ghost;
           ghost = _arg[0];
           return new Promise(function(resolve, reject) {
+            var _base;
             _this.ghost = ghost;
+            if ((_base = _this.profile.profile).boot_count == null) {
+              _base.boot_count = 0;
+            }
+            _this.profile.profile.boot_count++;
             _this.resource = {};
             _this.protocol_version = '2.6';
             _this.transaction = new Promise(function(resolve) {
@@ -109,7 +114,7 @@
             _this.state = 'running';
             _this.log("materialized");
             _this.on('version.set', function() {
-              return resolve();
+              return resolve(_this);
             });
             _this.emit('materialized');
             return _this.named.load();
@@ -170,7 +175,7 @@
       return delete this.plugins[name];
     };
 
-    Nanika.prototype.request = function(event, request_args, callback, optionals) {
+    Nanika.prototype.request = function(event, request_args, callback, ssp_callbacks, optionals) {
       var event_definition, method, submethod;
       method = null;
       submethod = null;
@@ -236,11 +241,12 @@
             throw new Error("event definition of [" + event + "] has no valid request definition");
           }
           _this.emit("request." + event, request_args, optionals);
+          _this.emit("request", request_args, optionals);
           return _this.send_request([method, submethod], _this.protocol_version, id, headers);
         };
       })(this)).then((function(_this) {
         return function(response) {
-          var name, response_args, response_definition, value, value_name, _ref;
+          var name, response_args, response_definition, result, value, value_name, _ref, _ref1;
           if (response == null) {
             return;
           }
@@ -248,8 +254,18 @@
           if (response_definition != null ? response_definition.args : void 0) {
             response_args = response_definition.args(_this, response);
           } else {
+            response_args = {};
             if (response.status_line.version === '3.0') {
-              value_name = 'Value';
+              if (response.headers.header.Value != null) {
+                response_args.value = response.headers.header.Value;
+              }
+              _ref = response.headers.header;
+              for (name in _ref) {
+                value = _ref[name];
+                if (name !== 'Value') {
+                  response_args[name] = value;
+                }
+              }
             } else {
               if (submethod === 'String') {
                 value_name = 'String';
@@ -260,25 +276,41 @@
               } else {
                 value_name = 'Sentence';
               }
-            }
-            response_args = {};
-            if (response.headers.header[value_name] != null) {
-              response_args.value = response.headers.header[value_name];
-            }
-            _ref = response.headers.header;
-            for (name in _ref) {
-              value = _ref[name];
-              if (name !== value_name) {
-                response_args[name] = value;
+              if (response.headers.header[value_name] != null) {
+                response_args.value = response.headers.header[value_name];
+              }
+              _ref1 = response.headers.header;
+              for (name in _ref1) {
+                value = _ref1[name];
+                if (result = name.match(/^Reference(\d+)$/)) {
+                  response_args["Reference" + (result[1] + 1)] = value;
+                } else if (name === 'To') {
+                  response_args.Reference0 = value;
+                } else if (name !== value_name) {
+                  response_args[name] = value;
+                }
               }
             }
           }
           _this.emit("response." + event, response_args, optionals);
+          _this.emit("response", response_args, optionals);
           if (method === 'GET' && ((submethod == null) || submethod === 'Sentence')) {
-            if ((response_args.value != null) && (typeof response_args.value === "string" || response_args.value instanceof String)) {
+            if (response_args.value && (typeof response_args.value === "string" || response_args.value instanceof String)) {
               _this.ssp.play(response_args.value, {
-                'finish': function() {
-                  return _this.emit("ssp.finish." + event, response_args, optionals);
+                finish: function() {
+                  _this.emit("ssp.finish." + event, response_args, optionals);
+                  _this.emit("ssp.finish", response_args, optionals);
+                  return ssp_callbacks != null ? typeof ssp_callbacks.finish === "function" ? ssp_callbacks.finish(response_args, response) : void 0 : void 0;
+                },
+                reject: function() {
+                  _this.emit("ssp.reject." + event, response_args, optionals);
+                  _this.emit("ssp.reject", response_args, optionals);
+                  return ssp_callbacks != null ? typeof ssp_callbacks.reject === "function" ? ssp_callbacks.reject(response_args, response) : void 0 : void 0;
+                },
+                "break": function() {
+                  _this.emit("ssp.break." + event, response_args, optionals);
+                  _this.emit("ssp.break", response_args, optionals);
+                  return ssp_callbacks != null ? typeof ssp_callbacks["break"] === "function" ? ssp_callbacks["break"](response_args, response) : void 0 : void 0;
                 }
               });
             }
@@ -327,7 +359,7 @@
               if (id === "OnCommunicate") {
                 request.headers.header["Sender"] = headers["Reference0"];
                 request.headers.header["Sentence"] = headers["Reference1"];
-                request.headers.header["Age"] = "0";
+                request.headers.header["Age"] = headers.Age || "0";
                 for (key in headers) {
                   value = headers[key];
                   if (result = key.match(/^Reference(\d+)$/)) {
@@ -380,6 +412,7 @@
             }
           }
           _this.emit("request_raw." + id, request);
+          _this.emit("request_raw", request);
           return _this.ghost.request("" + request).then(function(response) {
             return resolve(response);
           })["catch"](function(err) {
@@ -404,6 +437,7 @@
             return;
           }
           _this.emit("response_raw." + id, response);
+          _this.emit("response_raw", response);
           if (response.headers.header.Charset != null) {
             _this.charset = response.headers.header.Charset;
           }
@@ -412,23 +446,26 @@
       })(this));
     };
 
-    Nanika.prototype.halt = function() {
+    Nanika.prototype.halt = function(event, args, optionals) {
       if (this.state === 'halted') {
         return;
       }
-      this.emit('halt');
+      this.emit("halt." + event, args, optionals);
+      this.emit('halt', args, optionals);
       this.state = 'halted';
       this.transaction = null;
       this.vanish_named();
-      this.ghost.unload().then((function(_this) {
+      return this.ghost.unload().then((function(_this) {
         return function() {
           return _this.ghost.pull();
         };
       })(this)).then((function(_this) {
         return function(directory) {
           _this.storage.ghost_master(_this.ghostpath, new NanikaDirectory(directory));
-          _this.emit('halted');
-          return _this.removeAllListeners();
+          _this.emit("halted." + event, args, optionals);
+          _this.emit('halted', args, optionals);
+          _this.removeAllListeners();
+          return true;
         };
       })(this));
     };

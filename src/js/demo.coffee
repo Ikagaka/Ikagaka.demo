@@ -57,55 +57,151 @@ $ ->
 	console.error = (args...) =>
 		error.apply console, args
 		con.error args.join ''
-	$("#nardrop").on 'dragenter', (ev) =>
-		ev.stopPropagation()
-		ev.preventDefault()
-		ev.dataTransfer.dropEffect = 'copy'
-		false
-	$("#nardrop").on 'dragover', (ev) =>
-		ev.stopPropagation()
-		ev.preventDefault()
-		ev.dataTransfer.dropEffect = 'copy'
-		false
-	$("#nardrop").on 'drop', (ev) =>
-		ev.stopPropagation()
-		ev.preventDefault()
-		ev.dataTransfer.dropEffect = 'copy'
-		for file in ev.dataTransfer.files
-			load_nar file
-	$("#nar").change (ev) =>
-		for file in ev.target.files
-			load_nar file
-	nanikas = []
-	nanikas_update = ->
-		nanikas_dom = $('.nanikas').html('')
-		for dirpath, nanika of nanikamanager.nanikas
-			nanikas_dom.append $('<div />').text(nanika.ghost.descript.name+" を終了する").on 'click', (
-				(nanika) ->
-					-> nanika.request 'close', reason: 'user'
-			)(nanika)
+	
 	
 	storage = new NanikaStorage()
+	balloon_nar = './vendor/nar/origin.nar'
+	ghost_nar = './vendor/nar/touhoku-zunko_or__.nar'
+
 	profile = new Profile.Baseware()
 	profile.profile.balloonpath = 'origin'
+	profile.profile.ghosts = ['touhoku-zunko_or__']
 	namedmanager = new NamedManager()
 	$(namedmanager.element).appendTo("body")
-	nanikamanager = new NanikaManager(storage, profile, namedmanager, append_path: './vendor/js/', logging: true)
-	nanikamanager.on 'ghost.booted', nanikas_update
-	nanikamanager.on 'ghost.halted', -> console.log 'halted'; nanikas_update()
-	balloon_nar = './vendor/nar/origin.nar'
+
+	nanikamanager = null
+	boot_nanikamanager = ->
+		if nanikamanager then return
+		nanikamanager = new NanikaManager(storage, profile, namedmanager, append_path: './vendor/js/', logging: true)
+		$('#ikagaka_boot').attr('disabled', true)
+		$('#ikagaka_halt').removeAttr('disabled')
+		nanikamanager.on 'change.existing.ghosts', ->
+			nanikas_dom = $('.ghosts').html('')
+			for dirpath, nanika of nanikamanager.nanikas
+				container = $('<li />')
+				container_label = $('<p />')
+				container_menu = $('<p />')
+				container_dropdown = $('<p />')
+				label = $('<span />').text(nanika.ghost.descript.name).addClass('name')
+				install_file = $('<input type="file" />')
+				.change ((dirpath) ->
+					(ev) =>
+						for file in ev.target.files
+							install_nar file, dirpath
+				)(dirpath)
+				install = $('<label draggable="true">narをドロップしてインストール</label>').addClass('install')
+				.on 'dragenter', (ev) =>
+					ev.stopPropagation()
+					ev.preventDefault()
+					ev.dataTransfer.dropEffect = 'copy'
+					false
+				.on 'dragover', (ev) =>
+					ev.stopPropagation()
+					ev.preventDefault()
+					ev.dataTransfer.dropEffect = 'copy'
+					false
+				.on 'drop', ((dirpath) ->
+					(ev) =>
+						ev.stopPropagation()
+						ev.preventDefault()
+						ev.dataTransfer.dropEffect = 'copy'
+						for file in ev.dataTransfer.files
+							install_nar file, dirpath
+				)(dirpath)
+				install.append install_file
+				change = $('<button />').text('交代').addClass('change')
+				.on 'click', ((dirpath, container_dropdown) ->
+					->
+						if container_dropdown.hasClass('change')
+							container_dropdown.removeClass('change call')
+							container_dropdown.html('')
+						else
+							container_dropdown.removeClass('change call')
+							container_dropdown.addClass('change')
+							container_dropdown.html('')
+							list = $('<ul />').addClass('list')
+							for dst_dirpath, ghost of storage.ghosts
+								if nanikamanager.is_existing_ghost(dst_dirpath)
+									elem = $('<li />').addClass('ng').text(ghost.install.name + ' に交代')
+								else
+									elem = $('<li />').addClass('ok').text(ghost.install.name + ' に交代')
+									.on 'click', ((dst_dirpath) ->
+										-> nanikamanager.change(dirpath, dst_dirpath)
+									)(dst_dirpath)
+								list.append(elem)
+							container_dropdown.append(list)
+				)(dirpath, container_dropdown)
+				call = $('<button />').text('呼出').addClass('call')
+				.on 'click', ((dirpath, container_dropdown) ->
+					->
+						if container_dropdown.hasClass('call')
+							container_dropdown.removeClass('change call')
+							container_dropdown.html('')
+						else
+							container_dropdown.removeClass('change call')
+							container_dropdown.addClass('call')
+							container_dropdown.html('')
+							list = $('<ul />').addClass('list')
+							for dst_dirpath, ghost of storage.ghosts
+								if nanikamanager.is_existing_ghost(dst_dirpath)
+									elem = $('<li />').addClass('ng').text(ghost.install.name + ' を呼出')
+								else
+									elem = $('<li />').addClass('ok').text(ghost.install.name + ' を呼出')
+									.on 'click', ((dst_dirpath) ->
+										-> nanikamanager.call(dirpath, dst_dirpath)
+									)(dst_dirpath)
+								list.append(elem)
+							container_dropdown.append(list)
+				)(dirpath, container_dropdown)
+				close = $('<button />').text('終了').addClass('close')
+				.on 'click', ((dirpath) ->
+					-> nanikamanager.close(dirpath, 'user')
+				)(dirpath)
+				container_label
+				.append label
+				container_menu
+				.append change
+				.append call
+				.append close
+				.append install
+				container
+				.append container_label
+				.append container_menu
+				.append container_dropdown
+				nanikas_dom.append container
+		nanikamanager.on 'destroyed', ->
+			nanikamanager = null
+			$('#ikagaka_boot').removeAttr('disabled')
+			$('#ikagaka_halt').attr('disabled', true)
+		nanikamanager.bootall()
+	halt_nanikamanager = ->
+		nanikamanager.closeall('user')
+
 	console.log("load nar : "+balloon_nar)
-	NarLoader.loadFromURL balloon_nar
-	.then (nar) ->
-		console.log("nar loaded : "+balloon_nar)
-		storage.install_nar(nar)
-	load_nar = (file) ->
+	Promise.all [
+		(NarLoader.loadFromURL balloon_nar
+		.then (nar) ->
+			console.log("nar loaded : "+balloon_nar)
+			storage.install_nar(nar)
+		),
+		(NarLoader.loadFromURL ghost_nar
+		.then (nar) ->
+			console.log("nar loaded : "+ghost_nar)
+			storage.install_nar(nar)
+		)
+	]
+	.then ->
+		$('#ikagaka_boot').click boot_nanikamanager
+		$('#ikagaka_halt').click halt_nanikamanager
+		$('#ikagaka_boot').click()
+
+	install_nar = (file, dirpath) ->
 		console.log("load nar : "+file.name)
 		NarLoader.loadFromBlob file
 		.then (nar) ->
 			console.log("nar loaded : "+file.name)
 			try
-				install_results = storage.install_nar(nar)
+				install_results = storage.install_nar(nar, dirpath)
 			catch err
 				console.error 'install failure'
 				console.error err.stack
@@ -123,7 +219,6 @@ $ ->
 			if ghost?
 				if balloon?
 					profile.ghost(ghost.directory).profile.balloonpath = balloon.directory
-				nanikamanager.boot(ghost.directory, 'boot', halt: null)
 		.catch (err) ->
 			console.error(err, err.stack)
 			alert(err)
