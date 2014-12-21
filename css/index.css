@@ -42,6 +42,9 @@ article {
   margin: 0.5em;
   line-height: 140%;
 }
+article .ikagaka .baseware {
+  text-align: center;
+}
 article .ikagaka .ghosts {
   border-top: 1px solid #999;
   list-style: none;
@@ -100,6 +103,9 @@ article .ikagaka .ghosts li .change .list li {
 }
 article .ikagaka .ghosts li .call .list li {
   background: #0c0;
+}
+article .notice {
+  font-size: smaller;
 }
 article h2 {
   margin: 0.5em 0;

@@ -465,7 +465,6 @@
           _this.emit("halted." + event, args, optionals);
           _this.emit('halted', args, optionals);
           _this.removeAllListeners();
-          return true;
         };
       })(this));
     };

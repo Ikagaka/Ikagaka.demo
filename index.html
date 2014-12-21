@@ -40,17 +40,17 @@
   </head>
   <body>
     <header>
-      <h1><a href="https://github.com/Ikagaka" target="_blank">如何か</a></h1><small>Ukagaka Web Platform</small>
+      <h1><a href="https://github.com/Ikagaka" target="_blank">如何か</a></h1><small>The Web Baseware</small>
     </header>
     <article>
       <section class="ikagaka">
-        <p>
+        <p class="baseware">
           <button id="ikagaka_boot">ベースウェアを起動</button>
           <button id="ikagaka_halt">ベースウェアを終了</button>
         </p>
         <ul class="ghosts"></ul>
       </section>
-      <section>
+      <section class="notice">
         <h2>動作条件</h2>
         <dl>
           <dt>ブラウザ</dt>
@@ -70,25 +70,31 @@
           </dd>
           <dt>栞の制限事項</dt>
           <dd>
+            <p>SAORIが読み込まれた時点で落ちます。将来的には実装するつもりですが、優先度は低いです。</p>
             <dl>
               <dt>里々</dt>
               <dd>satori_conf.txtの＠SAORIを書き換えてSAORIを無視して読み込む処理にしてあるので、SAORI関連の動作は色々な不具合を生む可能性があります。</dd>
               <dt>YAYA</dt>
-              <dd>boostをSTLに置換した影響で、容易に機能を置換できなかった正規表現の「//m,//s,//x」については無効になっています。これらを使用しているゴーストは正しく動かない可能性があります。</dd>
+              <dd>boostをSTLに置換した影響で、容易に機能を置換できなかった正規表現の「//m,//s,//x」については無効になっています。これらを使用しているゴーストは正しく動かない(突然落ちる等)可能性があります。</dd>
               <dt>華和梨7</dt>
               <dd>旧通信プロトコルであるSHIORI/2.6を使っての通信となりますので、バグが出やすいかもしれません。</dd>
             </dl>
           </dd>
-          <dt>既知の不具合</dt>
+          <dt>ベースウェア機能実装状況</dt>
           <dd>
+            <p>おおまかな感じ</p>
             <ul>
-              <li>まあ色々と動きません。</li>
-              <li>終了機能は簡易的です。\tタグによるタイムクリティカルセクション中はききません。</li>
+              <li>初回起動・起動・切り替え・呼び出し・終了・全体終了 SSP的なフォールバック(OnFirstBootがなかったらOnBootを呼ぶ等)あり</li>
+              <li>起動時情報系は最大限SSPに準拠するが、ゴーストのパス等やフォント等は省略</li>
+              <li>対応さくらスクリプトは<a href="https://github.com/Ikagaka/SakuraScriptPlayer.js" target="_blank">SakuraScriptPlayer.js</a></li>
+              <li>コミュニケートはちゃんとテストされていませんが一応機能はあります。動かないかも。</li>
+              <li>着せ替え・3人目は未完成です。</li>
+              <li>ゴーストキャッシュはありません。</li>
             </ul>
           </dd>
         </dl>
       </section>
-      <section>
+      <section class="please">
         <h2>動作報告のお願い</h2>
         <p>Githubユーザーの方: <a href="https://github.com/Ikagaka/Ikagaka.demo/issues" target="_blank">Issues</a></p>
         <p>そうでない方・単純な起動報告等: <a href="http://uka.jpn.org/test/read.cgi/unyu/1416718339/l50" target="_blank">如何か開発スレッド</a></p>
