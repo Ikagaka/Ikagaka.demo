@@ -100,10 +100,10 @@ $(function() {
   })(this);
   storage = new NanikaStorage();
   balloon_nar = './vendor/nar/origin.nar';
-  ghost_nar = './vendor/nar/touhoku-zunko_or__.nar';
+  ghost_nar = './vendor/nar/ikaga.nar';
   profile = new Profile.Baseware();
   profile.profile.balloonpath = 'origin';
-  profile.profile.ghosts = ['touhoku-zunko_or__'];
+  profile.profile.ghosts = ['ikaga'];
   namedmanager = new NamedManager();
   $(namedmanager.element).appendTo("body");
   nanikamanager = null;
