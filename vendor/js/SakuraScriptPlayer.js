@@ -74,7 +74,7 @@
         }, {
           re: /^\\s\[([^\]]+)\]/,
           match: function(group, state) {
-            return this.named.scope().surface(Number(group[1]));
+            return this.named.scope().surface(isNaN(group[1]) ? group[1] : Number(group[1]));
           }
         }, {
           re: /^\\b(\d)/,
