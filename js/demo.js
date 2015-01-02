@@ -66,7 +66,7 @@ Console = (function() {
 })();
 
 $(function() {
-  var balloon_nar, boot_nanikamanager, con, error, ghost_nar, halt_nanikamanager, install_nar, log, namedmanager, nanikamanager, profile, storage, warn;
+  var balloon_nar, boot_nanikamanager, con, error, ghost_nar, ghost_nar2, halt_nanikamanager, install_nar, log, namedmanager, nanikamanager, profile, storage, warn;
   con = new Console("body");
   log = console.log;
   warn = console.warn;
@@ -101,6 +101,7 @@ $(function() {
   storage = new NanikaStorage();
   balloon_nar = './vendor/nar/origin.nar';
   ghost_nar = './vendor/nar/ikaga.nar';
+  ghost_nar2 = './vendor/nar/touhoku-zunko_or__.nar';
   profile = new Profile.Baseware();
   profile.profile.balloonpath = 'origin';
   profile.profile.ghosts = ['ikaga'];
@@ -255,25 +256,20 @@ $(function() {
   halt_nanikamanager = function() {
     return nanikamanager.closeall('user');
   };
-  console.log("load nar : " + balloon_nar);
-  Promise.all([
-    NarLoader.loadFromURL(balloon_nar).then(function(nar) {
-      console.log("nar loaded : " + balloon_nar);
-      return storage.install_nar(nar);
-    }), NarLoader.loadFromURL(ghost_nar).then(function(nar) {
-      console.log("nar loaded : " + ghost_nar);
-      return storage.install_nar(nar);
-    })
-  ]).then(function() {
-    $('#ikagaka_boot').click(boot_nanikamanager);
-    $('#ikagaka_halt').click(halt_nanikamanager);
-    return $('#ikagaka_boot').click();
-  });
-  return install_nar = function(file, dirpath) {
-    console.log("load nar : " + file.name);
-    return NarLoader.loadFromBlob(file).then(function(nar) {
+  install_nar = function(file, dirpath, type) {
+    var promise;
+    if (type == null) {
+      type = "blob";
+    }
+    console.log("load nar : " + (file.name || file));
+    if (type === "url") {
+      promise = NarLoader.loadFromURL(file);
+    } else {
+      promise = NarLoader.loadFromBlob(file);
+    }
+    return promise.then(function(nar) {
       var balloon, err, ghost, install_result, install_results, _i, _len;
-      console.log("nar loaded : " + file.name);
+      console.log("nar loaded : " + (file.name || file));
       try {
         install_results = storage.install_nar(nar, dirpath);
       } catch (_error) {
@@ -306,4 +302,11 @@ $(function() {
       return alert(err);
     });
   };
+  console.log("load nar : " + balloon_nar);
+  return Promise.all([install_nar(balloon_nar, '', 'url'), install_nar(ghost_nar, '', 'url')]).then(function() {
+    $('#ikagaka_boot').click(boot_nanikamanager);
+    $('#ikagaka_halt').click(halt_nanikamanager);
+    $('#ikagaka_boot').click();
+    return install_nar(ghost_nar2, '', 'url');
+  });
 });

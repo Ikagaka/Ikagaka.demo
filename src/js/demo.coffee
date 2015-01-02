@@ -62,6 +62,7 @@ $ ->
 	storage = new NanikaStorage()
 	balloon_nar = './vendor/nar/origin.nar'
 	ghost_nar = './vendor/nar/ikaga.nar'
+	ghost_nar2 = './vendor/nar/touhoku-zunko_or__.nar'
 
 	profile = new Profile.Baseware()
 	profile.profile.balloonpath = 'origin'
@@ -177,29 +178,15 @@ $ ->
 	halt_nanikamanager = ->
 		nanikamanager.closeall('user')
 
-	console.log("load nar : "+balloon_nar)
-	Promise.all [
-		(NarLoader.loadFromURL balloon_nar
+	install_nar = (file, dirpath, type="blob") ->
+		console.log("load nar : "+(file.name || file))
+		if type == "url"
+			promise = NarLoader.loadFromURL file
+		else
+			promise = NarLoader.loadFromBlob file
+		promise
 		.then (nar) ->
-			console.log("nar loaded : "+balloon_nar)
-			storage.install_nar(nar)
-		),
-		(NarLoader.loadFromURL ghost_nar
-		.then (nar) ->
-			console.log("nar loaded : "+ghost_nar)
-			storage.install_nar(nar)
-		)
-	]
-	.then ->
-		$('#ikagaka_boot').click boot_nanikamanager
-		$('#ikagaka_halt').click halt_nanikamanager
-		$('#ikagaka_boot').click()
-
-	install_nar = (file, dirpath) ->
-		console.log("load nar : "+file.name)
-		NarLoader.loadFromBlob file
-		.then (nar) ->
-			console.log("nar loaded : "+file.name)
+			console.log("nar loaded : "+(file.name || file))
 			try
 				install_results = storage.install_nar(nar, dirpath)
 			catch err
@@ -222,5 +209,11 @@ $ ->
 		.catch (err) ->
 			console.error(err, err.stack)
 			alert(err)
-#	nar = new Nar()
-#	nar.loadFromURL("./vendor/nar/akos.nar", loadHandler.bind(@, nar))
+	
+	console.log("load nar : "+balloon_nar)
+	Promise.all [install_nar(balloon_nar, '', 'url'), install_nar(ghost_nar, '', 'url')]
+	.then ->
+		$('#ikagaka_boot').click boot_nanikamanager
+		$('#ikagaka_halt').click halt_nanikamanager
+		$('#ikagaka_boot').click()
+		install_nar(ghost_nar2, '', 'url')
