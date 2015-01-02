@@ -305,7 +305,7 @@ NanikaManager = (function(_super) {
       _ref = this.nanikas;
       for (dirpath in _ref) {
         nanika = _ref[dirpath];
-        to_match[nanika.ghost.descript.sakuraname] = true;
+        to_match[nanika.ghost.descript['sakura.name']] = true;
       }
     } else if (/\x01/.test(to)) {
       to_match = {};
@@ -323,7 +323,7 @@ NanikaManager = (function(_super) {
     _results = [];
     for (dirpath in _ref2) {
       nanika = _ref2[dirpath];
-      if (to_match[nanika.ghost.descript.sakuraname]) {
+      if (to_match[nanika.ghost.descript['sakura.name']]) {
         _results.push(nanika.request('communicate', {
           sender: from,
           content: script,
@@ -423,7 +423,7 @@ NanikaManager = (function(_super) {
     return new Promise((function(_this) {
       return function(resolve, reject) {
         return dst_nanika.request('changed', {
-          from_sakuraname: src_nanika_descript.ghost.sakuraname,
+          from_sakuraname: src_nanika_descript.ghost['sakura.name'],
           from_script: changing_script,
           from_name: src_nanika_descript.ghost.name,
           shell_name: dst_nanika.named.shell.descript.name
@@ -444,7 +444,7 @@ NanikaManager = (function(_super) {
     return new Promise((function(_this) {
       return function(resolve, reject) {
         return src_nanika.request('changing', {
-          to_sakuraname: dst_ghost_master.descript.sakuraname,
+          to_sakuraname: dst_ghost_master.descript['sakura.name'],
           reason: reason,
           to_name: dst_ghost_master.descript.name
         }, _this._request_callback(resolve), _this._request_ssp_callbacks(resolve));
@@ -464,7 +464,7 @@ NanikaManager = (function(_super) {
     return new Promise((function(_this) {
       return function(resolve, reject) {
         return dst_nanika.request('called', {
-          from_sakuraname: src_nanika.ghost.descript.sakuraname,
+          from_sakuraname: src_nanika.ghost.descript['sakura.name'],
           from_script: calling_script,
           from_name: src_nanika.ghost.descript.name,
           shell_name: dst_nanika.named.shell.descript.name
@@ -485,7 +485,7 @@ NanikaManager = (function(_super) {
     return new Promise((function(_this) {
       return function(resolve, reject) {
         return src_nanika.request('calling', {
-          other_sakuraname: dst_ghost_master.descript.sakuraname,
+          other_sakuraname: dst_ghost_master.descript['sakura.name'],
           reason: reason,
           other_name: dst_ghost_master.descript.name
         }, _this._request_callback(resolve), _this._request_ssp_callbacks(resolve));
@@ -497,7 +497,7 @@ NanikaManager = (function(_super) {
     return new Promise((function(_this) {
       return function(resolve, reject) {
         return src_nanika.request('callcomplete', {
-          other_sakuraname: dst_nanika.ghost.descript.sakuraname,
+          other_sakuraname: dst_nanika.ghost.descript['sakura.name'],
           other_script: called_script,
           other_name: dst_nanika.ghost.descript.name,
           other_shell_name: dst_nanika.named.shell.descript.name
@@ -510,7 +510,7 @@ NanikaManager = (function(_super) {
     return new Promise((function(_this) {
       return function(resolve, reject) {
         return other_nanika.request('otherbooted', {
-          other_sakuraname: nanika.ghost.descript.sakuraname,
+          other_sakuraname: nanika.ghost.descript['sakura.name'],
           other_script: boot_script,
           other_name: nanika.ghost.descript.name,
           other_shell_name: nanika.named.shell.descript.name
@@ -523,8 +523,8 @@ NanikaManager = (function(_super) {
     return new Promise((function(_this) {
       return function(resolve, reject) {
         return other_nanika.request('otherchanged', {
-          from_sakuraname: src_nanika_descript.ghost.sakuraname,
-          to_sakuraname: dst_nanika.ghost.descript.sakuraname,
+          from_sakuraname: src_nanika_descript.ghost['sakura.name'],
+          to_sakuraname: dst_nanika.ghost.descript['sakura.name'],
           from_script: changing_script,
           to_script: changed_script,
           from_name: src_nanika_descript.ghost.name,
@@ -540,7 +540,7 @@ NanikaManager = (function(_super) {
     return new Promise((function(_this) {
       return function(resolve, reject) {
         return other_nanika.request('otherclosed', {
-          other_sakuraname: nanika_descript.ghost.sakuraname,
+          other_sakuraname: nanika_descript.ghost['sakura.name'],
           other_script: close_script,
           other_name: nanika_descript.ghost.name,
           other_shell_name: nanika_descript.shell.name

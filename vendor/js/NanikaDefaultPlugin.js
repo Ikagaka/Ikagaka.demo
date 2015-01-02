@@ -195,7 +195,7 @@
                 }
               }
             }
-            return nanika.nanikamanager.communicate(nanika.ghost.descript.sakuraname, response_args.Reference0, response_args.value, args, response_args.Age, response_args.Surface);
+            return nanika.nanikamanager.communicate(nanika.ghost.descript['sakura.name'], response_args.Reference0, response_args.value, args, response_args.Age, response_args.Surface);
           }
         });
       });

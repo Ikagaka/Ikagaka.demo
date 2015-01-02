@@ -154,7 +154,7 @@ class NanikaManager extends EventEmitter
 		if to == '__SYSTEM_ALL_GHOST__'
 			to_match = {}
 			for dirpath, nanika of @nanikas
-				to_match[nanika.ghost.descript.sakuraname] = true
+				to_match[nanika.ghost.descript['sakura.name']] = true
 		else if /\x01/.test to
 			to_match = {}
 			for to_single in to.split /\x01/
@@ -162,7 +162,7 @@ class NanikaManager extends EventEmitter
 		else
 			to_match = to: true
 		for dirpath, nanika of @nanikas
-			if to_match[nanika.ghost.descript.sakuraname]
+			if to_match[nanika.ghost.descript['sakura.name']]
 				nanika.request 'communicate',
 					sender: from
 					content: script
@@ -210,7 +210,7 @@ class NanikaManager extends EventEmitter
 	transact_changed: (src_nanika_descript, dst_nanika, changing_script) ->
 		new Promise (resolve, reject) =>
 			dst_nanika.request 'changed',
-				from_sakuraname: src_nanika_descript.ghost.sakuraname
+				from_sakuraname: src_nanika_descript.ghost['sakura.name']
 				from_script: changing_script
 				from_name: src_nanika_descript.ghost.name
 				shell_name: dst_nanika.named.shell.descript.name
@@ -223,7 +223,7 @@ class NanikaManager extends EventEmitter
 	transact_changing: (src_nanika, dst_ghost_master, reason) ->
 		new Promise (resolve, reject) =>
 			src_nanika.request 'changing',
-				to_sakuraname: dst_ghost_master.descript.sakuraname
+				to_sakuraname: dst_ghost_master.descript['sakura.name']
 				reason: reason
 				to_name: dst_ghost_master.descript.name
 			, @_request_callback(resolve), @_request_ssp_callbacks(resolve)
@@ -235,7 +235,7 @@ class NanikaManager extends EventEmitter
 	transact_called: (src_nanika, dst_nanika, calling_script) ->
 		new Promise (resolve, reject) =>
 			dst_nanika.request 'called',
-				from_sakuraname: src_nanika.ghost.descript.sakuraname
+				from_sakuraname: src_nanika.ghost.descript['sakura.name']
 				from_script: calling_script
 				from_name: src_nanika.ghost.descript.name
 				shell_name: dst_nanika.named.shell.descript.name
@@ -248,14 +248,14 @@ class NanikaManager extends EventEmitter
 	transact_calling: (src_nanika, dst_ghost_master, reason) ->
 		new Promise (resolve, reject) =>
 			src_nanika.request 'calling',
-				other_sakuraname: dst_ghost_master.descript.sakuraname
+				other_sakuraname: dst_ghost_master.descript['sakura.name']
 				reason: reason
 				other_name: dst_ghost_master.descript.name
 			, @_request_callback(resolve), @_request_ssp_callbacks(resolve)
 	transact_callcomplete: (src_nanika, dst_nanika, called_script) ->
 		new Promise (resolve, reject) =>
 			src_nanika.request 'callcomplete',
-				other_sakuraname: dst_nanika.ghost.descript.sakuraname
+				other_sakuraname: dst_nanika.ghost.descript['sakura.name']
 				other_script: called_script
 				other_name: dst_nanika.ghost.descript.name
 				other_shell_name: dst_nanika.named.shell.descript.name
@@ -263,7 +263,7 @@ class NanikaManager extends EventEmitter
 	transact_otherbooted: (other_nanika, nanika, boot_script) ->
 		new Promise (resolve, reject) =>
 			other_nanika.request 'otherbooted',
-				other_sakuraname: nanika.ghost.descript.sakuraname
+				other_sakuraname: nanika.ghost.descript['sakura.name']
 				other_script: boot_script
 				other_name: nanika.ghost.descript.name
 				other_shell_name: nanika.named.shell.descript.name
@@ -271,8 +271,8 @@ class NanikaManager extends EventEmitter
 	transact_otherchanged: (other_nanika, src_nanika_descript, dst_nanika, changing_script, changed_script) ->
 		new Promise (resolve, reject) =>
 			other_nanika.request 'otherchanged',
-				from_sakuraname: src_nanika_descript.ghost.sakuraname
-				to_sakuraname: dst_nanika.ghost.descript.sakuraname
+				from_sakuraname: src_nanika_descript.ghost['sakura.name']
+				to_sakuraname: dst_nanika.ghost.descript['sakura.name']
 				from_script: changing_script
 				to_script: changed_script
 				from_name: src_nanika_descript.ghost.name
@@ -283,7 +283,7 @@ class NanikaManager extends EventEmitter
 	transact_otherclosed: (other_nanika, nanika_descript, close_script) ->
 		new Promise (resolve, reject) =>
 			other_nanika.request 'otherclosed',
-				other_sakuraname: nanika_descript.ghost.sakuraname
+				other_sakuraname: nanika_descript.ghost['sakura.name']
 				other_script: close_script
 				other_name: nanika_descript.ghost.name
 				other_shell_name: nanika_descript.shell.name
