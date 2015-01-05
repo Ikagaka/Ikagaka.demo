@@ -59,7 +59,7 @@ $ ->
 		con.error args.join ''
 	
 	
-	storage = new NanikaStorage()
+	storage = new NanikaStorage(new NanikaStorage.Backend.InMemory())
 	balloon_nar = './vendor/nar/origin.nar'
 	ghost_nar = './vendor/nar/ikaga.nar'
 	ghost_nar2 = './vendor/nar/touhoku-zunko_or__.nar'
@@ -121,16 +121,16 @@ $ ->
 							container_dropdown.addClass('change')
 							container_dropdown.html('')
 							list = $('<ul />').addClass('list')
-							for dst_dirpath, ghost of storage.ghosts
-								if nanikamanager.is_existing_ghost(dst_dirpath)
-									elem = $('<li />').addClass('ng').text(ghost.install.name + ' に交代')
-								else
-									elem = $('<li />').addClass('ok').text(ghost.install.name + ' に交代')
-									.on 'click', ((dst_dirpath) ->
-										-> nanikamanager.change(dirpath, dst_dirpath)
+							storage.ghosts()
+							.then (ghosts) ->
+								for dst_dirpath in ghosts
+									((dst_dirpath) ->
+										storage.ghost_name(dst_dirpath).then (name) ->
+											elem = $('<li />').addClass('ok').text(name + ' に交代')
+											.on 'click', -> nanikamanager.change(dirpath, dst_dirpath)
+											list.append(elem)
 									)(dst_dirpath)
-								list.append(elem)
-							container_dropdown.append(list)
+								container_dropdown.append(list)
 				)(dirpath, container_dropdown)
 				call = $('<button />').text('呼出').addClass('call')
 				.on 'click', ((dirpath, container_dropdown) ->
@@ -143,16 +143,19 @@ $ ->
 							container_dropdown.addClass('call')
 							container_dropdown.html('')
 							list = $('<ul />').addClass('list')
-							for dst_dirpath, ghost of storage.ghosts
-								if nanikamanager.is_existing_ghost(dst_dirpath)
-									elem = $('<li />').addClass('ng').text(ghost.install.name + ' を呼出')
-								else
-									elem = $('<li />').addClass('ok').text(ghost.install.name + ' を呼出')
-									.on 'click', ((dst_dirpath) ->
-										-> nanikamanager.call(dirpath, dst_dirpath)
+							storage.ghosts()
+							.then (ghosts) ->
+								for dst_dirpath in ghosts
+									((dst_dirpath) ->
+										storage.ghost_name(dst_dirpath).then (name) ->
+											if nanikamanager.is_existing_ghost(dst_dirpath)
+												elem = $('<li />').addClass('ng').text(name + ' を呼出')
+											else
+												elem = $('<li />').addClass('ok').text(name + ' を呼出')
+												.on 'click', -> nanikamanager.call(dirpath, dst_dirpath)
+											list.append(elem)
 									)(dst_dirpath)
-								list.append(elem)
-							container_dropdown.append(list)
+								container_dropdown.append(list)
 				)(dirpath, container_dropdown)
 				close = $('<button />').text('終了').addClass('close')
 				.on 'click', ((dirpath) ->
@@ -187,12 +190,12 @@ $ ->
 		promise
 		.then (nar) ->
 			console.log("nar loaded : "+(file.name || file))
-			try
-				install_results = storage.install_nar(nar, dirpath)
-			catch err
-				console.error 'install failure'
-				console.error err.stack
-				return
+			storage.install_nar(nar, dirpath)
+		.catch (err) ->
+			console.error 'install failure'
+			console.error err.stack
+			return
+		.then (install_results) ->
 			unless install_results?
 				console.error 'install not accepted'
 				return

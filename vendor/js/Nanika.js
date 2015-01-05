@@ -50,42 +50,48 @@
     };
 
     Nanika.prototype.load_ghost = function() {
-      var ghost;
       this.log("initializing ghost");
-      ghost = new Ghost("/ghost/" + this.ghostpath + "/ghost/master/", this.storage.ghost_master(this.ghostpath).asArrayBuffer(), this.options.append_path);
-      ghost.logging = this.options.logging;
-      return ghost.push().then(function() {
-        return ghost.load();
-      }).then((function(_this) {
-        return function() {
-          _this.log("ghost loaded");
-          return ghost;
+      return this.storage.ghost_master(this.ghostpath).then((function(_this) {
+        return function(directory) {
+          var ghost;
+          ghost = new Ghost("/ghost/" + _this.ghostpath + "/ghost/master/", directory.asArrayBuffer(), _this.options.append_path);
+          ghost.logging = _this.options.logging;
+          return ghost.push().then(function() {
+            return ghost.load();
+          }).then(function() {
+            _this.log("ghost loaded");
+            return ghost;
+          });
         };
       })(this));
     };
 
     Nanika.prototype.load_shell = function(shellpath) {
-      var shell;
       this.log("initializing shell");
-      shell = new Shell(this.storage.shell(this.ghostpath, shellpath).asArrayBuffer());
-      return shell.load().then((function(_this) {
-        return function() {
-          _this.log("shell loaded");
-          _this.profile.profile.shellpath = shellpath;
-          return shell;
+      return this.storage.shell(this.ghostpath, shellpath).then((function(_this) {
+        return function(directory) {
+          var shell;
+          shell = new Shell(directory.asArrayBuffer());
+          return shell.load().then(function() {
+            _this.log("shell loaded");
+            _this.profile.profile.shellpath = shellpath;
+            return shell;
+          });
         };
       })(this));
     };
 
     Nanika.prototype.load_balloon = function(balloonpath) {
-      var balloon;
       this.log("initializing balloon");
-      balloon = new Balloon(this.storage.balloon(balloonpath).asArrayBuffer());
-      return balloon.load().then((function(_this) {
-        return function() {
-          _this.log("balloon loaded");
-          _this.profile.profile.balloonpath = balloonpath;
-          return balloon;
+      return this.storage.balloon(balloonpath).then((function(_this) {
+        return function(directory) {
+          var balloon;
+          balloon = new Balloon(directory.asArrayBuffer());
+          return balloon.load().then(function() {
+            _this.log("balloon loaded");
+            _this.profile.profile.balloonpath = balloonpath;
+            return balloon;
+          });
         };
       })(this));
     };
@@ -461,7 +467,10 @@
         };
       })(this)).then((function(_this) {
         return function(directory) {
-          _this.storage.ghost_master(_this.ghostpath, new NanikaDirectory(directory));
+          return _this.storage.ghost_master(_this.ghostpath, new NanikaDirectory(directory));
+        };
+      })(this)).then((function(_this) {
+        return function() {
           _this.emit("halted." + event, args, optionals);
           _this.emit('halted', args, optionals);
           _this.removeAllListeners();

@@ -29,10 +29,11 @@ class NanikaManager extends EventEmitter
 			shell: src_nanika.named.shell.descript
 		new Promise (resolve, reject) =>
 			unless src_nanika? then reject new Error "ghost [#{src_dirpath}] not running"
-			if @nanikas[dst_dirpath]? then reject new Error("ghost [#{dst_dirpath}] already running")
+#			if @nanikas[dst_dirpath]? then reject new Error("ghost [#{dst_dirpath}] already running")
 			resolve()
 		.then =>
-			dst_ghost_master = @storage.ghost_master(dst_dirpath)
+			@storage.ghost_master(dst_dirpath)
+		.then (dst_ghost_master) =>
 			halt_promise = new Promise (resolve, reject) ->
 				src_nanika.on 'halted', -> resolve()
 			close_promise = new Promise (resolve, reject) =>
@@ -64,8 +65,9 @@ class NanikaManager extends EventEmitter
 		new Promise (resolve, reject) =>
 			unless src_nanika? then reject new Error "ghost [#{src_dirpath}] not running"
 			if @nanikas[dst_dirpath]? then reject new Error("ghost [#{dst_dirpath}] already running")
-			dst_ghost_master = @storage.ghost_master(dst_dirpath)
-			resolve @transact_calling src_nanika, dst_ghost_master, reason
+			@storage.ghost_master(dst_dirpath)
+			.then (dst_ghost_master) =>
+				resolve @transact_calling src_nanika, dst_ghost_master, reason
 		.then (calling_script) =>
 			unless calling_script? then return
 			@materialize dst_dirpath

@@ -70,15 +70,15 @@ NanikaManager = (function(_super) {
         if (src_nanika == null) {
           reject(new Error("ghost [" + src_dirpath + "] not running"));
         }
-        if (_this.nanikas[dst_dirpath] != null) {
-          reject(new Error("ghost [" + dst_dirpath + "] already running"));
-        }
         return resolve();
       };
     })(this)).then((function(_this) {
       return function() {
-        var close_promise, dst_ghost_master, halt_promise;
-        dst_ghost_master = _this.storage.ghost_master(dst_dirpath);
+        return _this.storage.ghost_master(dst_dirpath);
+      };
+    })(this)).then((function(_this) {
+      return function(dst_ghost_master) {
+        var close_promise, halt_promise;
         halt_promise = new Promise(function(resolve, reject) {
           return src_nanika.on('halted', function() {
             return resolve();
@@ -132,15 +132,15 @@ NanikaManager = (function(_super) {
     src_nanika = this.nanikas[src_dirpath];
     return new Promise((function(_this) {
       return function(resolve, reject) {
-        var dst_ghost_master;
         if (src_nanika == null) {
           reject(new Error("ghost [" + src_dirpath + "] not running"));
         }
         if (_this.nanikas[dst_dirpath] != null) {
           reject(new Error("ghost [" + dst_dirpath + "] already running"));
         }
-        dst_ghost_master = _this.storage.ghost_master(dst_dirpath);
-        return resolve(_this.transact_calling(src_nanika, dst_ghost_master, reason));
+        return _this.storage.ghost_master(dst_dirpath).then(function(dst_ghost_master) {
+          return resolve(_this.transact_calling(src_nanika, dst_ghost_master, reason));
+        });
       };
     })(this)).then((function(_this) {
       return function(calling_script) {

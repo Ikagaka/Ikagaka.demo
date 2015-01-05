@@ -410,33 +410,24 @@
       ghostpathlist = function() {};
       balloonpathlist = function() {};
       installedghostname = function() {
-        return nanika.request('installedghostname', {
-          names: Object.keys(nanika.storage.ghosts).map(function(dirpath) {
-            return nanika.storage.ghosts[dirpath].install.name;
-          })
+        return nanika.storage.ghost_names().then(function(names) {
+          return nanika.request('installedghostname', {
+            names: names
+          });
         });
       };
       installedballoonname = function() {
-        return nanika.request('installedballoonname', {
-          names: Object.keys(nanika.storage.balloons).map(function(dirpath) {
-            return nanika.storage.balloons[dirpath].install.name;
-          })
+        return nanika.storage.balloon_names().then(function(names) {
+          return nanika.request('installedballoonname', {
+            names: names
+          });
         });
       };
       installedshellname = function() {
-        var dir, name, shell, shelldirs, shellnames, _i, _len, _ref;
-        shell = nanika.storage.ghost(nanika.ghostpath).getDirectory('shell');
-        shelldirs = shell.listChildren();
-        shellnames = [];
-        for (_i = 0, _len = shelldirs.length; _i < _len; _i++) {
-          dir = shelldirs[_i];
-          name = (_ref = shell.getDirectory(dir).descript) != null ? _ref.name : void 0;
-          if (name != null) {
-            shellnames.push(name);
-          }
-        }
-        return nanika.request('installedshellname', {
-          names: shellnames
+        return nanika.storage.shell_names(nanika.ghostpath).then(function(names) {
+          return nanika.request('installedshellname', {
+            names: names
+          });
         });
       };
       rateofusegraph = function() {};

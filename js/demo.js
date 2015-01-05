@@ -98,7 +98,7 @@ $(function() {
       return con.error(args.join(''));
     };
   })(this);
-  storage = new NanikaStorage();
+  storage = new NanikaStorage(new NanikaStorage.Backend.InMemory());
   balloon_nar = './vendor/nar/origin.nar';
   ghost_nar = './vendor/nar/ikaga.nar';
   ghost_nar2 = './vendor/nar/touhoku-zunko_or__.nar';
@@ -178,7 +178,7 @@ $(function() {
         install.append(install_file);
         change = $('<button />').text('交代').addClass('change').on('click', (function(dirpath, container_dropdown) {
           return function() {
-            var dst_dirpath, elem, ghost, list, _ref1;
+            var list;
             if (container_dropdown.hasClass('change')) {
               container_dropdown.removeClass('change call');
               return container_dropdown.html('');
@@ -187,27 +187,29 @@ $(function() {
               container_dropdown.addClass('change');
               container_dropdown.html('');
               list = $('<ul />').addClass('list');
-              _ref1 = storage.ghosts;
-              for (dst_dirpath in _ref1) {
-                ghost = _ref1[dst_dirpath];
-                if (nanikamanager.is_existing_ghost(dst_dirpath)) {
-                  elem = $('<li />').addClass('ng').text(ghost.install.name + ' に交代');
-                } else {
-                  elem = $('<li />').addClass('ok').text(ghost.install.name + ' に交代').on('click', (function(dst_dirpath) {
-                    return function() {
+              return storage.ghosts().then(function(ghosts) {
+                var dst_dirpath, _fn, _i, _len;
+                _fn = function(dst_dirpath) {
+                  return storage.ghost_name(dst_dirpath).then(function(name) {
+                    var elem;
+                    elem = $('<li />').addClass('ok').text(name + ' に交代').on('click', function() {
                       return nanikamanager.change(dirpath, dst_dirpath);
-                    };
-                  })(dst_dirpath));
+                    });
+                    return list.append(elem);
+                  });
+                };
+                for (_i = 0, _len = ghosts.length; _i < _len; _i++) {
+                  dst_dirpath = ghosts[_i];
+                  _fn(dst_dirpath);
                 }
-                list.append(elem);
-              }
-              return container_dropdown.append(list);
+                return container_dropdown.append(list);
+              });
             }
           };
         })(dirpath, container_dropdown));
         call = $('<button />').text('呼出').addClass('call').on('click', (function(dirpath, container_dropdown) {
           return function() {
-            var dst_dirpath, elem, ghost, list, _ref1;
+            var list;
             if (container_dropdown.hasClass('call')) {
               container_dropdown.removeClass('change call');
               return container_dropdown.html('');
@@ -216,21 +218,27 @@ $(function() {
               container_dropdown.addClass('call');
               container_dropdown.html('');
               list = $('<ul />').addClass('list');
-              _ref1 = storage.ghosts;
-              for (dst_dirpath in _ref1) {
-                ghost = _ref1[dst_dirpath];
-                if (nanikamanager.is_existing_ghost(dst_dirpath)) {
-                  elem = $('<li />').addClass('ng').text(ghost.install.name + ' を呼出');
-                } else {
-                  elem = $('<li />').addClass('ok').text(ghost.install.name + ' を呼出').on('click', (function(dst_dirpath) {
-                    return function() {
-                      return nanikamanager.call(dirpath, dst_dirpath);
-                    };
-                  })(dst_dirpath));
+              return storage.ghosts().then(function(ghosts) {
+                var dst_dirpath, _fn, _i, _len;
+                _fn = function(dst_dirpath) {
+                  return storage.ghost_name(dst_dirpath).then(function(name) {
+                    var elem;
+                    if (nanikamanager.is_existing_ghost(dst_dirpath)) {
+                      elem = $('<li />').addClass('ng').text(name + ' を呼出');
+                    } else {
+                      elem = $('<li />').addClass('ok').text(name + ' を呼出').on('click', function() {
+                        return nanikamanager.call(dirpath, dst_dirpath);
+                      });
+                    }
+                    return list.append(elem);
+                  });
+                };
+                for (_i = 0, _len = ghosts.length; _i < _len; _i++) {
+                  dst_dirpath = ghosts[_i];
+                  _fn(dst_dirpath);
                 }
-                list.append(elem);
-              }
-              return container_dropdown.append(list);
+                return container_dropdown.append(list);
+              });
             }
           };
         })(dirpath, container_dropdown));
@@ -268,16 +276,13 @@ $(function() {
       promise = NarLoader.loadFromBlob(file);
     }
     return promise.then(function(nar) {
-      var balloon, err, ghost, install_result, install_results, _i, _len;
       console.log("nar loaded : " + (file.name || file));
-      try {
-        install_results = storage.install_nar(nar, dirpath);
-      } catch (_error) {
-        err = _error;
-        console.error('install failure');
-        console.error(err.stack);
-        return;
-      }
+      return storage.install_nar(nar, dirpath);
+    })["catch"](function(err) {
+      console.error('install failure');
+      console.error(err.stack);
+    }).then(function(install_results) {
+      var balloon, ghost, install_result, _i, _len;
       if (install_results == null) {
         console.error('install not accepted');
         return;
