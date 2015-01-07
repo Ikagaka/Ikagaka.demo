@@ -263,7 +263,7 @@ $ ->
 		.then ->
 			$('#ikagaka_boot').click boot_nanikamanager
 			$('#ikagaka_halt').click halt_nanikamanager
-			$('#ikagaka_clean').click -> storage.backend._rmAll('/ikagaka')
+			$('#ikagaka_clean').click -> storage.backend._rmAll('/ikagaka'); location.reload()
 			$('#ikagaka_boot').click()
 			install_nar(ghost_nar2, '', 'url')
 	new BrowserFS.FileSystem.IndexedDB cb

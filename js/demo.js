@@ -368,7 +368,8 @@ $(function() {
       $('#ikagaka_boot').click(boot_nanikamanager);
       $('#ikagaka_halt').click(halt_nanikamanager);
       $('#ikagaka_clean').click(function() {
-        return storage.backend._rmAll('/ikagaka');
+        storage.backend._rmAll('/ikagaka');
+        return location.reload();
       });
       $('#ikagaka_boot').click();
       return install_nar(ghost_nar2, '', 'url');
