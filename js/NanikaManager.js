@@ -20,7 +20,6 @@ NanikaManager = (function(_super) {
   }
 
   NanikaManager.prototype.initialize = function() {
-    console.log('init');
     return this.storage.base_profile().then((function(_this) {
       return function(profile) {
         _this.profile = profile;
@@ -38,7 +37,6 @@ NanikaManager = (function(_super) {
 
   NanikaManager.prototype.bootall = function() {
     var dirpath, _i, _len, _ref, _results;
-    console.log('bootall');
     if (this.profile.ghosts != null) {
       _ref = this.profile.ghosts;
       _results = [];

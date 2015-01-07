@@ -291,6 +291,7 @@ $(function() {
       $('#ikagaka_boot').removeAttr('disabled');
       return $('#ikagaka_halt').attr('disabled', true);
     });
+    console.log('baseware booting');
     return nanikamanager.initialize().then(function() {
       return nanikamanager.bootall();
     });

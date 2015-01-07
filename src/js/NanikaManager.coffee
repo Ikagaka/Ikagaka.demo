@@ -7,13 +7,11 @@ class NanikaManager extends EventEmitter
 		@setMaxListeners(0)
 		@nanikas = {}
 	initialize: ->
-		console.log 'init'
 		@storage.base_profile()
 		.then (@profile) =>
 	existing_ghosts: -> Object.keys(@nanikas)
 	is_existing_ghost: (dirpath) -> @nanikas[dirpath]?
 	bootall: ->
-		console.log 'bootall'
 		if @profile.ghosts?
 			for dirpath in @profile.ghosts
 				@boot dirpath

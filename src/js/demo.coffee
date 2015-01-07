@@ -199,6 +199,7 @@ $ ->
 			nanikamanager = null
 			$('#ikagaka_boot').removeAttr('disabled')
 			$('#ikagaka_halt').attr('disabled', true)
+		console.log 'baseware booting'
 		nanikamanager.initialize()
 		.then ->
 			nanikamanager.bootall()
