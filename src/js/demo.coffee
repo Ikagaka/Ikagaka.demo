@@ -257,15 +257,14 @@ $ ->
 				profile.balloonpath = 'origin'
 				profile.ghosts = ['ikaga']
 				storage.base_profile(profile)
-		.then ->
-			console.log("load nar : "+balloon_nar)
-			Promise.all [install_nar(balloon_nar, '', 'url'), install_nar(ghost_nar, '', 'url')]
+				.then ->
+					install_nar(ghost_nar2, '', 'url')
+					Promise.all [install_nar(balloon_nar, '', 'url'), install_nar(ghost_nar, '', 'url')]
 		.then ->
 			$('#ikagaka_boot').click boot_nanikamanager
 			$('#ikagaka_halt').click halt_nanikamanager
-			$('#ikagaka_clean').click -> storage.backend._rmAll('/ikagaka'); location.reload()
+			$('#ikagaka_clean').click -> storage.backend._rmAll('/ikagaka').then -> location.reload()
 			$('#ikagaka_boot').click()
-			install_nar(ghost_nar2, '', 'url')
 	new BrowserFS.FileSystem.IndexedDB cb
 #	mfs = new BrowserFS.FileSystem.InMemory()
 #	cb(null, mfs)

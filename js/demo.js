@@ -359,20 +359,20 @@ $(function() {
       if (profile.ghosts == null) {
         profile.balloonpath = 'origin';
         profile.ghosts = ['ikaga'];
-        return storage.base_profile(profile);
+        return storage.base_profile(profile).then(function() {
+          install_nar(ghost_nar2, '', 'url');
+          return Promise.all([install_nar(balloon_nar, '', 'url'), install_nar(ghost_nar, '', 'url')]);
+        });
       }
-    }).then(function() {
-      console.log("load nar : " + balloon_nar);
-      return Promise.all([install_nar(balloon_nar, '', 'url'), install_nar(ghost_nar, '', 'url')]);
     }).then(function() {
       $('#ikagaka_boot').click(boot_nanikamanager);
       $('#ikagaka_halt').click(halt_nanikamanager);
       $('#ikagaka_clean').click(function() {
-        storage.backend._rmAll('/ikagaka');
-        return location.reload();
+        return storage.backend._rmAll('/ikagaka').then(function() {
+          return location.reload();
+        });
       });
-      $('#ikagaka_boot').click();
-      return install_nar(ghost_nar2, '', 'url');
+      return $('#ikagaka_boot').click();
     });
   };
   return new BrowserFS.FileSystem.IndexedDB(cb);
