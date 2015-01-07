@@ -15,12 +15,11 @@
   Nanika = (function(_super) {
     __extends(Nanika, _super);
 
-    function Nanika(nanikamanager, storage, namedmanager, ghostpath, profile, plugins, eventdefinitions, options) {
+    function Nanika(nanikamanager, storage, namedmanager, ghostpath, plugins, eventdefinitions, options) {
       this.nanikamanager = nanikamanager;
       this.storage = storage;
       this.namedmanager = namedmanager;
       this.ghostpath = ghostpath;
-      this.profile = profile;
       this.plugins = plugins != null ? plugins : {};
       this.eventdefinitions = eventdefinitions != null ? eventdefinitions : {};
       this.options = options != null ? options : {};
@@ -74,7 +73,7 @@
           shell = new Shell(directory.asArrayBuffer());
           return shell.load().then(function() {
             _this.log("shell loaded");
-            _this.profile.profile.shellpath = shellpath;
+            _this.profile.shellpath = shellpath;
             return shell;
           });
         };
@@ -89,7 +88,7 @@
           balloon = new Balloon(directory.asArrayBuffer());
           return balloon.load().then(function() {
             _this.log("balloon loaded");
-            _this.profile.profile.balloonpath = balloonpath;
+            _this.profile.balloonpath = balloonpath;
             return balloon;
           });
         };
@@ -97,20 +96,25 @@
     };
 
     Nanika.prototype.materialize = function() {
-      var balloonpath, shellpath;
-      shellpath = this.profile.profile.shellpath || 'master';
-      balloonpath = this.profile.profile.balloonpath || this.nanikamanager.profile.profile.balloonpath;
-      return Promise.all([this.load_ghost(), this.materialize_named(shellpath, balloonpath)]).then((function(_this) {
+      return this.storage.ghost_profile(this.ghostpath).then((function(_this) {
+        return function(profile) {
+          var balloonpath, shellpath;
+          _this.profile = profile;
+          shellpath = _this.profile.shellpath || 'master';
+          balloonpath = _this.profile.balloonpath || _this.nanikamanager.profile.balloonpath;
+          return Promise.all([_this.load_ghost(), _this.materialize_named(shellpath, balloonpath)]);
+        };
+      })(this)).then((function(_this) {
         return function(_arg) {
           var ghost;
           ghost = _arg[0];
           return new Promise(function(resolve, reject) {
             var _base;
             _this.ghost = ghost;
-            if ((_base = _this.profile.profile).boot_count == null) {
+            if ((_base = _this.profile).boot_count == null) {
               _base.boot_count = 0;
             }
-            _this.profile.profile.boot_count++;
+            _this.profile.boot_count++;
             _this.resource = {};
             _this.protocol_version = '2.6';
             _this.transaction = new Promise(function(resolve) {
@@ -468,6 +472,10 @@
       })(this)).then((function(_this) {
         return function(directory) {
           return _this.storage.ghost_master(_this.ghostpath, new NanikaDirectory(directory));
+        };
+      })(this)).then((function(_this) {
+        return function() {
+          return _this.storage.ghost_profile(_this.ghostpath, _this.profile);
         };
       })(this)).then((function(_this) {
         return function() {

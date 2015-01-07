@@ -5,7 +5,7 @@
 (function() {
   var Encoding, JSZip, NanikaDirectory, NanikaFile, NarLoader, Promise, WMDescript;
 
-  if (typeof require !== "undefined" && require !== null) {
+  if ((typeof require !== "undefined" && require !== null) && (typeof module !== "undefined" && module !== null)) {
     JSZip = require('jszip');
     Encoding = require('encoding-japanese');
     WMDescript = require('ikagaka.wmdescript.js');
@@ -95,7 +95,11 @@
 
   NanikaFile = (function() {
     function NanikaFile(_buffer) {
+      var _ref;
       this._buffer = _buffer;
+      if (this._buffer.dir || ((_ref = this._buffer.options) != null ? _ref.dir : void 0)) {
+        this._isdir = true;
+      }
     }
 
     NanikaFile.prototype.buffer = function() {
@@ -112,6 +116,14 @@
 
     NanikaFile.prototype.valueOf = function() {
       return this.buffer();
+    };
+
+    NanikaFile.prototype.isFile = function() {
+      return !this._isdir;
+    };
+
+    NanikaFile.prototype.isDirectory = function() {
+      return this._isdir;
     };
 
     return NanikaFile;

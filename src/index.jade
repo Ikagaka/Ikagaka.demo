@@ -31,6 +31,8 @@ html
 		script(src="#{dir.vendor.js}/NarLoader.js")
 		script(src="#{dir.vendor.js}/NanikaStorage.js")
 		script(src="#{dir.vendor.js}/NanikaStorage.backend.InMemory.js")
+		script(src="#{dir.vendor.js}/NanikaStorage.backend.FS.js")
+		script(src="#{dir.vendor.js}/browserfs.js")
 		script(src="#{dir.vendor.js}/NanikaDefaultEventDefinition.js")
 		script(src="#{dir.vendor.js}/ua-parser.js")
 		script(src="#{dir.vendor.js}/useragent_parser.js")
@@ -49,6 +51,7 @@ html
 				p.baseware
 					button#ikagaka_boot ベースウェアを起動
 					button#ikagaka_halt ベースウェアを終了
+					button#ikagaka_clean インストール情報を全消去
 				ul.ghosts
 			section.notice
 				h2 動作条件

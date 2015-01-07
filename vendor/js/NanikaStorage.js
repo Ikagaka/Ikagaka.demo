@@ -51,6 +51,46 @@
       })(this));
     };
 
+    NanikaStorage.prototype.base_profile = function(profile) {
+      return new Promise(function(resolve) {
+        return resolve();
+      }).then((function(_this) {
+        return function() {
+          return _this.backend.base_profile(profile);
+        };
+      })(this));
+    };
+
+    NanikaStorage.prototype.ghost_profile = function(dirpath, profile) {
+      return new Promise(function(resolve) {
+        return resolve();
+      }).then((function(_this) {
+        return function() {
+          return _this.backend.ghost_profile(dirpath, profile);
+        };
+      })(this));
+    };
+
+    NanikaStorage.prototype.balloon_profile = function(dirpath, profile) {
+      return new Promise(function(resolve) {
+        return resolve();
+      }).then((function(_this) {
+        return function() {
+          return _this.backend.balloon_profile(dirpath, profile);
+        };
+      })(this));
+    };
+
+    NanikaStorage.prototype.shell_profile = function(dirpath, shellpath, profile) {
+      return new Promise(function(resolve) {
+        return resolve();
+      }).then((function(_this) {
+        return function() {
+          return _this.backend.shell_profile(dirpath, shellpath, profile);
+        };
+      })(this));
+    };
+
     NanikaStorage.prototype.ghosts = function() {
       return new Promise(function(resolve) {
         return resolve();
@@ -359,13 +399,13 @@
               if ((install.accept != null) && install.accept !== ghost.install.name) {
                 return null;
               }
-              return _this.merge_shell(dirpath, target_directory, nar);
-            }).then(function() {
-              install_results.push({
-                type: 'shell',
-                directory: target_directory
+              return _this.merge_shell(dirpath, target_directory, nar).then(function() {
+                install_results.push({
+                  type: 'shell',
+                  directory: target_directory
+                });
+                return install_results;
               });
-              return install_results;
             });
           });
         };

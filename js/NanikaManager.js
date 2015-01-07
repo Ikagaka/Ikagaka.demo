@@ -11,14 +11,22 @@ EventEmitter = this.EventEmitter2;
 NanikaManager = (function(_super) {
   __extends(NanikaManager, _super);
 
-  function NanikaManager(storage, profile, namedmanager, options) {
+  function NanikaManager(storage, namedmanager, options) {
     this.storage = storage;
-    this.profile = profile;
     this.namedmanager = namedmanager;
     this.options = options;
     this.setMaxListeners(0);
     this.nanikas = {};
   }
+
+  NanikaManager.prototype.initialize = function() {
+    console.log('init');
+    return this.storage.base_profile().then((function(_this) {
+      return function(profile) {
+        _this.profile = profile;
+      };
+    })(this));
+  };
 
   NanikaManager.prototype.existing_ghosts = function() {
     return Object.keys(this.nanikas);
@@ -30,8 +38,9 @@ NanikaManager = (function(_super) {
 
   NanikaManager.prototype.bootall = function() {
     var dirpath, _i, _len, _ref, _results;
-    if (this.profile.profile.ghosts != null) {
-      _ref = this.profile.profile.ghosts;
+    console.log('bootall');
+    if (this.profile.ghosts != null) {
+      _ref = this.profile.ghosts;
       _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         dirpath = _ref[_i];
@@ -45,8 +54,8 @@ NanikaManager = (function(_super) {
     return this.materialize(dirpath).then((function(_this) {
       return function(nanika) {
         var promise;
-        if (nanika.profile.profile.boot_count === 1) {
-          promise = _this.transact_firstboot(nanika, nanika.profile.profile.vanish_count || 0);
+        if (nanika.profile.boot_count === 1) {
+          promise = _this.transact_firstboot(nanika, nanika.profile.vanish_count || 0);
         } else {
           promise = _this.transact_boot(nanika, false, null);
         }
@@ -104,8 +113,8 @@ NanikaManager = (function(_super) {
         return _this.materialize(dst_dirpath).then(function(dst_nanika) {
           var promise;
           delete _this.no_halt;
-          if (dst_nanika.profile.profile.boot_count === 1) {
-            promise = _this.transact_firstboot(dst_nanika, dst_nanika.profile.profile.vanish_count || 0);
+          if (dst_nanika.profile.boot_count === 1) {
+            promise = _this.transact_firstboot(dst_nanika, dst_nanika.profile.vanish_count || 0);
           } else {
             promise = _this.transact_changed(src_nanika_descript, dst_nanika, changing_script);
           }
@@ -149,8 +158,8 @@ NanikaManager = (function(_super) {
         }
         return _this.materialize(dst_dirpath).then(function(dst_nanika) {
           var promise;
-          if (dst_nanika.profile.profile.boot_count === 1) {
-            promise = _this.transact_firstboot(dst_nanika, dst_nanika.profile.profile.vanish_count || 0);
+          if (dst_nanika.profile.boot_count === 1) {
+            promise = _this.transact_firstboot(dst_nanika, dst_nanika.profile.vanish_count || 0);
           } else {
             promise = _this.transact_called(src_nanika, dst_nanika, calling_script);
           }
@@ -254,12 +263,11 @@ NanikaManager = (function(_super) {
   NanikaManager.prototype.materialize = function(dirpath) {
     return new Promise((function(_this) {
       return function(resolve, reject) {
-        var nanika, profile;
+        var nanika;
         if (_this.nanikas[dirpath] != null) {
           return reject(new Error("ghost [" + dirpath + "] already running"));
         }
-        profile = _this.profile.ghost(dirpath);
-        nanika = new Nanika(_this, _this.storage, _this.namedmanager, dirpath, profile, NanikaPlugin, NanikaEventDefinition, _this.options);
+        nanika = new Nanika(_this, _this.storage, _this.namedmanager, dirpath, NanikaPlugin, NanikaEventDefinition, _this.options);
         nanika.on('halted', function() {
           return _this.halted(dirpath);
         });
@@ -279,9 +287,9 @@ NanikaManager = (function(_super) {
     this.emit('change.existing.ghosts');
     if (!this.no_halt && !Object.keys(this.nanikas).length) {
       if (this.haltghosts) {
-        this.profile.profile.ghosts = this.haltghosts;
+        this.profile.ghosts = this.haltghosts;
       } else {
-        this.profile.profile.ghosts = [dirpath];
+        this.profile.ghosts = [dirpath];
       }
       return this.destroy();
     }
@@ -289,13 +297,17 @@ NanikaManager = (function(_super) {
 
   NanikaManager.prototype.destroy = function() {
     this.emit('destroy');
-    delete this.storage;
-    delete this.profile;
-    delete this.namedmanager;
-    delete this.options;
-    delete this.nanikas;
-    this.emit('destroyed');
-    return this.removeAllListeners();
+    return this.storage.base_profile(this.profile).then((function(_this) {
+      return function() {
+        delete _this.storage;
+        delete _this.profile;
+        delete _this.namedmanager;
+        delete _this.options;
+        delete _this.nanikas;
+        _this.emit('destroyed');
+        return _this.removeAllListeners();
+      };
+    })(this));
   };
 
   NanikaManager.prototype.communicate = function(from, to, script, args, age, surface) {

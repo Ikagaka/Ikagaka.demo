@@ -11,9 +11,13 @@
   }
 
   NanikaStorage.Backend.InMemory = (function() {
-    function InMemory(_ghosts, _balloons) {
+    function InMemory(_ghosts, _balloons, _profiles) {
       this._ghosts = _ghosts != null ? _ghosts : {};
       this._balloons = _balloons != null ? _balloons : {};
+      this._profiles = _profiles != null ? _profiles : {
+        ghost: {},
+        balloon: {}
+      };
     }
 
     InMemory.prototype.ghost = function(dirpath, directory, merge) {
@@ -76,6 +80,42 @@
         throw new Error("shell/" + shellpath + " not found at [" + dirpath + "]");
       }
       return ghost.getDirectory('shell/' + shellpath);
+    };
+
+    InMemory.prototype.base_profile = function(profile) {
+      if (profile != null) {
+        this._profiles.base = profile;
+      }
+      return this._profiles.base || {};
+    };
+
+    InMemory.prototype.ghost_profile = function(dirpath, profile) {
+      var _ref;
+      if (profile != null) {
+        if (this._profiles.ghost[dirpath] == null) {
+          this._profiles.ghost[dirpath] = {
+            ghost: {},
+            shell: {}
+          };
+        }
+        this._profiles.ghost[dirpath].ghost = profile;
+      }
+      return ((_ref = this._profiles.ghost[dirpath]) != null ? _ref.ghost : void 0) || {};
+    };
+
+    InMemory.prototype.balloon_profile = function(dirpath, profile) {
+      if (profile != null) {
+        this._profiles.balloon[dirpath] = profile;
+      }
+      return this._profiles.balloon[dirpath] || {};
+    };
+
+    InMemory.prototype.shell_profile = function(dirpath, shellpath, profile) {
+      var _ref;
+      if (profile != null) {
+        this._profiles.ghost[dirpath].shell[shellpath] = profile;
+      }
+      return ((_ref = this._profiles.ghost[dirpath]) != null ? _ref.shell[shellpath] : void 0) || {};
     };
 
     InMemory.prototype.ghosts = function() {

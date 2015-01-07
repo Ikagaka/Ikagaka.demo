@@ -66,7 +66,7 @@ Console = (function() {
 })();
 
 $(function() {
-  var balloon_nar, boot_nanikamanager, con, error, ghost_nar, ghost_nar2, halt_nanikamanager, install_nar, log, namedmanager, nanikamanager, profile, storage, warn;
+  var balloon_nar, boot_nanikamanager, cb, con, error, ghost_nar, ghost_nar2, halt_nanikamanager, install_nar, log, namedmanager, nanikamanager, storage, warn;
   con = new Console("body");
   log = console.log;
   warn = console.warn;
@@ -98,13 +98,9 @@ $(function() {
       return con.error(args.join(''));
     };
   })(this);
-  storage = new NanikaStorage(new NanikaStorage.Backend.InMemory());
   balloon_nar = './vendor/nar/origin.nar';
   ghost_nar = './vendor/nar/ikaga.nar';
   ghost_nar2 = './vendor/nar/touhoku-zunko_or__.nar';
-  profile = new Profile.Baseware();
-  profile.profile.balloonpath = 'origin';
-  profile.profile.ghosts = ['ikaga'];
   namedmanager = new NamedManager();
   $(namedmanager.element).appendTo("body");
   nanikamanager = null;
@@ -112,14 +108,14 @@ $(function() {
     if (nanikamanager) {
       return;
     }
-    nanikamanager = new NanikaManager(storage, profile, namedmanager, {
+    nanikamanager = new NanikaManager(storage, namedmanager, {
       append_path: './vendor/js/',
       logging: true
     });
     $('#ikagaka_boot').attr('disabled', true);
     $('#ikagaka_halt').removeAttr('disabled');
     nanikamanager.on('change.existing.ghosts', function() {
-      var call, change, close, container, container_dropdown, container_label, container_menu, dirpath, install, install_file, label, nanika, nanikas_dom, _ref, _results;
+      var call, change, close, container, container_dropdown, container_label, container_menu, dirpath, install, install_file, label, nanika, nanikas_dom, shell, _ref, _results;
       nanikas_dom = $('.ghosts').html('');
       _ref = nanikamanager.nanikas;
       _results = [];
@@ -180,10 +176,10 @@ $(function() {
           return function() {
             var list;
             if (container_dropdown.hasClass('change')) {
-              container_dropdown.removeClass('change call');
+              container_dropdown.removeClass('change call shell');
               return container_dropdown.html('');
             } else {
-              container_dropdown.removeClass('change call');
+              container_dropdown.removeClass('change call shell');
               container_dropdown.addClass('change');
               container_dropdown.html('');
               list = $('<ul />').addClass('list');
@@ -211,10 +207,10 @@ $(function() {
           return function() {
             var list;
             if (container_dropdown.hasClass('call')) {
-              container_dropdown.removeClass('change call');
+              container_dropdown.removeClass('change call shell');
               return container_dropdown.html('');
             } else {
-              container_dropdown.removeClass('change call');
+              container_dropdown.removeClass('change call shell');
               container_dropdown.addClass('call');
               container_dropdown.html('');
               list = $('<ul />').addClass('list');
@@ -242,13 +238,49 @@ $(function() {
             }
           };
         })(dirpath, container_dropdown));
+        shell = $('<button />').text('シェル').addClass('shell').on('click', (function(dirpath, container_dropdown) {
+          return function() {
+            var list;
+            if (container_dropdown.hasClass('shell')) {
+              container_dropdown.removeClass('change call shell');
+              return container_dropdown.html('');
+            } else {
+              container_dropdown.removeClass('change call shell');
+              container_dropdown.addClass('shell');
+              container_dropdown.html('');
+              list = $('<ul />').addClass('list');
+              return storage.shells(dirpath).then(function(shells) {
+                var dst_shellpath, _fn, _i, _len;
+                _fn = function(dst_shellpath) {
+                  return storage.shell_name(dirpath, dst_shellpath).then(function(name) {
+                    var elem;
+                    nanika = nanikamanager.nanikas[dirpath];
+                    if (nanika.named.shell.descript.name === name) {
+                      elem = $('<li />').addClass('ng').text(name + ' に変更');
+                    } else {
+                      elem = $('<li />').addClass('ok').text(name + ' に変更').on('click', function() {
+                        return nanika.change_named(dst_shellpath, nanika.profile.balloonpath);
+                      });
+                    }
+                    return list.append(elem);
+                  });
+                };
+                for (_i = 0, _len = shells.length; _i < _len; _i++) {
+                  dst_shellpath = shells[_i];
+                  _fn(dst_shellpath);
+                }
+                return container_dropdown.append(list);
+              });
+            }
+          };
+        })(dirpath, container_dropdown));
         close = $('<button />').text('終了').addClass('close').on('click', (function(dirpath) {
           return function() {
             return nanikamanager.close(dirpath, 'user');
           };
         })(dirpath));
         container_label.append(label);
-        container_menu.append(change).append(call).append(close).append(install);
+        container_menu.append(change).append(call).append(shell).append(close).append(install);
         container.append(container_label).append(container_menu).append(container_dropdown);
         _results.push(nanikas_dom.append(container));
       }
@@ -259,7 +291,9 @@ $(function() {
       $('#ikagaka_boot').removeAttr('disabled');
       return $('#ikagaka_halt').attr('disabled', true);
     });
-    return nanikamanager.bootall();
+    return nanikamanager.initialize().then(function() {
+      return nanikamanager.bootall();
+    });
   };
   halt_nanikamanager = function() {
     return nanikamanager.closeall('user');
@@ -279,14 +313,16 @@ $(function() {
       console.log("nar loaded : " + (file.name || file));
       return storage.install_nar(nar, dirpath);
     })["catch"](function(err) {
-      console.error('install failure');
+      console.error('install failure: ' + (file.name || file));
       console.error(err.stack);
+      throw err;
     }).then(function(install_results) {
       var balloon, ghost, install_result, _i, _len;
       if (install_results == null) {
-        console.error('install not accepted');
+        console.error('install not accepted: ' + (file.name || file));
         return;
       }
+      console.log('install succeed: ' + (file.name || file));
       ghost = null;
       balloon = null;
       for (_i = 0, _len = install_results.length; _i < _len; _i++) {
@@ -299,7 +335,10 @@ $(function() {
       }
       if (ghost != null) {
         if (balloon != null) {
-          return profile.ghost(ghost.directory).profile.balloonpath = balloon.directory;
+          return storage.ghost_profile(ghost.directory).then(function(profile) {
+            profile.balloonpath = balloon.directory;
+            return storage.ghost_profile(ghost.directory, profile);
+          });
         }
       }
     })["catch"](function(err) {
@@ -307,11 +346,33 @@ $(function() {
       return alert(err);
     });
   };
-  console.log("load nar : " + balloon_nar);
-  return Promise.all([install_nar(balloon_nar, '', 'url'), install_nar(ghost_nar, '', 'url')]).then(function() {
-    $('#ikagaka_boot').click(boot_nanikamanager);
-    $('#ikagaka_halt').click(halt_nanikamanager);
-    $('#ikagaka_boot').click();
-    return install_nar(ghost_nar2, '', 'url');
-  });
+  storage = null;
+  BrowserFS.install(window);
+  cb = function(err, idbfs) {
+    var buffer, fs, path;
+    BrowserFS.initialize(idbfs);
+    fs = require('fs');
+    path = require('path');
+    buffer = require('buffer');
+    storage = new NanikaStorage(new NanikaStorage.Backend.FS('/ikagaka', fs, path, buffer.Buffer));
+    return storage.base_profile().then(function(profile) {
+      if (profile.ghosts == null) {
+        profile.balloonpath = 'origin';
+        profile.ghosts = ['ikaga'];
+        return storage.base_profile(profile);
+      }
+    }).then(function() {
+      console.log("load nar : " + balloon_nar);
+      return Promise.all([install_nar(balloon_nar, '', 'url'), install_nar(ghost_nar, '', 'url')]);
+    }).then(function() {
+      $('#ikagaka_boot').click(boot_nanikamanager);
+      $('#ikagaka_halt').click(halt_nanikamanager);
+      $('#ikagaka_clean').click(function() {
+        return storage.backend._rmAll('/ikagaka');
+      });
+      $('#ikagaka_boot').click();
+      return install_nar(ghost_nar2, '', 'url');
+    });
+  };
+  return new BrowserFS.FileSystem.IndexedDB(cb);
 });

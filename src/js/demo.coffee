@@ -58,22 +58,17 @@ $ ->
 		error.apply console, args
 		con.error args.join ''
 	
-	
-	storage = new NanikaStorage(new NanikaStorage.Backend.InMemory())
 	balloon_nar = './vendor/nar/origin.nar'
 	ghost_nar = './vendor/nar/ikaga.nar'
 	ghost_nar2 = './vendor/nar/touhoku-zunko_or__.nar'
 
-	profile = new Profile.Baseware()
-	profile.profile.balloonpath = 'origin'
-	profile.profile.ghosts = ['ikaga']
 	namedmanager = new NamedManager()
 	$(namedmanager.element).appendTo("body")
 
 	nanikamanager = null
 	boot_nanikamanager = ->
 		if nanikamanager then return
-		nanikamanager = new NanikaManager(storage, profile, namedmanager, append_path: './vendor/js/', logging: true)
+		nanikamanager = new NanikaManager(storage, namedmanager, append_path: './vendor/js/', logging: true)
 		$('#ikagaka_boot').attr('disabled', true)
 		$('#ikagaka_halt').removeAttr('disabled')
 		nanikamanager.on 'change.existing.ghosts', ->
@@ -114,10 +109,10 @@ $ ->
 				.on 'click', ((dirpath, container_dropdown) ->
 					->
 						if container_dropdown.hasClass('change')
-							container_dropdown.removeClass('change call')
+							container_dropdown.removeClass('change call shell')
 							container_dropdown.html('')
 						else
-							container_dropdown.removeClass('change call')
+							container_dropdown.removeClass('change call shell')
 							container_dropdown.addClass('change')
 							container_dropdown.html('')
 							list = $('<ul />').addClass('list')
@@ -136,10 +131,10 @@ $ ->
 				.on 'click', ((dirpath, container_dropdown) ->
 					->
 						if container_dropdown.hasClass('call')
-							container_dropdown.removeClass('change call')
+							container_dropdown.removeClass('change call shell')
 							container_dropdown.html('')
 						else
-							container_dropdown.removeClass('change call')
+							container_dropdown.removeClass('change call shell')
 							container_dropdown.addClass('call')
 							container_dropdown.html('')
 							list = $('<ul />').addClass('list')
@@ -157,6 +152,32 @@ $ ->
 									)(dst_dirpath)
 								container_dropdown.append(list)
 				)(dirpath, container_dropdown)
+				shell = $('<button />').text('シェル').addClass('shell')
+				.on 'click', ((dirpath, container_dropdown) ->
+					->
+						if container_dropdown.hasClass('shell')
+							container_dropdown.removeClass('change call shell')
+							container_dropdown.html('')
+						else
+							container_dropdown.removeClass('change call shell')
+							container_dropdown.addClass('shell')
+							container_dropdown.html('')
+							list = $('<ul />').addClass('list')
+							storage.shells(dirpath)
+							.then (shells) ->
+								for dst_shellpath in shells
+									((dst_shellpath) ->
+										storage.shell_name(dirpath, dst_shellpath).then (name) ->
+											nanika = nanikamanager.nanikas[dirpath]
+											if nanika.named.shell.descript.name == name
+												elem = $('<li />').addClass('ng').text(name + ' に変更')
+											else
+												elem = $('<li />').addClass('ok').text(name + ' に変更')
+												.on 'click', -> nanika.change_named(dst_shellpath, nanika.profile.balloonpath)
+											list.append(elem)
+									)(dst_shellpath)
+								container_dropdown.append(list)
+				)(dirpath, container_dropdown)
 				close = $('<button />').text('終了').addClass('close')
 				.on 'click', ((dirpath) ->
 					-> nanikamanager.close(dirpath, 'user')
@@ -166,6 +187,7 @@ $ ->
 				container_menu
 				.append change
 				.append call
+				.append shell
 				.append close
 				.append install
 				container
@@ -177,7 +199,9 @@ $ ->
 			nanikamanager = null
 			$('#ikagaka_boot').removeAttr('disabled')
 			$('#ikagaka_halt').attr('disabled', true)
-		nanikamanager.bootall()
+		nanikamanager.initialize()
+		.then ->
+			nanikamanager.bootall()
 	halt_nanikamanager = ->
 		nanikamanager.closeall('user')
 
@@ -192,13 +216,15 @@ $ ->
 			console.log("nar loaded : "+(file.name || file))
 			storage.install_nar(nar, dirpath)
 		.catch (err) ->
-			console.error 'install failure'
+			console.error 'install failure: '+(file.name || file)
 			console.error err.stack
+			throw err
 			return
 		.then (install_results) ->
 			unless install_results?
-				console.error 'install not accepted'
+				console.error 'install not accepted: '+(file.name || file)
 				return
+			console.log 'install succeed: '+(file.name || file)
 			ghost = null
 			balloon = null
 			for install_result in install_results
@@ -208,15 +234,38 @@ $ ->
 					balloon = install_result
 			if ghost?
 				if balloon?
-					profile.ghost(ghost.directory).profile.balloonpath = balloon.directory
+					storage.ghost_profile(ghost.directory)
+					.then (profile) ->
+						profile.balloonpath = balloon.directory
+						storage.ghost_profile(ghost.directory, profile)
 		.catch (err) ->
 			console.error(err, err.stack)
 			alert(err)
 	
-	console.log("load nar : "+balloon_nar)
-	Promise.all [install_nar(balloon_nar, '', 'url'), install_nar(ghost_nar, '', 'url')]
-	.then ->
-		$('#ikagaka_boot').click boot_nanikamanager
-		$('#ikagaka_halt').click halt_nanikamanager
-		$('#ikagaka_boot').click()
-		install_nar(ghost_nar2, '', 'url')
+	storage = null
+	BrowserFS.install(window)
+	cb = (err, idbfs) ->
+		BrowserFS.initialize(idbfs)
+		fs = require 'fs'
+		path = require 'path'
+		buffer = require 'buffer'
+#		storage = new NanikaStorage(new NanikaStorage.Backend.InMemory())
+		storage = new NanikaStorage(new NanikaStorage.Backend.FS('/ikagaka', fs, path, buffer.Buffer))
+		storage.base_profile()
+		.then (profile) ->
+			unless profile.ghosts?
+				profile.balloonpath = 'origin'
+				profile.ghosts = ['ikaga']
+				storage.base_profile(profile)
+		.then ->
+			console.log("load nar : "+balloon_nar)
+			Promise.all [install_nar(balloon_nar, '', 'url'), install_nar(ghost_nar, '', 'url')]
+		.then ->
+			$('#ikagaka_boot').click boot_nanikamanager
+			$('#ikagaka_halt').click halt_nanikamanager
+			$('#ikagaka_clean').click -> storage.backend._rmAll('/ikagaka')
+			$('#ikagaka_boot').click()
+			install_nar(ghost_nar2, '', 'url')
+	new BrowserFS.FileSystem.IndexedDB cb
+#	mfs = new BrowserFS.FileSystem.InMemory()
+#	cb(null, mfs)

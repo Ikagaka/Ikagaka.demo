@@ -3,20 +3,25 @@ Nanika = @Nanika
 EventEmitter = @EventEmitter2
 
 class NanikaManager extends EventEmitter
-	constructor: (@storage, @profile, @namedmanager, @options) ->
+	constructor: (@storage, @namedmanager, @options) ->
 		@setMaxListeners(0)
 		@nanikas = {}
+	initialize: ->
+		console.log 'init'
+		@storage.base_profile()
+		.then (@profile) =>
 	existing_ghosts: -> Object.keys(@nanikas)
 	is_existing_ghost: (dirpath) -> @nanikas[dirpath]?
 	bootall: ->
-		if @profile.profile.ghosts?
-			for dirpath in @profile.profile.ghosts
+		console.log 'bootall'
+		if @profile.ghosts?
+			for dirpath in @profile.ghosts
 				@boot dirpath
 	boot: (dirpath) ->
 		@materialize dirpath
 		.then (nanika) =>
-			if nanika.profile.profile.boot_count == 1
-				promise = @transact_firstboot nanika, nanika.profile.profile.vanish_count || 0
+			if nanika.profile.boot_count == 1
+				promise = @transact_firstboot nanika, nanika.profile.vanish_count || 0
 			else
 				promise = @transact_boot nanika, false, null
 			promise
@@ -50,8 +55,8 @@ class NanikaManager extends EventEmitter
 			@materialize dst_dirpath
 			.then (dst_nanika) =>
 				delete @no_halt
-				if dst_nanika.profile.profile.boot_count == 1
-					promise = @transact_firstboot dst_nanika, dst_nanika.profile.profile.vanish_count || 0
+				if dst_nanika.profile.boot_count == 1
+					promise = @transact_firstboot dst_nanika, dst_nanika.profile.vanish_count || 0
 				else
 					promise = @transact_changed src_nanika_descript, dst_nanika, changing_script
 				promise
@@ -72,8 +77,8 @@ class NanikaManager extends EventEmitter
 			unless calling_script? then return
 			@materialize dst_dirpath
 			.then (dst_nanika) =>
-				if dst_nanika.profile.profile.boot_count == 1
-					promise = @transact_firstboot dst_nanika, dst_nanika.profile.profile.vanish_count || 0
+				if dst_nanika.profile.boot_count == 1
+					promise = @transact_firstboot dst_nanika, dst_nanika.profile.vanish_count || 0
 				else
 					promise = @transact_called src_nanika, dst_nanika, calling_script
 				promise
@@ -123,8 +128,7 @@ class NanikaManager extends EventEmitter
 		new Promise (resolve, reject) =>
 			if @nanikas[dirpath]?
 				return reject new Error("ghost [#{dirpath}] already running")
-			profile = @profile.ghost(dirpath)
-			nanika = new Nanika(@, @storage, @namedmanager, dirpath, profile, NanikaPlugin, NanikaEventDefinition, @options)
+			nanika = new Nanika(@, @storage, @namedmanager, dirpath, NanikaPlugin, NanikaEventDefinition, @options)
 			nanika.on 'halted', =>
 				@halted(dirpath)
 			nanika.options.append_path = "./vendor/js/"
@@ -139,19 +143,21 @@ class NanikaManager extends EventEmitter
 		@emit 'change.existing.ghosts'
 		if not @no_halt and not Object.keys(@nanikas).length
 			if @haltghosts
-				@profile.profile.ghosts = @haltghosts
+				@profile.ghosts = @haltghosts
 			else
-				@profile.profile.ghosts = [dirpath]
+				@profile.ghosts = [dirpath]
 			@destroy()
 	destroy: ->
 		@emit 'destroy'
-		delete @storage
-		delete @profile
-		delete @namedmanager
-		delete @options
-		delete @nanikas
-		@emit 'destroyed'
-		@removeAllListeners()
+		@storage.base_profile(@profile)
+		.then =>
+			delete @storage
+			delete @profile
+			delete @namedmanager
+			delete @options
+			delete @nanikas
+			@emit 'destroyed'
+			@removeAllListeners()
 	communicate: (from, to, script, args, age, surface) ->
 		if to == '__SYSTEM_ALL_GHOST__'
 			to_match = {}
