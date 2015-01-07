@@ -1,33 +1,4 @@
-/**
- * bluebird build version 2.5.1
- * Features enabled: core, race, call_get, generators, map, nodeify, promisify, props, reduce, settle, some, progress, cancel, using, filter, any, each, timers
-*/
-/**
- * @preserve The MIT License (MIT)
- *
- * Copyright (c) 2014 Petka Antonov
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:</p>
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- */
-!function(e){"object"==typeof exports?module.exports=e():"function"==typeof define&&define.amd?define(e):"undefined"!=typeof window?window.Promise=e():"undefined"!=typeof global?global.Promise=e():"undefined"!=typeof self&&(self.Promise=e())}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-/**
+/* @preserve
  * The MIT License (MIT)
  * 
  * Copyright (c) 2014 Petka Antonov
@@ -51,6 +22,23 @@
  * THE SOFTWARE.
  * 
  */
+/**
+ * bluebird build version 2.6.2
+ * Features enabled: core, race, call_get, generators, map, nodeify, promisify, props, reduce, settle, some, progress, cancel, using, filter, any, each, timers
+*/
+!function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.Promise=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+"use strict";
+var old;
+if (typeof Promise !== "undefined") old = Promise;
+function noConflict(bluebird) {
+    try { if (Promise === bluebird) Promise = old; }
+    catch (e) {}
+    return bluebird;
+}
+module.exports = require("./promise.js")();
+module.exports.noConflict = noConflict;
+
+},{"./promise.js":20}],2:[function(require,module,exports){
 "use strict";
 module.exports = function(Promise) {
 var SomePromiseArray = Promise._SomePromiseArray;
@@ -76,31 +64,7 @@ Promise.prototype.any = function () {
 
 };
 
-},{}],2:[function(require,module,exports){
-/**
- * The MIT License (MIT)
- * 
- * Copyright (c) 2014 Petka Antonov
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:</p>
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * 
- */
+},{}],3:[function(require,module,exports){
 "use strict";
 var firstLineError = new Error();
 var schedule = require("./schedule.js");
@@ -110,7 +74,7 @@ var _process = typeof process !== "undefined" ? process : undefined;
 function Async() {
     this._isTickUsed = false;
     this._lateQueue = new Queue(16);
-    this._normalQueue = new Queue(65536);
+    this._normalQueue = new Queue(16);
     var self = this;
     this.drainQueues = function () {
         self._drainQueues();
@@ -169,9 +133,18 @@ Async.prototype.invoke = function (fn, receiver, arg) {
     this._queueTick();
 };
 
+Async.prototype.settlePromises = function(promise) {
+    this._normalQueue._pushOne(promise);
+    this._queueTick();
+};
+
 Async.prototype._drainQueue = function(queue) {
     while (queue.length() > 0) {
         var fn = queue.shift();
+        if (typeof fn !== "function") {
+            fn._settlePromises();
+            continue;
+        }
         var receiver = queue.shift();
         var arg = queue.shift();
         fn.call(receiver, arg);
@@ -198,67 +171,7 @@ Async.prototype._reset = function () {
 module.exports = new Async();
 module.exports.firstLineError = firstLineError;
 
-},{"./queue.js":25,"./schedule.js":28}],3:[function(require,module,exports){
-/**
- * The MIT License (MIT)
- * 
- * Copyright (c) 2014 Petka Antonov
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:</p>
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * 
- */
-"use strict";
-var old;
-if (typeof Promise !== "undefined") old = Promise;
-function noConflict(bluebird) {
-    try { if (Promise === bluebird) Promise = old; }
-    catch (e) {}
-    return bluebird;
-}
-module.exports = require("./promise.js")();
-module.exports.noConflict = noConflict;
-
-},{"./promise.js":20}],4:[function(require,module,exports){
-/**
- * The MIT License (MIT)
- * 
- * Copyright (c) 2014 Petka Antonov
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:</p>
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * 
- */
+},{"./queue.js":25,"./schedule.js":28}],4:[function(require,module,exports){
 "use strict";
 var cr = Object.create;
 if (cr) {
@@ -361,30 +274,6 @@ Promise.prototype.get = function (propertyName) {
 };
 
 },{"./util.js":35}],5:[function(require,module,exports){
-/**
- * The MIT License (MIT)
- * 
- * Copyright (c) 2014 Petka Antonov
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:</p>
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * 
- */
 "use strict";
 module.exports = function(Promise, INTERNAL) {
 var errors = require("./errors.js");
@@ -440,31 +329,7 @@ Promise.prototype.fork = function (didFulfill, didReject, didProgress) {
 };
 };
 
-},{"./async.js":2,"./errors.js":10,"./util.js":35}],6:[function(require,module,exports){
-/**
- * The MIT License (MIT)
- * 
- * Copyright (c) 2014 Petka Antonov
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:</p>
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * 
- */
+},{"./async.js":3,"./errors.js":10,"./util.js":35}],6:[function(require,module,exports){
 "use strict";
 module.exports = function() {
 var inherits = require("./util.js").inherits;
@@ -781,30 +646,6 @@ return CapturedTrace;
 };
 
 },{"./es5.js":12,"./util.js":35}],7:[function(require,module,exports){
-/**
- * The MIT License (MIT)
- * 
- * Copyright (c) 2014 Petka Antonov
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:</p>
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * 
- */
 "use strict";
 module.exports = function(NEXT_FILTER) {
 var util = require("./util.js");
@@ -877,30 +718,6 @@ return CatchFilter;
 };
 
 },{"./errors.js":10,"./es5.js":12,"./util.js":35}],8:[function(require,module,exports){
-/**
- * The MIT License (MIT)
- * 
- * Copyright (c) 2014 Petka Antonov
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:</p>
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * 
- */
 "use strict";
 var util = require("./util.js");
 var isPrimitive = util.isPrimitive;
@@ -957,30 +774,6 @@ Promise.prototype.thenThrow = function (reason) {
 };
 
 },{"./util.js":35}],9:[function(require,module,exports){
-/**
- * The MIT License (MIT)
- * 
- * Copyright (c) 2014 Petka Antonov
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:</p>
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * 
- */
 "use strict";
 module.exports = function(Promise, INTERNAL) {
 var PromiseReduce = Promise.reduce;
@@ -995,30 +788,6 @@ Promise.each = function (promises, fn) {
 };
 
 },{}],10:[function(require,module,exports){
-/**
- * The MIT License (MIT)
- * 
- * Copyright (c) 2014 Petka Antonov
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:</p>
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * 
- */
 "use strict";
 var Objectfreeze = require("./es5.js").freeze;
 var propertyIsWritable = require("./es5.js").propertyIsWritable;
@@ -1146,33 +915,9 @@ module.exports = {
 };
 
 },{"./es5.js":12,"./util.js":35}],11:[function(require,module,exports){
-/**
- * The MIT License (MIT)
- * 
- * Copyright (c) 2014 Petka Antonov
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:</p>
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * 
- */
 "use strict";
 module.exports = function(Promise) {
-var TypeError = require('./errors.js').TypeError;
+var TypeError = require("./errors.js").TypeError;
 
 function apiRejection(msg) {
     var error = new TypeError(msg);
@@ -1188,30 +933,6 @@ return apiRejection;
 };
 
 },{"./errors.js":10}],12:[function(require,module,exports){
-/**
- * The MIT License (MIT)
- * 
- * Copyright (c) 2014 Petka Antonov
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:</p>
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * 
- */
 var isES5 = (function(){
     "use strict";
     return this === undefined;
@@ -1243,16 +964,16 @@ if (isES5) {
             }
         }
         return ret;
-    }
+    };
 
     var ObjectDefineProperty = function (o, key, desc) {
         o[key] = desc.value;
         return o;
-    }
+    };
 
     var ObjectFreeze = function (obj) {
         return obj;
-    }
+    };
 
     var ObjectGetPrototypeOf = function (obj) {
         try {
@@ -1261,7 +982,7 @@ if (isES5) {
         catch (e) {
             return proto;
         }
-    }
+    };
 
     var ArrayIsArray = function (obj) {
         try {
@@ -1270,7 +991,7 @@ if (isES5) {
         catch(e) {
             return false;
         }
-    }
+    };
 
     module.exports = {
         isArray: ArrayIsArray,
@@ -1286,30 +1007,6 @@ if (isES5) {
 }
 
 },{}],13:[function(require,module,exports){
-/**
- * The MIT License (MIT)
- * 
- * Copyright (c) 2014 Petka Antonov
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:</p>
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * 
- */
 "use strict";
 module.exports = function(Promise, INTERNAL) {
 var PromiseMap = Promise.map;
@@ -1324,30 +1021,6 @@ Promise.filter = function (promises, fn, options) {
 };
 
 },{}],14:[function(require,module,exports){
-/**
- * The MIT License (MIT)
- * 
- * Copyright (c) 2014 Petka Antonov
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:</p>
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * 
- */
 "use strict";
 module.exports = function(Promise, NEXT_FILTER, tryConvertToPromise) {
 var util = require("./util.js");
@@ -1449,30 +1122,6 @@ Promise.prototype.tap = function (handler) {
 };
 
 },{"./util.js":35}],15:[function(require,module,exports){
-/**
- * The MIT License (MIT)
- * 
- * Copyright (c) 2014 Petka Antonov
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:</p>
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * 
- */
 "use strict";
 module.exports = function(Promise,
                           apiRejection,
@@ -1608,30 +1257,6 @@ Promise.spawn = function (generatorFunction) {
 };
 
 },{"./errors.js":10,"./util.js":35}],16:[function(require,module,exports){
-/**
- * The MIT License (MIT)
- * 
- * Copyright (c) 2014 Petka Antonov
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:</p>
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * 
- */
 "use strict";
 module.exports =
 function(Promise, PromiseArray, tryConvertToPromise, INTERNAL) {
@@ -1735,30 +1360,6 @@ Promise.join = function () {
 };
 
 },{"./util.js":35}],17:[function(require,module,exports){
-/**
- * The MIT License (MIT)
- * 
- * Copyright (c) 2014 Petka Antonov
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:</p>
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * 
- */
 "use strict";
 module.exports = function(Promise,
                           PromiseArray,
@@ -1773,6 +1374,7 @@ var EMPTY_ARRAY = [];
 
 function MappingPromiseArray(promises, fn, limit, _filter) {
     this.constructor$(promises);
+    this._promise._setIsSpreadable();
     this._callback = fn;
     this._preservedValues = _filter === INTERNAL
         ? new Array(this.length())
@@ -1888,30 +1490,6 @@ Promise.map = function (promises, fn, options, _filter) {
 };
 
 },{"./util.js":35}],18:[function(require,module,exports){
-/**
- * The MIT License (MIT)
- * 
- * Copyright (c) 2014 Petka Antonov
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:</p>
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * 
- */
 "use strict";
 module.exports = function(Promise) {
 var util = require("./util.js");
@@ -1963,31 +1541,7 @@ Promise.prototype.nodeify = function (nodeback, options) {
 };
 };
 
-},{"./async.js":2,"./util.js":35}],19:[function(require,module,exports){
-/**
- * The MIT License (MIT)
- * 
- * Copyright (c) 2014 Petka Antonov
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:</p>
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * 
- */
+},{"./async.js":3,"./util.js":35}],19:[function(require,module,exports){
 "use strict";
 module.exports = function(Promise, PromiseArray) {
 var util = require("./util.js");
@@ -2066,31 +1620,7 @@ Promise.prototype._progressUnchecked = function (progressValue) {
 };
 };
 
-},{"./async.js":2,"./errors.js":10,"./util.js":35}],20:[function(require,module,exports){
-/**
- * The MIT License (MIT)
- * 
- * Copyright (c) 2014 Petka Antonov
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:</p>
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * 
- */
+},{"./async.js":3,"./errors.js":10,"./util.js":35}],20:[function(require,module,exports){
 "use strict";
 module.exports = function() {
 var makeSelfResolutionError = function () {
@@ -2219,7 +1749,11 @@ Promise.prototype.done = function (didFulfill, didReject, didProgress) {
 };
 
 Promise.prototype.spread = function (didFulfill, didReject) {
-    return this.all()._then(didFulfill, didReject, undefined, APPLY, undefined);
+    var followee = this._target();
+    var target = followee._isSpreadable()
+        ? (followee === this ? this : this.then())
+        : this.all();
+    return target._then(didFulfill, didReject, undefined, APPLY, undefined);
 };
 
 Promise.prototype.isCancellable = function () {
@@ -2245,7 +1779,9 @@ Promise.prototype.toJSON = function () {
 };
 
 Promise.prototype.all = function () {
-    return new PromiseArray(this).promise();
+    var ret = new PromiseArray(this).promise();
+    ret._setIsSpreadable();
+    return ret;
 };
 
 Promise.prototype.error = function (fn) {
@@ -2257,7 +1793,9 @@ Promise.is = function (val) {
 };
 
 Promise.all = function (promises) {
-    return new PromiseArray(promises).promise();
+    var ret = new PromiseArray(promises).promise();
+    ret._setIsSpreadable();
+    return ret;
 };
 
 Promise.method = function (fn) {
@@ -2412,7 +1950,7 @@ Promise.prototype._settlePromiseAtPostResolution = function (index) {
 };
 
 Promise.prototype._length = function () {
-    return this._bitField & 262143;
+    return this._bitField & 131071;
 };
 
 Promise.prototype._isFollowingOrFulfilledOrRejected = function () {
@@ -2424,8 +1962,8 @@ Promise.prototype._isFollowing = function () {
 };
 
 Promise.prototype._setLength = function (len) {
-    this._bitField = (this._bitField & -262144) |
-        (len & 262143);
+    this._bitField = (this._bitField & -131072) |
+        (len & 131071);
 };
 
 Promise.prototype._setFulfilled = function () {
@@ -2474,6 +2012,14 @@ Promise.prototype._unsetRejectionIsUnhandled = function () {
 
 Promise.prototype._isRejectionUnhandled = function () {
     return (this._bitField & 2097152) > 0;
+};
+
+Promise.prototype._isSpreadable = function () {
+    return (this._bitField & 131072) > 0;
+};
+
+Promise.prototype._setIsSpreadable = function () {
+    this._bitField = this._bitField | 131072;
 };
 
 Promise.prototype._setIsMigrated = function () {
@@ -2569,7 +2115,7 @@ Promise.prototype._addCallbacks = function (
 ) {
     var index = this._length();
 
-    if (index >= 262143 - 5) {
+    if (index >= 131071 - 5) {
         index = 0;
         this._setLength(0);
     }
@@ -2599,7 +2145,7 @@ Promise.prototype._addCallbacks = function (
 Promise.prototype._setProxyHandlers = function (receiver, promiseSlotValue) {
     var index = this._length();
 
-    if (index >= 262143 - 5) {
+    if (index >= 131071 - 5) {
         index = 0;
         this._setLength(0);
     }
@@ -2656,24 +2202,18 @@ Promise.prototype._resolveFromResolver = function (resolver) {
     }
 };
 
-Promise.prototype._callHandler = function (
-    handler, receiver, promise, value) {
-    var x;
+Promise.prototype._settlePromiseFromHandler = function (
+    handler, receiver, value, promise
+) {
+    if (promise._isRejected()) return;
     promise._pushContext();
+    var x;
     if (receiver === APPLY && !this._isRejected()) {
         x = tryCatchApply(handler, value, this._boundTo);
     } else {
         x = tryCatch1(handler, receiver, value);
     }
     promise._popContext();
-    return x;
-};
-
-Promise.prototype._settlePromiseFromHandler = function (
-    handler, receiver, value, promise
-) {
-    if (promise._isRejected()) return;
-    var x = this._callHandler(handler, receiver, promise, value);
 
     if (x === errorObj || x === promise || x === NEXT_FILTER) {
         var err = x === promise
@@ -2890,7 +2430,7 @@ Promise.prototype._unsetSettlePromisesQueued = function () {
 
 Promise.prototype._queueSettlePromises = function() {
     if (!this._isSettlePromisesQueued()) {
-        async.invoke(this._settlePromises, this, undefined);
+        async.settlePromises(this);
         this._setSettlePromisesQueued();
     }
 };
@@ -3047,54 +2587,30 @@ util.toFastProperties(Promise);
 util.toFastProperties(Promise.prototype);
 Promise.Promise = Promise;
 CapturedTrace.setBounds(async.firstLineError, util.lastLineError);
-require('./timers.js')(Promise,INTERNAL,tryConvertToPromise);
-require('./race.js')(Promise,INTERNAL,tryConvertToPromise);
-require('./call_get.js')(Promise);
-require('./generators.js')(Promise,apiRejection,INTERNAL,tryConvertToPromise);
-require('./map.js')(Promise,PromiseArray,apiRejection,tryConvertToPromise,INTERNAL);
 require('./nodeify.js')(Promise);
-require('./promisify.js')(Promise,INTERNAL);
-require('./props.js')(Promise,PromiseArray,tryConvertToPromise);
-require('./reduce.js')(Promise,PromiseArray,apiRejection,tryConvertToPromise,INTERNAL);
-require('./settle.js')(Promise,PromiseArray);
-require('./some.js')(Promise,PromiseArray,apiRejection);
-require('./progress.js')(Promise,PromiseArray);
-require('./cancel.js')(Promise,INTERNAL);
-require('./filter.js')(Promise,INTERNAL);
-require('./any.js')(Promise,PromiseArray);
-require('./each.js')(Promise,INTERNAL);
-require('./using.js')(Promise,apiRejection,tryConvertToPromise);
+require('./using.js')(Promise, apiRejection, tryConvertToPromise);
+require('./generators.js')(Promise, apiRejection, INTERNAL, tryConvertToPromise);
+require('./map.js')(Promise, PromiseArray, apiRejection, tryConvertToPromise, INTERNAL);
+require('./cancel.js')(Promise, INTERNAL);
+require('./promisify.js')(Promise, INTERNAL);
+require('./props.js')(Promise, PromiseArray, tryConvertToPromise);
+require('./race.js')(Promise, INTERNAL, tryConvertToPromise);
+require('./reduce.js')(Promise, PromiseArray, apiRejection, tryConvertToPromise, INTERNAL);
+require('./settle.js')(Promise, PromiseArray);
+require('./call_get.js')(Promise);
+require('./some.js')(Promise, PromiseArray, apiRejection);
+require('./progress.js')(Promise, PromiseArray);
+require('./any.js')(Promise);
+require('./each.js')(Promise, INTERNAL);
+require('./timers.js')(Promise, INTERNAL, tryConvertToPromise);
+require('./filter.js')(Promise, INTERNAL);
 
 Promise.prototype = Promise.prototype;
 return Promise;
 
 };
 
-},{"./any.js":1,"./async.js":2,"./call_get.js":4,"./cancel.js":5,"./captured_trace.js":6,"./catch_filter.js":7,"./direct_resolve.js":8,"./each.js":9,"./errors.js":10,"./errors_api_rejection":11,"./filter.js":13,"./finally.js":14,"./generators.js":15,"./join.js":16,"./map.js":17,"./nodeify.js":18,"./progress.js":19,"./promise_array.js":21,"./promise_resolver.js":22,"./promisify.js":23,"./props.js":24,"./race.js":26,"./reduce.js":27,"./settle.js":29,"./some.js":30,"./synchronous_inspection.js":31,"./thenables.js":32,"./timers.js":33,"./using.js":34,"./util.js":35}],21:[function(require,module,exports){
-/**
- * The MIT License (MIT)
- * 
- * Copyright (c) 2014 Petka Antonov
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:</p>
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * 
- */
+},{"./any.js":2,"./async.js":3,"./call_get.js":4,"./cancel.js":5,"./captured_trace.js":6,"./catch_filter.js":7,"./direct_resolve.js":8,"./each.js":9,"./errors.js":10,"./errors_api_rejection":11,"./filter.js":13,"./finally.js":14,"./generators.js":15,"./join.js":16,"./map.js":17,"./nodeify.js":18,"./progress.js":19,"./promise_array.js":21,"./promise_resolver.js":22,"./promisify.js":23,"./props.js":24,"./race.js":26,"./reduce.js":27,"./settle.js":29,"./some.js":30,"./synchronous_inspection.js":31,"./thenables.js":32,"./timers.js":33,"./using.js":34,"./util.js":35}],21:[function(require,module,exports){
 "use strict";
 module.exports = function(Promise, INTERNAL, tryConvertToPromise) {
 var canAttachTrace = require("./errors.js").canAttachTrace;
@@ -3247,30 +2763,6 @@ return PromiseArray;
 };
 
 },{"./errors.js":10,"./util.js":35}],22:[function(require,module,exports){
-/**
- * The MIT License (MIT)
- * 
- * Copyright (c) 2014 Petka Antonov
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:</p>
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * 
- */
 "use strict";
 var util = require("./util.js");
 var maybeWrapAsError = util.maybeWrapAsError;
@@ -3298,6 +2790,7 @@ function wrapAsOperationalError(obj) {
 }
 
 function nodebackForPromise(promise) {
+    promise._setIsSpreadable();
     return function(err, value) {
         if (promise === null) return;
 
@@ -3406,31 +2899,7 @@ PromiseResolver.prototype._setCarriedStackTrace = function (trace) {
 
 module.exports = PromiseResolver;
 
-},{"./async.js":2,"./errors.js":10,"./es5.js":12,"./util.js":35}],23:[function(require,module,exports){
-/**
- * The MIT License (MIT)
- * 
- * Copyright (c) 2014 Petka Antonov
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:</p>
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * 
- */
+},{"./async.js":3,"./errors.js":10,"./es5.js":12,"./util.js":35}],23:[function(require,module,exports){
 "use strict";
 module.exports = function(Promise, INTERNAL) {
 var THIS = {};
@@ -3737,30 +3206,6 @@ Promise.promisifyAll = function (target, options) {
 
 
 },{"./errors":10,"./promise_resolver.js":22,"./util.js":35}],24:[function(require,module,exports){
-/**
- * The MIT License (MIT)
- * 
- * Copyright (c) 2014 Petka Antonov
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:</p>
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * 
- */
 "use strict";
 module.exports = function(Promise, PromiseArray, tryConvertToPromise) {
 var util = require("./util.js");
@@ -3842,34 +3287,11 @@ Promise.props = function (promises) {
 };
 
 },{"./errors_api_rejection":11,"./es5.js":12,"./util.js":35}],25:[function(require,module,exports){
-/**
- * The MIT License (MIT)
- * 
- * Copyright (c) 2014 Petka Antonov
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:</p>
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * 
- */
 "use strict";
-function arrayCopy(src, srcIndex, dst, dstIndex, len) {
+function arrayMove(src, srcIndex, dst, dstIndex, len) {
     for (var j = 0; j < len; ++j) {
         dst[j + dstIndex] = src[j + srcIndex];
+        src[j + srcIndex] = void 0;
     }
 }
 
@@ -3877,7 +3299,6 @@ function Queue(capacity) {
     this._capacity = capacity;
     this._length = 0;
     this._front = 0;
-    this._makeCapacity();
 }
 
 Queue.prototype._willBeOverCapacity = function (size) {
@@ -3940,67 +3361,26 @@ Queue.prototype.length = function () {
     return this._length;
 };
 
-Queue.prototype._makeCapacity = function () {
-    var len = this._capacity;
-    for (var i = 0; i < len; ++i) {
-        this[i] = undefined;
-    }
-};
-
 Queue.prototype._checkCapacity = function (size) {
     if (this._capacity < size) {
-        this._resizeTo(this._capacity << 3);
+        this._resizeTo(this._capacity << 1);
     }
 };
 
 Queue.prototype._resizeTo = function (capacity) {
-    var oldFront = this._front;
     var oldCapacity = this._capacity;
-    var oldQueue = new Array(oldCapacity);
-    var length = this.length();
-
-    arrayCopy(this, 0, oldQueue, 0, oldCapacity);
     this._capacity = capacity;
-    this._makeCapacity();
-    this._front = 0;
-    if (oldFront + length <= oldCapacity) {
-        arrayCopy(oldQueue, oldFront, this, 0, length);
-    } else {        var lengthBeforeWrapping =
-            length - ((oldFront + length) & (oldCapacity - 1));
-
-        arrayCopy(oldQueue, oldFront, this, 0, lengthBeforeWrapping);
-        arrayCopy(oldQueue, 0, this, lengthBeforeWrapping,
-                    length - lengthBeforeWrapping);
+    var front = this._front;
+    var length = this._length;
+    if (front + length > oldCapacity) {
+        var moveItemsCount = (front + length) & (oldCapacity - 1);
+        arrayMove(this, 0, this, oldCapacity, moveItemsCount);
     }
 };
 
 module.exports = Queue;
 
 },{}],26:[function(require,module,exports){
-/**
- * The MIT License (MIT)
- * 
- * Copyright (c) 2014 Petka Antonov
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:</p>
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * 
- */
 "use strict";
 module.exports = function(Promise, INTERNAL, tryConvertToPromise) {
 var apiRejection = require("./errors_api_rejection.js")(Promise);
@@ -4052,30 +3432,6 @@ Promise.prototype.race = function () {
 };
 
 },{"./errors_api_rejection.js":11,"./util.js":35}],27:[function(require,module,exports){
-/**
- * The MIT License (MIT)
- * 
- * Copyright (c) 2014 Petka Antonov
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:</p>
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * 
- */
 "use strict";
 module.exports = function(Promise,
                           PromiseArray,
@@ -4240,45 +3596,16 @@ Promise.reduce = function (promises, fn, initialValue, _each) {
 };
 
 },{"./util.js":35}],28:[function(require,module,exports){
-/**
- * The MIT License (MIT)
- * 
- * Copyright (c) 2014 Petka Antonov
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:</p>
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * 
- */
 "use strict";
 var schedule;
-var _MutationObserver;
 if (typeof process === "object" && typeof process.version === "string") {
-    schedule = function (fn) {
-        process.nextTick(fn);
-    };
+    schedule = parseInt(process.version.split(".")[1], 10) > 10
+        ? setImmediate : process.nextTick;
 }
-else if ((typeof MutationObserver !== "undefined" &&
-         (_MutationObserver = MutationObserver)) ||
-         (typeof WebKitMutationObserver !== "undefined" &&
-         (_MutationObserver = WebKitMutationObserver))) {
+else if (typeof MutationObserver !== "undefined") {
     schedule = function(fn) {
         var div = document.createElement("div");
-        var observer = new _MutationObserver(fn);
+        var observer = new MutationObserver(fn);
         observer.observe(div, {attributes: true});
         return function() { div.classList.toggle("foo"); };
     };
@@ -4297,30 +3624,6 @@ else {
 module.exports = schedule;
 
 },{}],29:[function(require,module,exports){
-/**
- * The MIT License (MIT)
- * 
- * Copyright (c) 2014 Petka Antonov
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:</p>
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * 
- */
 "use strict";
 module.exports =
     function(Promise, PromiseArray) {
@@ -4329,6 +3632,7 @@ var util = require("./util.js");
 
 function SettledPromiseArray(values) {
     this.constructor$(values);
+    this._promise._setIsSpreadable();
 }
 util.inherits(SettledPromiseArray, PromiseArray);
 
@@ -4363,30 +3667,6 @@ Promise.prototype.settle = function () {
 };
 
 },{"./util.js":35}],30:[function(require,module,exports){
-/**
- * The MIT License (MIT)
- * 
- * Copyright (c) 2014 Petka Antonov
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:</p>
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * 
- */
 "use strict";
 module.exports =
 function(Promise, PromiseArray, apiRejection) {
@@ -4408,6 +3688,7 @@ SomePromiseArray.prototype._init = function () {
     if (!this._initialized) {
         return;
     }
+    this._promise._setIsSpreadable();
     if (this._howMany === 0) {
         this._resolve([]);
         return;
@@ -4518,30 +3799,6 @@ Promise._SomePromiseArray = SomePromiseArray;
 };
 
 },{"./errors.js":10,"./util.js":35}],31:[function(require,module,exports){
-/**
- * The MIT License (MIT)
- * 
- * Copyright (c) 2014 Petka Antonov
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:</p>
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * 
- */
 "use strict";
 module.exports = function(Promise) {
 function PromiseInspection(promise) {
@@ -4638,30 +3895,6 @@ Promise.PromiseInspection = PromiseInspection;
 };
 
 },{}],32:[function(require,module,exports){
-/**
- * The MIT License (MIT)
- * 
- * Copyright (c) 2014 Petka Antonov
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:</p>
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * 
- */
 "use strict";
 module.exports = function(Promise, INTERNAL) {
 var util = require("./util.js");
@@ -4774,35 +4007,9 @@ return tryConvertToPromise;
 };
 
 },{"./errors.js":10,"./util.js":35}],33:[function(require,module,exports){
-/**
- * The MIT License (MIT)
- * 
- * Copyright (c) 2014 Petka Antonov
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:</p>
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * 
- */
 "use strict";
 module.exports = function(Promise, INTERNAL, tryConvertToPromise) {
-var util = require("./util.js");
 var errors = require("./errors.js");
-var apiRejection = require("./errors_api_rejection")(Promise);
 var TimeoutError = Promise.TimeoutError;
 
 var afterTimeout = function (promise, message) {
@@ -4876,31 +4083,7 @@ Promise.prototype.timeout = function (ms, message) {
 
 };
 
-},{"./errors.js":10,"./errors_api_rejection":11,"./util.js":35}],34:[function(require,module,exports){
-/**
- * The MIT License (MIT)
- * 
- * Copyright (c) 2014 Petka Antonov
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:</p>
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * 
- */
+},{"./errors.js":10}],34:[function(require,module,exports){
 "use strict";
 module.exports = function (Promise, apiRejection, tryConvertToPromise) {
     var TypeError = require("./errors.js").TypeError;
@@ -5072,30 +4255,6 @@ module.exports = function (Promise, apiRejection, tryConvertToPromise) {
 };
 
 },{"./errors.js":10,"./util.js":35}],35:[function(require,module,exports){
-/**
- * The MIT License (MIT)
- * 
- * Copyright (c) 2014 Petka Antonov
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:</p>
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * 
- */
 "use strict";
 var es5 = require("./es5.js");
 var haveGetters = (function(){
@@ -5353,7 +4512,5 @@ var ret = {
 
 module.exports = ret;
 
-},{"./es5.js":12}]},{},[3])
-(3)
-});
-;            ;if (typeof window !== 'undefined' && window !== null) {                           window.P = window.Promise;                                                 } else if (typeof self !== 'undefined' && self !== null) {                         self.P = self.Promise;                                                     }
+},{"./es5.js":12}]},{},[1])(1)
+});                ;if (typeof window !== 'undefined' && window !== null) {                           window.P = window.Promise;                                                 } else if (typeof self !== 'undefined' && self !== null) {                         self.P = self.Promise;                                                     }
