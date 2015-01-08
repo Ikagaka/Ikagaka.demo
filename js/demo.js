@@ -523,7 +523,10 @@ $(function() {
       nanikamanager = null;
       $('#ikagaka_boot').removeAttr('disabled');
       $('#ikagaka_halt').attr('disabled', true);
-      return window.onbeforeunload = function() {};
+      window.onbeforeunload = function() {};
+      if (typeof require !== "undefined" && require !== null) {
+        return window.close();
+      }
     });
     console.log('baseware booting');
     window.onbeforeunload = function(event) {

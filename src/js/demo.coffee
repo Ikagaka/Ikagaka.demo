@@ -315,6 +315,8 @@ $ ->
 			$('#ikagaka_boot').removeAttr('disabled')
 			$('#ikagaka_halt').attr('disabled', true)
 			window.onbeforeunload = ->
+			if require?
+				window.close()
 		console.log 'baseware booting'
 		window.onbeforeunload = (event) -> event.returnValue = 'ベースウェアを終了していません。\n状態が保存されませんが本当にページを閉じますか？'
 		nanikamanager.initialize()
