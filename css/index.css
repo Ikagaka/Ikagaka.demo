@@ -27,6 +27,12 @@ a {
 .ConsoleWindow .error {
   color: #f00;
 }
+.namedMgr {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  height: 100%;
+}
 header {
   margin: 0.5em;
   padding: 0.5em;
