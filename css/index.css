@@ -28,7 +28,7 @@ a {
   color: #f00;
 }
 .named .scope {
-  position: fixed;
+  position: fixed !important;
 }
 header {
   margin: 0.5em;
