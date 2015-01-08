@@ -306,7 +306,7 @@ $(function() {
       var body, dom, item, li_css, li_css_disabled, menu, named, offset, x, y, _i, _len;
       $('#contextmenu').remove();
       named = namedmanager.named(nanika.namedid);
-      dom = named.scope(mouse.args.scope).$scope;
+      dom = named.scopes[mouse.args.scope].$scope;
       offset = dom.offset();
       x = window.innerWidth - (offset.left + mouse.args.offsetX);
       y = window.innerHeight - (offset.top + mouse.args.offsetY);

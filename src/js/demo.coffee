@@ -210,7 +210,7 @@ $ ->
 		view_contextmenu = (nanika, mouse, menulist) ->
 			$('#contextmenu').remove()
 			named = namedmanager.named nanika.namedid
-			dom = named.scope(mouse.args.scope).$scope
+			dom = named.scopes[mouse.args.scope].$scope
 			offset = dom.offset()
 			x = window.innerWidth - (offset.left + mouse.args.offsetX)
 			y = window.innerHeight - (offset.top + mouse.args.offsetY)
