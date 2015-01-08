@@ -68,6 +68,12 @@ $ ->
 	ghost_nar = './vendor/nar/ikaga.nar'
 	ghost_nar2 = './vendor/nar/touhoku-zunko_or__.nar'
 
+	delete_storage = ->
+		if window.confirm '本当に削除しますか？'
+			storage.backend._rmAll(fs_root).then ->
+				window.onbeforeunload = ->
+				location.reload()
+
 	namedmanager = new NamedManager()
 	$(namedmanager.element).appendTo("body")
 
@@ -291,6 +297,7 @@ $ ->
 								$('body').append install_field
 								install_field.click()
 							}
+							{text: '全消去', cb: delete_storage}
 							{text: '終了', cb: -> nanikamanager.close(nanika.ghostpath, 'user')}
 							{text: '全て終了', cb: -> nanikamanager.closeall('user')}
 						]
@@ -375,11 +382,7 @@ $ ->
 		.then ->
 			$('#ikagaka_boot').click boot_nanikamanager
 			$('#ikagaka_halt').click halt_nanikamanager
-			$('#ikagaka_clean').click ->
-				if window.confirm '本当に削除しますか？'
-					storage.backend._rmAll(fs_root).then ->
-						window.onbeforeunload = ->
-						location.reload()
+			$('#ikagaka_clean').click delete_storage
 			$('#ikagaka_boot').click()
 	if require?
 		cb()

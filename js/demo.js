@@ -66,7 +66,7 @@ Console = (function() {
 })();
 
 $(function() {
-  var balloon_nar, boot_nanikamanager, cb, con, error, fs_root, ghost_nar, ghost_nar2, gui, halt_nanikamanager, install_nar, log, namedmanager, nanikamanager, storage, warn, win;
+  var balloon_nar, boot_nanikamanager, cb, con, delete_storage, error, fs_root, ghost_nar, ghost_nar2, gui, halt_nanikamanager, install_nar, log, namedmanager, nanikamanager, storage, warn, win;
   if (typeof require !== "undefined" && require !== null) {
     gui = require('nw.gui');
     win = gui.Window.get();
@@ -108,6 +108,14 @@ $(function() {
   balloon_nar = './vendor/nar/origin.nar';
   ghost_nar = './vendor/nar/ikaga.nar';
   ghost_nar2 = './vendor/nar/touhoku-zunko_or__.nar';
+  delete_storage = function() {
+    if (window.confirm('本当に削除しますか？')) {
+      return storage.backend._rmAll(fs_root).then(function() {
+        window.onbeforeunload = function() {};
+        return location.reload();
+      });
+    }
+  };
   namedmanager = new NamedManager();
   $(namedmanager.element).appendTo("body");
   nanikamanager = null;
@@ -473,6 +481,9 @@ $(function() {
                     return install_field.click();
                   }
                 }, {
+                  text: '全消去',
+                  cb: delete_storage
+                }, {
                   text: '終了',
                   cb: function() {
                     return nanikamanager.close(nanika.ghostpath, 'user');
@@ -596,14 +607,7 @@ $(function() {
     }).then(function() {
       $('#ikagaka_boot').click(boot_nanikamanager);
       $('#ikagaka_halt').click(halt_nanikamanager);
-      $('#ikagaka_clean').click(function() {
-        if (window.confirm('本当に削除しますか？')) {
-          return storage.backend._rmAll(fs_root).then(function() {
-            window.onbeforeunload = function() {};
-            return location.reload();
-          });
-        }
-      });
+      $('#ikagaka_clean').click(delete_storage);
       return $('#ikagaka_boot').click();
     });
   };
