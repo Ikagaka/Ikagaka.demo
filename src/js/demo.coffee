@@ -63,6 +63,7 @@ $ ->
 		error.apply console, args
 		con.error args.join ''
 	
+	fs_root = 'ikagaka'
 	balloon_nar = './vendor/nar/origin.nar'
 	ghost_nar = './vendor/nar/ikaga.nar'
 	ghost_nar2 = './vendor/nar/touhoku-zunko_or__.nar'
@@ -200,6 +201,108 @@ $ ->
 				.append container_menu
 				.append container_dropdown
 				nanikas_dom.append container
+		view_contextmenu = (nanika, mouse, menulist) ->
+			$('#contextmenu').remove()
+			named = namedmanager.named nanika.namedid
+			dom = named.scope(mouse.args.scope).$scope
+			offset = dom.offset()
+			x = window.innerWidth - (offset.left + mouse.args.offsetX)
+			y = window.innerHeight - (offset.top + mouse.args.offsetY)
+			menu = $('<ul />').attr('id', 'contextmenu')
+			.css(position: 'fixed', bottom: y, right: x, background: '#fff', 'z-index': 100, margin: '0', padding: '0', 'list-style': 'none', border: '1px solid black')
+			li_css = color: '#222', background: '#fff', margin: '0', padding: '0.3em', cursor: 'pointer'
+			li_css_disabled = color: '#666', background: '#eee', margin: '0', padding: '0.3em'
+			for item in menulist
+				if item.cb?
+					((item) ->
+						menu.append $('<li />').text(item.text).css(li_css).click ->
+							hide_contextmenu()
+							item.cb()
+					)(item)
+				else
+					menu.append $('<li />').text(item.text).css(li_css_disabled)
+			body = $('body')
+			body.append(menu)
+		hide_contextmenu = -> $('#contextmenu').remove()
+		contextmenu = initialize: (nanika) ->
+			mouse = {}
+			nanika.on 'request.mouseclick', (args) ->
+				mouse.args = args
+			nanika.on 'response.mouseclick', (args) ->
+				if not args.value? or not args.value.length
+					if mouse.args.button == 1
+						ghostpath = nanika.ghostpath
+						menulist = [
+							{text: 'ゴースト切り替え', cb: ->
+								storage.ghosts()
+								.then (ghosts) ->
+									promises = []
+									for dst_dirpath in ghosts
+										((dst_dirpath) ->
+											promises.push storage.ghost_name(dst_dirpath).then (name) ->
+												if nanikamanager.is_existing_ghost(dst_dirpath) && ghostpath != dst_dirpath
+													text: name + ' に切り替え'
+												else
+													text: name + ' に切り替え', cb: -> nanikamanager.change(ghostpath, dst_dirpath)
+										)(dst_dirpath)
+									Promise.all promises
+									.then (submenulist) ->
+										view_contextmenu nanika, mouse, submenulist
+							}
+							{text: '他のゴーストを呼ぶ', cb: ->
+								storage.ghosts()
+								.then (ghosts) ->
+									promises = []
+									for dst_dirpath in ghosts
+										((dst_dirpath) ->
+											promises.push storage.ghost_name(dst_dirpath).then (name) ->
+												if nanikamanager.is_existing_ghost(dst_dirpath)
+													text: name + ' を呼び出し'
+												else
+													text: name + ' を呼び出し', cb: -> nanikamanager.call(ghostpath, dst_dirpath)
+										)(dst_dirpath)
+									Promise.all promises
+									.then (submenulist) ->
+										view_contextmenu nanika, mouse, submenulist
+							}
+							{text: 'シェル', cb: ->
+								storage.shells(ghostpath)
+								.then (shells) ->
+									promises = []
+									for dst_shellpath in shells
+										((dst_shellpath) ->
+											promises.push storage.shell_name(ghostpath, dst_shellpath).then (name) ->
+												if nanika.named.shell.descript.name == name
+													text: name + ' に変更'
+												else
+													text: name + ' に変更', cb: -> nanika.change_named(dst_shellpath, nanika.profile.balloonpath)
+										)(dst_shellpath)
+									Promise.all promises
+									.then (submenulist) ->
+										view_contextmenu nanika, mouse, submenulist
+							}
+							{text: 'インストール', cb: ->
+								$('#install_field').remove()
+								install_field = $('<input type="file" />').attr('id', 'install_field').css(display: 'none')
+								.change (ev) =>
+									for file in ev.target.files
+										install_nar file, ghostpath, nanika.ghost.descript['sakura.name']
+									$('#install_field').remove()
+								$('body').append install_field
+								install_field.click()
+							}
+							{text: '終了', cb: -> nanikamanager.close(nanika.ghostpath, 'user')}
+							{text: '全て終了', cb: -> nanikamanager.closeall('user')}
+						]
+						view_contextmenu nanika, mouse, menulist
+					else
+						hide_contextmenu()
+				else
+					hide_contextmenu()
+		nanikamanager.on 'change.existing.ghosts', ->
+			for dirpath, nanika of nanikamanager.nanikas
+				unless nanika.plugins.contextmenu?
+					nanika.add_plugin('contextmenu', contextmenu)
 		nanikamanager.on 'destroyed', ->
 			nanikamanager = null
 			$('#ikagaka_boot').removeAttr('disabled')
@@ -259,7 +362,7 @@ $ ->
 		path = require 'path'
 		buffer = require 'buffer'
 #		storage = new NanikaStorage(new NanikaStorage.Backend.InMemory())
-		storage = new NanikaStorage(new NanikaStorage.Backend.FS('/ikagaka', fs, path, buffer.Buffer))
+		storage = new NanikaStorage(new NanikaStorage.Backend.FS(fs_root, fs, path, buffer.Buffer))
 		storage.base_profile()
 		.then (profile) ->
 			unless profile.ghosts?
@@ -272,7 +375,11 @@ $ ->
 		.then ->
 			$('#ikagaka_boot').click boot_nanikamanager
 			$('#ikagaka_halt').click halt_nanikamanager
-			$('#ikagaka_clean').click -> if window.confirm '本当に削除しますか？' then storage.backend._rmAll('/ikagaka').then -> location.reload()
+			$('#ikagaka_clean').click ->
+				if window.confirm '本当に削除しますか？'
+					storage.backend._rmAll(fs_root).then ->
+						window.onbeforeunload = ->
+						location.reload()
 			$('#ikagaka_boot').click()
 	if require?
 		cb()

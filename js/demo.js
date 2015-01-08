@@ -66,7 +66,7 @@ Console = (function() {
 })();
 
 $(function() {
-  var balloon_nar, boot_nanikamanager, cb, con, error, ghost_nar, ghost_nar2, gui, halt_nanikamanager, install_nar, log, namedmanager, nanikamanager, storage, warn, win;
+  var balloon_nar, boot_nanikamanager, cb, con, error, fs_root, ghost_nar, ghost_nar2, gui, halt_nanikamanager, install_nar, log, namedmanager, nanikamanager, storage, warn, win;
   if (typeof require !== "undefined" && require !== null) {
     gui = require('nw.gui');
     win = gui.Window.get();
@@ -104,6 +104,7 @@ $(function() {
       return con.error(args.join(''));
     };
   })(this);
+  fs_root = 'ikagaka';
   balloon_nar = './vendor/nar/origin.nar';
   ghost_nar = './vendor/nar/ikaga.nar';
   ghost_nar2 = './vendor/nar/touhoku-zunko_or__.nar';
@@ -111,6 +112,7 @@ $(function() {
   $(namedmanager.element).appendTo("body");
   nanikamanager = null;
   boot_nanikamanager = function() {
+    var contextmenu, hide_contextmenu, view_contextmenu;
     if (nanikamanager) {
       return;
     }
@@ -292,6 +294,220 @@ $(function() {
       }
       return _results;
     });
+    view_contextmenu = function(nanika, mouse, menulist) {
+      var body, dom, item, li_css, li_css_disabled, menu, named, offset, x, y, _i, _len;
+      $('#contextmenu').remove();
+      named = namedmanager.named(nanika.namedid);
+      dom = named.scope(mouse.args.scope).$scope;
+      offset = dom.offset();
+      x = window.innerWidth - (offset.left + mouse.args.offsetX);
+      y = window.innerHeight - (offset.top + mouse.args.offsetY);
+      menu = $('<ul />').attr('id', 'contextmenu').css({
+        position: 'fixed',
+        bottom: y,
+        right: x,
+        background: '#fff',
+        'z-index': 100,
+        margin: '0',
+        padding: '0',
+        'list-style': 'none',
+        border: '1px solid black'
+      });
+      li_css = {
+        color: '#222',
+        background: '#fff',
+        margin: '0',
+        padding: '0.3em',
+        cursor: 'pointer'
+      };
+      li_css_disabled = {
+        color: '#666',
+        background: '#eee',
+        margin: '0',
+        padding: '0.3em'
+      };
+      for (_i = 0, _len = menulist.length; _i < _len; _i++) {
+        item = menulist[_i];
+        if (item.cb != null) {
+          (function(item) {
+            return menu.append($('<li />').text(item.text).css(li_css).click(function() {
+              hide_contextmenu();
+              return item.cb();
+            }));
+          })(item);
+        } else {
+          menu.append($('<li />').text(item.text).css(li_css_disabled));
+        }
+      }
+      body = $('body');
+      return body.append(menu);
+    };
+    hide_contextmenu = function() {
+      return $('#contextmenu').remove();
+    };
+    contextmenu = {
+      initialize: function(nanika) {
+        var mouse;
+        mouse = {};
+        nanika.on('request.mouseclick', function(args) {
+          return mouse.args = args;
+        });
+        return nanika.on('response.mouseclick', function(args) {
+          var ghostpath, menulist;
+          if ((args.value == null) || !args.value.length) {
+            if (mouse.args.button === 1) {
+              ghostpath = nanika.ghostpath;
+              menulist = [
+                {
+                  text: 'ゴースト切り替え',
+                  cb: function() {
+                    return storage.ghosts().then(function(ghosts) {
+                      var dst_dirpath, promises, _fn, _i, _len;
+                      promises = [];
+                      _fn = function(dst_dirpath) {
+                        return promises.push(storage.ghost_name(dst_dirpath).then(function(name) {
+                          if (nanikamanager.is_existing_ghost(dst_dirpath) && ghostpath !== dst_dirpath) {
+                            return {
+                              text: name + ' に切り替え'
+                            };
+                          } else {
+                            return {
+                              text: name + ' に切り替え',
+                              cb: function() {
+                                return nanikamanager.change(ghostpath, dst_dirpath);
+                              }
+                            };
+                          }
+                        }));
+                      };
+                      for (_i = 0, _len = ghosts.length; _i < _len; _i++) {
+                        dst_dirpath = ghosts[_i];
+                        _fn(dst_dirpath);
+                      }
+                      return Promise.all(promises).then(function(submenulist) {
+                        return view_contextmenu(nanika, mouse, submenulist);
+                      });
+                    });
+                  }
+                }, {
+                  text: '他のゴーストを呼ぶ',
+                  cb: function() {
+                    return storage.ghosts().then(function(ghosts) {
+                      var dst_dirpath, promises, _fn, _i, _len;
+                      promises = [];
+                      _fn = function(dst_dirpath) {
+                        return promises.push(storage.ghost_name(dst_dirpath).then(function(name) {
+                          if (nanikamanager.is_existing_ghost(dst_dirpath)) {
+                            return {
+                              text: name + ' を呼び出し'
+                            };
+                          } else {
+                            return {
+                              text: name + ' を呼び出し',
+                              cb: function() {
+                                return nanikamanager.call(ghostpath, dst_dirpath);
+                              }
+                            };
+                          }
+                        }));
+                      };
+                      for (_i = 0, _len = ghosts.length; _i < _len; _i++) {
+                        dst_dirpath = ghosts[_i];
+                        _fn(dst_dirpath);
+                      }
+                      return Promise.all(promises).then(function(submenulist) {
+                        return view_contextmenu(nanika, mouse, submenulist);
+                      });
+                    });
+                  }
+                }, {
+                  text: 'シェル',
+                  cb: function() {
+                    return storage.shells(ghostpath).then(function(shells) {
+                      var dst_shellpath, promises, _fn, _i, _len;
+                      promises = [];
+                      _fn = function(dst_shellpath) {
+                        return promises.push(storage.shell_name(ghostpath, dst_shellpath).then(function(name) {
+                          if (nanika.named.shell.descript.name === name) {
+                            return {
+                              text: name + ' に変更'
+                            };
+                          } else {
+                            return {
+                              text: name + ' に変更',
+                              cb: function() {
+                                return nanika.change_named(dst_shellpath, nanika.profile.balloonpath);
+                              }
+                            };
+                          }
+                        }));
+                      };
+                      for (_i = 0, _len = shells.length; _i < _len; _i++) {
+                        dst_shellpath = shells[_i];
+                        _fn(dst_shellpath);
+                      }
+                      return Promise.all(promises).then(function(submenulist) {
+                        return view_contextmenu(nanika, mouse, submenulist);
+                      });
+                    });
+                  }
+                }, {
+                  text: 'インストール',
+                  cb: function() {
+                    var install_field;
+                    $('#install_field').remove();
+                    install_field = $('<input type="file" />').attr('id', 'install_field').css({
+                      display: 'none'
+                    }).change((function(_this) {
+                      return function(ev) {
+                        var file, _i, _len, _ref;
+                        _ref = ev.target.files;
+                        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+                          file = _ref[_i];
+                          install_nar(file, ghostpath, nanika.ghost.descript['sakura.name']);
+                        }
+                        return $('#install_field').remove();
+                      };
+                    })(this));
+                    $('body').append(install_field);
+                    return install_field.click();
+                  }
+                }, {
+                  text: '終了',
+                  cb: function() {
+                    return nanikamanager.close(nanika.ghostpath, 'user');
+                  }
+                }, {
+                  text: '全て終了',
+                  cb: function() {
+                    return nanikamanager.closeall('user');
+                  }
+                }
+              ];
+              return view_contextmenu(nanika, mouse, menulist);
+            } else {
+              return hide_contextmenu();
+            }
+          } else {
+            return hide_contextmenu();
+          }
+        });
+      }
+    };
+    nanikamanager.on('change.existing.ghosts', function() {
+      var dirpath, nanika, _ref, _results;
+      _ref = nanikamanager.nanikas;
+      _results = [];
+      for (dirpath in _ref) {
+        nanika = _ref[dirpath];
+        if (nanika.plugins.contextmenu == null) {
+          _results.push(nanika.add_plugin('contextmenu', contextmenu));
+        } else {
+          _results.push(void 0);
+        }
+      }
+      return _results;
+    });
     nanikamanager.on('destroyed', function() {
       nanikamanager = null;
       $('#ikagaka_boot').removeAttr('disabled');
@@ -367,7 +583,7 @@ $(function() {
     fs = require('fs');
     path = require('path');
     buffer = require('buffer');
-    storage = new NanikaStorage(new NanikaStorage.Backend.FS('/ikagaka', fs, path, buffer.Buffer));
+    storage = new NanikaStorage(new NanikaStorage.Backend.FS(fs_root, fs, path, buffer.Buffer));
     return storage.base_profile().then(function(profile) {
       if (profile.ghosts == null) {
         profile.balloonpath = 'origin';
@@ -382,7 +598,8 @@ $(function() {
       $('#ikagaka_halt').click(halt_nanikamanager);
       $('#ikagaka_clean').click(function() {
         if (window.confirm('本当に削除しますか？')) {
-          return storage.backend._rmAll('/ikagaka').then(function() {
+          return storage.backend._rmAll(fs_root).then(function() {
+            window.onbeforeunload = function() {};
             return location.reload();
           });
         }
