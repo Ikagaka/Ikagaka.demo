@@ -42,6 +42,11 @@ class Console
 		@finish()
 
 $ ->
+	if require?
+		gui = require('nw.gui')
+		win = gui.Window.get()
+		win.resizeTo(screen.availWidth, screen.availHeight)
+		win.moveTo(0, 0)
 	con = new Console("body")
 	log = console.log
 	warn = console.warn
@@ -199,7 +204,9 @@ $ ->
 			nanikamanager = null
 			$('#ikagaka_boot').removeAttr('disabled')
 			$('#ikagaka_halt').attr('disabled', true)
+			window.onbeforeunload = ->
 		console.log 'baseware booting'
+		window.onbeforeunload = (event) -> event.returnValue = 'ベースウェアを終了していません。\n状態が保存されませんが本当にページを閉じますか？'
 		nanikamanager.initialize()
 		.then ->
 			nanikamanager.bootall()
@@ -244,9 +251,10 @@ $ ->
 			alert(err)
 	
 	storage = null
-	BrowserFS.install(window)
 	cb = (err, idbfs) ->
-		BrowserFS.initialize(idbfs)
+		unless require?
+			BrowserFS.install(window)
+			BrowserFS.initialize(idbfs)
 		fs = require 'fs'
 		path = require 'path'
 		buffer = require 'buffer'
@@ -264,8 +272,11 @@ $ ->
 		.then ->
 			$('#ikagaka_boot').click boot_nanikamanager
 			$('#ikagaka_halt').click halt_nanikamanager
-			$('#ikagaka_clean').click -> storage.backend._rmAll('/ikagaka').then -> location.reload()
+			$('#ikagaka_clean').click -> if window.confirm '本当に削除しますか？' then storage.backend._rmAll('/ikagaka').then -> location.reload()
 			$('#ikagaka_boot').click()
-	new BrowserFS.FileSystem.IndexedDB cb
+	if require?
+		cb()
+	else
+		new BrowserFS.FileSystem.IndexedDB cb
 #	mfs = new BrowserFS.FileSystem.InMemory()
 #	cb(null, mfs)

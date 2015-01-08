@@ -44,6 +44,7 @@ article {
 }
 article .ikagaka .baseware {
   text-align: center;
+  margin: 1em;
 }
 article .ikagaka .baseware button {
   display: block;

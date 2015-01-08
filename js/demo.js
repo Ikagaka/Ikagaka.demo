@@ -66,7 +66,13 @@ Console = (function() {
 })();
 
 $(function() {
-  var balloon_nar, boot_nanikamanager, cb, con, error, ghost_nar, ghost_nar2, halt_nanikamanager, install_nar, log, namedmanager, nanikamanager, storage, warn;
+  var balloon_nar, boot_nanikamanager, cb, con, error, ghost_nar, ghost_nar2, gui, halt_nanikamanager, install_nar, log, namedmanager, nanikamanager, storage, warn, win;
+  if (typeof require !== "undefined" && require !== null) {
+    gui = require('nw.gui');
+    win = gui.Window.get();
+    win.resizeTo(screen.availWidth, screen.availHeight);
+    win.moveTo(0, 0);
+  }
   con = new Console("body");
   log = console.log;
   warn = console.warn;
@@ -289,9 +295,13 @@ $(function() {
     nanikamanager.on('destroyed', function() {
       nanikamanager = null;
       $('#ikagaka_boot').removeAttr('disabled');
-      return $('#ikagaka_halt').attr('disabled', true);
+      $('#ikagaka_halt').attr('disabled', true);
+      return window.onbeforeunload = function() {};
     });
     console.log('baseware booting');
+    window.onbeforeunload = function(event) {
+      return event.returnValue = 'ベースウェアを終了していません。\n状態が保存されませんが本当にページを閉じますか？';
+    };
     return nanikamanager.initialize().then(function() {
       return nanikamanager.bootall();
     });
@@ -348,10 +358,12 @@ $(function() {
     });
   };
   storage = null;
-  BrowserFS.install(window);
   cb = function(err, idbfs) {
     var buffer, fs, path;
-    BrowserFS.initialize(idbfs);
+    if (typeof require === "undefined" || require === null) {
+      BrowserFS.install(window);
+      BrowserFS.initialize(idbfs);
+    }
     fs = require('fs');
     path = require('path');
     buffer = require('buffer');
@@ -369,12 +381,18 @@ $(function() {
       $('#ikagaka_boot').click(boot_nanikamanager);
       $('#ikagaka_halt').click(halt_nanikamanager);
       $('#ikagaka_clean').click(function() {
-        return storage.backend._rmAll('/ikagaka').then(function() {
-          return location.reload();
-        });
+        if (window.confirm('本当に削除しますか？')) {
+          return storage.backend._rmAll('/ikagaka').then(function() {
+            return location.reload();
+          });
+        }
       });
       return $('#ikagaka_boot').click();
     });
   };
-  return new BrowserFS.FileSystem.IndexedDB(cb);
+  if (typeof require !== "undefined" && require !== null) {
+    return cb();
+  } else {
+    return new BrowserFS.FileSystem.IndexedDB(cb);
+  }
 });
