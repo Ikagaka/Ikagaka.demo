@@ -231,54 +231,67 @@
 
     FS.prototype._filter_elements = function(target, paths) {
       var filter_paths;
-      throw new Error('filel');
       filter_paths = {};
-      paths.forEach(function(item) {
-        var itemdir, _results;
-        filter_paths[item] = true;
-        _results = [];
-        while (true) {
-          itemdir = this.path.dirname(item);
-          if (itemdir === item) {
-            break;
-          }
-          item = itemdir;
-          _results.push(filter_paths[item] = true);
-        }
-        return _results;
-      });
-      return this._readdirAll(target).then((function(_this) {
-        return function(items) {
-          var item, itempath, rmdirs, rmfiles, selects, _i, _len;
-          selects = [];
-          rmfiles = [];
-          rmdirs = [];
-          for (_i = 0, _len = items.length; _i < _len; _i++) {
-            item = items[_i];
-            itempath = _this.path.join(target, item);
-            if (!filter_paths[item]) {
-              (function(itempath) {
-                return selects.push(_this._stat(itempath).then(function(stats) {
-                  if (stats.isFile()) {
-                    return rmfiles.push(itempath);
-                  } else {
-                    return rmdirs.push(itempath);
-                  }
-                }));
-              })(itempath);
+      paths.forEach((function(_this) {
+        return function(item) {
+          var itemdir, _results;
+          filter_paths[item] = true;
+          _results = [];
+          while (true) {
+            itemdir = _this.path.dirname(item);
+            if (itemdir === item) {
+              break;
             }
+            item = itemdir;
+            _results.push(filter_paths[item] = true);
           }
-          return Promise.all(selects).then(function() {
-            return Promise.all(rmfiles.map(function(file) {
-              return _this._unlink(file);
-            }));
-          }).then(function() {
-            return Promise.all(rmdirs.reverse().map((function(_this) {
-              return function(dir) {
-                return _this._rmdir(dir);
-              };
-            })(this)));
+          return _results;
+        };
+      })(this));
+      return new Promise((function(_this) {
+        return function(resolve, reject) {
+          return _this.fs.stat(target, function(err, stats) {
+            if (err != null) {
+              return resolve(false);
+            } else {
+              return resolve(true);
+            }
           });
+        };
+      })(this)).then((function(_this) {
+        return function(exists) {
+          if (exists) {
+            return _this._readdirAll(target).then(function(items) {
+              var item, itempath, rmdirs, rmfiles, selects, _i, _len;
+              selects = [];
+              rmfiles = [];
+              rmdirs = [];
+              for (_i = 0, _len = items.length; _i < _len; _i++) {
+                item = items[_i];
+                itempath = _this.path.join(target, item);
+                if (!filter_paths[item]) {
+                  (function(itempath) {
+                    return selects.push(_this._stat(itempath).then(function(stats) {
+                      if (stats.isFile()) {
+                        return rmfiles.push(itempath);
+                      } else {
+                        return rmdirs.push(itempath);
+                      }
+                    }));
+                  })(itempath);
+                }
+              }
+              return Promise.all(selects).then(function() {
+                return Promise.all(rmfiles.map(function(file) {
+                  return _this._unlink(file);
+                }));
+              }).then(function() {
+                return Promise.all(rmdirs.reverse().map(function(dir) {
+                  return _this._rmdir(dir);
+                }));
+              });
+            });
+          }
         };
       })(this));
     };

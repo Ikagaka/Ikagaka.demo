@@ -132,7 +132,7 @@ $(function() {
         container_menu = $('<p />');
         container_dropdown = $('<p />');
         label = $('<span />').text(nanika.ghost.descript.name).addClass('name');
-        install_file = $('<input type="file" />').change((function(dirpath) {
+        install_file = $('<input type="file" />').change((function(dirpath, nanika) {
           return (function(_this) {
             return function(ev) {
               var file, _i, _len, _ref1, _results1;
@@ -140,12 +140,12 @@ $(function() {
               _results1 = [];
               for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
                 file = _ref1[_i];
-                _results1.push(install_nar(file, dirpath));
+                _results1.push(install_nar(file, dirpath, nanika.ghost.descript['sakura.name']));
               }
               return _results1;
             };
           })(this);
-        })(dirpath));
+        })(dirpath, nanika));
         install = $('<label draggable="true">narをドロップしてインストール</label>').addClass('install').on('dragenter', (function(_this) {
           return function(ev) {
             ev.stopPropagation();
@@ -160,7 +160,7 @@ $(function() {
             ev.dataTransfer.dropEffect = 'copy';
             return false;
           };
-        })(this)).on('drop', (function(dirpath) {
+        })(this)).on('drop', (function(dirpath, nanika) {
           return (function(_this) {
             return function(ev) {
               var file, _i, _len, _ref1, _results1;
@@ -171,12 +171,12 @@ $(function() {
               _results1 = [];
               for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
                 file = _ref1[_i];
-                _results1.push(install_nar(file, dirpath));
+                _results1.push(install_nar(file, dirpath, nanika.ghost.descript['sakura.name']));
               }
               return _results1;
             };
           })(this);
-        })(dirpath));
+        })(dirpath, nanika));
         install.append(install_file);
         change = $('<button />').text('交代').addClass('change').on('click', (function(dirpath, container_dropdown) {
           return function() {
@@ -309,7 +309,7 @@ $(function() {
   halt_nanikamanager = function() {
     return nanikamanager.closeall('user');
   };
-  install_nar = function(file, dirpath, type) {
+  install_nar = function(file, dirpath, sakuraname, type) {
     var promise;
     if (type == null) {
       type = "blob";
@@ -322,7 +322,7 @@ $(function() {
     }
     return promise.then(function(nar) {
       console.log("nar loaded : " + (file.name || file));
-      return storage.install_nar(nar, dirpath);
+      return storage.install_nar(nar, dirpath, sakuraname);
     })["catch"](function(err) {
       console.error('install failure: ' + (file.name || file));
       console.error(err.stack);
@@ -373,8 +373,8 @@ $(function() {
         profile.balloonpath = 'origin';
         profile.ghosts = ['ikaga'];
         return storage.base_profile(profile).then(function() {
-          install_nar(ghost_nar2, '', 'url');
-          return Promise.all([install_nar(balloon_nar, '', 'url'), install_nar(ghost_nar, '', 'url')]);
+          install_nar(ghost_nar2, '', '', 'url');
+          return Promise.all([install_nar(balloon_nar, '', '', 'url'), install_nar(ghost_nar, '', '', 'url')]);
         });
       }
     }).then(function() {

@@ -85,11 +85,11 @@ $ ->
 				container_dropdown = $('<p />')
 				label = $('<span />').text(nanika.ghost.descript.name).addClass('name')
 				install_file = $('<input type="file" />')
-				.change ((dirpath) ->
+				.change ((dirpath, nanika) ->
 					(ev) =>
 						for file in ev.target.files
-							install_nar file, dirpath
-				)(dirpath)
+							install_nar file, dirpath, nanika.ghost.descript['sakura.name']
+				)(dirpath, nanika)
 				install = $('<label draggable="true">narをドロップしてインストール</label>').addClass('install')
 				.on 'dragenter', (ev) =>
 					ev.stopPropagation()
@@ -101,14 +101,14 @@ $ ->
 					ev.preventDefault()
 					ev.dataTransfer.dropEffect = 'copy'
 					false
-				.on 'drop', ((dirpath) ->
+				.on 'drop', ((dirpath, nanika) ->
 					(ev) =>
 						ev.stopPropagation()
 						ev.preventDefault()
 						ev.dataTransfer.dropEffect = 'copy'
 						for file in ev.dataTransfer.files
-							install_nar file, dirpath
-				)(dirpath)
+							install_nar file, dirpath, nanika.ghost.descript['sakura.name']
+				)(dirpath, nanika)
 				install.append install_file
 				change = $('<button />').text('交代').addClass('change')
 				.on 'click', ((dirpath, container_dropdown) ->
@@ -213,7 +213,7 @@ $ ->
 	halt_nanikamanager = ->
 		nanikamanager.closeall('user')
 
-	install_nar = (file, dirpath, type="blob") ->
+	install_nar = (file, dirpath, sakuraname, type="blob") ->
 		console.log("load nar : "+(file.name || file))
 		if type == "url"
 			promise = NarLoader.loadFromURL file
@@ -222,7 +222,7 @@ $ ->
 		promise
 		.then (nar) ->
 			console.log("nar loaded : "+(file.name || file))
-			storage.install_nar(nar, dirpath)
+			storage.install_nar(nar, dirpath, sakuraname)
 		.catch (err) ->
 			console.error 'install failure: '+(file.name || file)
 			console.error err.stack
@@ -267,8 +267,8 @@ $ ->
 				profile.ghosts = ['ikaga']
 				storage.base_profile(profile)
 				.then ->
-					install_nar(ghost_nar2, '', 'url')
-					Promise.all [install_nar(balloon_nar, '', 'url'), install_nar(ghost_nar, '', 'url')]
+					install_nar(ghost_nar2, '', '', 'url')
+					Promise.all [install_nar(balloon_nar, '', '', 'url'), install_nar(ghost_nar, '', '', 'url')]
 		.then ->
 			$('#ikagaka_boot').click boot_nanikamanager
 			$('#ikagaka_halt').click halt_nanikamanager

@@ -288,22 +288,27 @@
       }
     };
 
-    NanikaStorage.prototype.install_nar = function(nar, dirpath) {
+    NanikaStorage.prototype.install_nar = function(nar, dirpath, sakuraname) {
       return new Promise(function(resolve) {
         return resolve();
       }).then((function(_this) {
         return function() {
-          switch (nar.install.type) {
+          var install;
+          install = nar.install || {};
+          if ((install.accept != null) && install.accept !== sakuraname) {
+            return null;
+          }
+          switch (install.type) {
             case 'ghost':
-              return _this.install_ghost(nar, dirpath);
+              return _this.install_ghost(nar, dirpath, sakuraname);
             case 'balloon':
-              return _this.install_balloon(nar, dirpath);
+              return _this.install_balloon(nar, dirpath, sakuraname);
             case 'supplement':
-              return _this.install_supplement(nar, dirpath);
+              return _this.install_supplement(nar, dirpath, sakuraname);
             case 'shell':
-              return _this.install_shell(nar, dirpath);
+              return _this.install_shell(nar, dirpath, sakuraname);
             case 'package':
-              return _this.install_package(nar, dirpath);
+              return _this.install_package(nar, dirpath, sakuraname);
             default:
               throw new Error('not supported');
           }
@@ -311,7 +316,7 @@
       })(this));
     };
 
-    NanikaStorage.prototype.install_ghost = function(nar, dirpath) {
+    NanikaStorage.prototype.install_ghost = function(nar, dirpath, sakuraname) {
       return new Promise(function(resolve) {
         return resolve();
       }).then((function(_this) {
@@ -321,8 +326,9 @@
           if (!install.directory) {
             throw new Error("install.txt directory entry required");
           }
+          sakuraname = nar.getDirectory('ghost/master').descript['sakura.name'];
           target_directory = install.directory;
-          return _this.install_children(nar, dirpath).then(function(_arg) {
+          return _this.install_children(nar, dirpath, sakuraname).then(function(_arg) {
             var install_results, nar;
             nar = _arg.nar, install_results = _arg.install_results;
             return _this.merge_ghost(target_directory, nar).then(function() {
@@ -337,7 +343,7 @@
       })(this));
     };
 
-    NanikaStorage.prototype.install_balloon = function(nar, dirpath) {
+    NanikaStorage.prototype.install_balloon = function(nar, dirpath, sakuraname) {
       return new Promise(function(resolve) {
         return resolve();
       }).then((function(_this) {
@@ -360,25 +366,22 @@
       })(this));
     };
 
-    NanikaStorage.prototype.install_supplement = function(nar, dirpath) {
+    NanikaStorage.prototype.install_supplement = function(nar, dirpath, sakuraname) {
       return new Promise(function(resolve) {
         return resolve();
       }).then((function(_this) {
         return function() {
-          var ghost;
+          var install;
+          install = nar.install || {};
           if (!dirpath) {
             throw new Error("dirpath required");
-          }
-          ghost = _this.ghost(dirpath);
-          if ((install.accept != null) && install.accept !== ghost.install.name) {
-            return null;
           }
           throw 'not implemented';
         };
       })(this));
     };
 
-    NanikaStorage.prototype.install_shell = function(nar, dirpath) {
+    NanikaStorage.prototype.install_shell = function(nar, dirpath, sakuraname) {
       return new Promise(function(resolve) {
         return resolve();
       }).then((function(_this) {
@@ -392,13 +395,10 @@
             throw new Error("install.txt directory entry required");
           }
           target_directory = install.directory;
-          return _this.install_children(nar, dirpath).then(function(_arg) {
+          return _this.install_children(nar, dirpath, sakuraname).then(function(_arg) {
             var install_results, nar;
             nar = _arg.nar, install_results = _arg.install_results;
             return _this.ghost(dirpath).then(function(ghost) {
-              if ((install.accept != null) && install.accept !== ghost.install.name) {
-                return null;
-              }
               return _this.merge_shell(dirpath, target_directory, nar).then(function() {
                 install_results.push({
                   type: 'shell',
@@ -412,7 +412,7 @@
       })(this));
     };
 
-    NanikaStorage.prototype.install_package = function(nar, dirpath) {
+    NanikaStorage.prototype.install_package = function(nar, dirpath, sakuraname) {
       var child, directory, install_results, promise, _i, _len, _ref;
       install_results = [];
       promise = new Promise(function(resolve) {
@@ -425,7 +425,7 @@
         if (Object.keys(directory.files).length) {
           promise = promise.then((function(_this) {
             return function() {
-              return _this.install_nar(directory, dirpath);
+              return _this.install_nar(directory, dirpath, sakuraname);
             };
           })(this)).then(function(child_install_results) {
             return install_results = install_results.concat(child_install_results);
@@ -437,7 +437,7 @@
       });
     };
 
-    NanikaStorage.prototype.install_children = function(nar, dirpath) {
+    NanikaStorage.prototype.install_children = function(nar, dirpath, sakuraname) {
       var child_install, child_nar, child_source_directory, install, install_results, promise, type, _i, _len, _ref;
       install = nar.install || {};
       install_results = [];
@@ -476,7 +476,7 @@
           }
           promise = promise.then((function(_this) {
             return function() {
-              return _this.install_nar(child_nar, dirpath);
+              return _this.install_nar(child_nar, dirpath, sakuraname);
             };
           })(this)).then(function(child_install_results) {
             install_results = install_results.concat(child_install_results);
