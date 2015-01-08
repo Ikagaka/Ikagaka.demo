@@ -383,7 +383,7 @@ $ ->
 			$('#ikagaka_boot').click boot_nanikamanager
 			$('#ikagaka_halt').click halt_nanikamanager
 			$('#ikagaka_clean').click delete_storage
-			$('#ikagaka_boot').click()
+			boot_nanikamanager()
 	if require?
 		cb()
 	else

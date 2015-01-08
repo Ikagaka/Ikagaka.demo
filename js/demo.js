@@ -608,7 +608,7 @@ $(function() {
       $('#ikagaka_boot').click(boot_nanikamanager);
       $('#ikagaka_halt').click(halt_nanikamanager);
       $('#ikagaka_clean').click(delete_storage);
-      return $('#ikagaka_boot').click();
+      return boot_nanikamanager();
     });
   };
   if (typeof require !== "undefined" && require !== null) {
