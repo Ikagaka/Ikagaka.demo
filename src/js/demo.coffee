@@ -240,14 +240,9 @@ $ ->
 			name = nanika.ghost.descript.name
 			console.log 'materialized '+name
 			nanika.on 'halted', -> console.log 'halted '+name
-		nanikamanager.on 'change.existing.ghosts', ->
-			for dirpath, nanika of nanikamanager.nanikas
-				unless nanika.plugins.contextmenu?
-					nanika.add_plugin('contextmenu', contextmenu)
-				unless nanika.plugins.install?
-					nanika.add_plugin('install', install)
-				unless nanika.plugins.notice_events?
-					nanika.add_plugin('notice_events', notice_events)
+		NanikaPlugin.contextmenu = contextmenu
+		NanikaPlugin.install = install
+		NanikaPlugin.notice_events = notice_events
 		nanikamanager.on 'destroyed', ->
 			nanikamanager = null
 			$('#ikagaka_boot').removeAttr('disabled')

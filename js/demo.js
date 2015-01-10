@@ -447,26 +447,9 @@ $(function() {
         });
       }
     };
-    nanikamanager.on('change.existing.ghosts', function() {
-      var dirpath, nanika, _ref, _results;
-      _ref = nanikamanager.nanikas;
-      _results = [];
-      for (dirpath in _ref) {
-        nanika = _ref[dirpath];
-        if (nanika.plugins.contextmenu == null) {
-          nanika.add_plugin('contextmenu', contextmenu);
-        }
-        if (nanika.plugins.install == null) {
-          nanika.add_plugin('install', install);
-        }
-        if (nanika.plugins.notice_events == null) {
-          _results.push(nanika.add_plugin('notice_events', notice_events));
-        } else {
-          _results.push(void 0);
-        }
-      }
-      return _results;
-    });
+    NanikaPlugin.contextmenu = contextmenu;
+    NanikaPlugin.install = install;
+    NanikaPlugin.notice_events = notice_events;
     nanikamanager.on('destroyed', function() {
       nanikamanager = null;
       $('#ikagaka_boot').removeAttr('disabled');
