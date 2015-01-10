@@ -54,6 +54,24 @@ article .ikagaka .baseware {
 article .ikagaka .baseware button {
   display: block;
   margin: 0.2em auto;
+  padding: 0.5em;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+}
+article .ikagaka .baseware button#ikagaka_boot {
+  background: #00c;
+}
+article .ikagaka .baseware button#ikagaka_halt {
+  background: #c00;
+}
+article .ikagaka .baseware button#ikagaka_clean {
+  background: #333;
+}
+article .ikagaka .baseware button:disabled {
+  cursor: default;
+  color: #ccc;
+  background: #666 !important;
 }
 article .notice {
   font-size: smaller;
