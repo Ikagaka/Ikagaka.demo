@@ -14,9 +14,11 @@ a {
   left: 0;
   width: 30em;
   height: 20em;
-  background: rgba(255,255,255,0.5);
+  margin: 0;
+  padding: 5px;
   overflow: auto;
   font-size: small;
+  text-shadow: 0 1px 0 #000, 1px 0 0 #000, 0 -1px 0 #000, -1px 0 0 #000, 1px 1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, -1px -1px 0 #000;
 }
 .ConsoleWindow .log {
   color: #090;
