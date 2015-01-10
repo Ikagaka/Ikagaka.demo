@@ -579,7 +579,7 @@
             dir = _this.path.dirname(itempath);
             return promises.push(_this._mkpath(dir).then(function() {
               return new Promise(function(resolve, reject) {
-                return _this.fs.writeFile(itempath, new _this.Buffer(new Uint8Array(value.buffer())), {}, function(err) {
+                return _this.fs.writeFile(itempath, _this._fromArrayBuffer(value.buffer()), {}, function(err) {
                   if (err != null) {
                     return reject(err);
                   } else {
@@ -663,14 +663,26 @@
 
     FS.prototype._toArrayBuffer = function(buffer) {
       var abuffer, i, view;
-      abuffer = new ArrayBuffer(buffer.length);
-      view = new Uint8Array(abuffer);
-      i = 0;
-      while (i < buffer.length) {
-        view[i] = buffer.readUInt8(i);
-        i++;
+      if (buffer.set != null) {
+        abuffer = new ArrayBuffer(buffer.length);
+        view = new Uint8Array(abuffer);
+        i = 0;
+        while (i < buffer.length) {
+          view[i] = buffer.readUInt8(i);
+          i++;
+        }
+        return abuffer;
+      } else {
+        return new Uint8Array(buffer).buffer;
       }
-      return abuffer;
+    };
+
+    FS.prototype._fromArrayBuffer = function(abuffer) {
+      if (this.Buffer.prototype.set != null) {
+        return new this.Buffer(abuffer);
+      } else {
+        return new this.Buffer(new Uint8Array(abuffer));
+      }
     };
 
     return FS;
