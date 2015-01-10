@@ -55,65 +55,6 @@ article .ikagaka .baseware button {
   display: block;
   margin: 0.2em auto;
 }
-article .ikagaka .ghosts {
-  border-top: 1px solid #999;
-  list-style: none;
-  max-width: 50em;
-  margin: 0.5em auto;
-  padding: 0em;
-}
-article .ikagaka .ghosts li {
-  border-bottom: 1px solid #999;
-  margin: 0em auto;
-  padding: 0.2em;
-}
-article .ikagaka .ghosts li .name {
-  font-weight: bold;
-}
-article .ikagaka .ghosts li button.change,
-article .ikagaka .ghosts li button.call,
-article .ikagaka .ghosts li button.close,
-article .ikagaka .ghosts li .install {
-  display: inline-block;
-  border: none;
-  color: #fff;
-  font-size: medium;
-  margin: 0 0.2em;
-  padding: 0.5em;
-}
-article .ikagaka .ghosts li button.change {
-  background: #06f;
-}
-article .ikagaka .ghosts li button.call {
-  background: #0c0;
-}
-article .ikagaka .ghosts li button.close {
-  background: #f00;
-}
-article .ikagaka .ghosts li .install {
-  background: #f90;
-}
-article .ikagaka .ghosts li ul.list {
-  list-style: none;
-}
-article .ikagaka .ghosts li ul.list li {
-  border-bottom: none;
-  margin: 0.2em 0;
-}
-article .ikagaka .ghosts li ul.list li.ok {
-  color: #fff;
-  cursor: pointer;
-}
-article .ikagaka .ghosts li ul.list li.ng {
-  color: #999;
-  background: #ccc;
-}
-article .ikagaka .ghosts li .change .list li {
-  background: #06f;
-}
-article .ikagaka .ghosts li .call .list li {
-  background: #0c0;
-}
 article .notice {
   font-size: smaller;
 }
