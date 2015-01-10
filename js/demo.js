@@ -441,7 +441,9 @@ $(function() {
       initialize: function(nanika) {
         var name;
         name = nanika.ghost.descript.name;
-        console.log('materialized ' + name);
+        nanika.on('named.initialized', function() {
+          return console.log('materialized ' + name);
+        });
         return nanika.on('halted', function() {
           return console.log('halted ' + name);
         });

@@ -238,7 +238,7 @@ $ ->
 			nanika.on 'named.initialized', main
 		notice_events = initialize: (nanika) ->
 			name = nanika.ghost.descript.name
-			console.log 'materialized '+name
+			nanika.on 'named.initialized', -> console.log 'materialized '+name
 			nanika.on 'halted', -> console.log 'halted '+name
 		NanikaPlugin.contextmenu = contextmenu
 		NanikaPlugin.install = install
