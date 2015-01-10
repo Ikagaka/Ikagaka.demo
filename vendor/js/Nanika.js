@@ -98,16 +98,11 @@
     Nanika.prototype.materialize = function() {
       return this.storage.ghost_profile(this.ghostpath).then((function(_this) {
         return function(profile) {
-          var balloonpath, shellpath;
           _this.profile = profile;
-          shellpath = _this.profile.shellpath || 'master';
-          balloonpath = _this.profile.balloonpath || _this.nanikamanager.profile.balloonpath;
-          return Promise.all([_this.load_ghost(), _this.materialize_named(shellpath, balloonpath)]);
+          return _this.load_ghost();
         };
       })(this)).then((function(_this) {
-        return function(_arg) {
-          var ghost;
-          ghost = _arg[0];
+        return function(ghost) {
           return new Promise(function(resolve, reject) {
             var _base;
             _this.ghost = ghost;
@@ -124,11 +119,23 @@
             _this.state = 'running';
             _this.log("materialized");
             _this.on('version.set', function() {
-              return resolve(_this);
+              return resolve();
             });
-            _this.emit('materialized');
+            return _this.emit('materialized');
+          });
+        };
+      })(this)).then((function(_this) {
+        return function() {
+          var balloonpath, shellpath;
+          shellpath = _this.profile.shellpath || 'master';
+          balloonpath = _this.profile.balloonpath || _this.nanikamanager.profile.balloonpath;
+          return _this.materialize_named(shellpath, balloonpath).then(function() {
             return _this.named.load();
           });
+        };
+      })(this)).then((function(_this) {
+        return function() {
+          return _this;
         };
       })(this))["catch"](this["throw"]);
     };
@@ -487,13 +494,24 @@
     };
 
     Nanika.prototype.change_named = function(shellpath, balloonpath) {
+      this.emit('named.change');
       if (this.named != null) {
         this.vanish_named();
       }
-      return this.materialize_named(shellpath, balloonpath);
+      return this.materialize_named(shellpath, balloonpath).then((function(_this) {
+        return function() {
+          return _this.named.load();
+        };
+      })(this)).then((function(_this) {
+        return function() {
+          return _this.emit('named.changed');
+        };
+      })(this));
     };
 
     Nanika.prototype.materialize_named = function(shellpath, balloonpath) {
+      this.emit('named.initialize');
+      this.emit('ssp.initialize');
       return Promise.all([this.load_shell(shellpath), this.load_balloon(balloonpath)]).then((function(_this) {
         return function(_arg) {
           var balloon, shell;
@@ -501,11 +519,15 @@
           _this.namedid = _this.namedmanager.materialize(shell, balloon);
           _this.named = _this.namedmanager.named(_this.namedid);
           _this.ssp = new SakuraScriptPlayer(_this.named);
+          _this.emit('named.initialized');
+          _this.emit('ssp.initialized');
         };
       })(this));
     };
 
     Nanika.prototype.vanish_named = function() {
+      this.emit('named.vanish');
+      this.emit('ssp.vanish');
       if (this.ssp != null) {
         this.ssp.off();
         delete this.ssp;
@@ -513,8 +535,10 @@
       if (this.namedid != null) {
         this.namedmanager.vanish(this.namedid);
         delete this.named;
-        return delete this.namedid;
+        delete this.namedid;
       }
+      this.emit('named.vanished');
+      return this.emit('ssp.vanished');
     };
 
     return Nanika;

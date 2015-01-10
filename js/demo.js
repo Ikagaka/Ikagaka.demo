@@ -120,7 +120,7 @@ $(function() {
   $(namedmanager.element).appendTo("body");
   nanikamanager = null;
   boot_nanikamanager = function() {
-    var contextmenu, hide_contextmenu, view_contextmenu;
+    var contextmenu, hide_contextmenu, install, notice_events, view_contextmenu;
     if (nanikamanager) {
       return;
     }
@@ -130,178 +130,6 @@ $(function() {
     });
     $('#ikagaka_boot').attr('disabled', true);
     $('#ikagaka_halt').removeAttr('disabled');
-    nanikamanager.on('change.existing.ghosts', function() {
-      var call, change, close, container, container_dropdown, container_label, container_menu, dirpath, install, install_file, label, nanika, nanikas_dom, shell, _ref, _results;
-      nanikas_dom = $('.ghosts').html('');
-      _ref = nanikamanager.nanikas;
-      _results = [];
-      for (dirpath in _ref) {
-        nanika = _ref[dirpath];
-        container = $('<li />');
-        container_label = $('<p />');
-        container_menu = $('<p />');
-        container_dropdown = $('<p />');
-        label = $('<span />').text(nanika.ghost.descript.name).addClass('name');
-        install_file = $('<input type="file" />').change((function(dirpath, nanika) {
-          return (function(_this) {
-            return function(ev) {
-              var file, _i, _len, _ref1, _results1;
-              _ref1 = ev.target.files;
-              _results1 = [];
-              for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-                file = _ref1[_i];
-                _results1.push(install_nar(file, dirpath, nanika.ghost.descript['sakura.name']));
-              }
-              return _results1;
-            };
-          })(this);
-        })(dirpath, nanika));
-        install = $('<label draggable="true">narをドロップしてインストール</label>').addClass('install').on('dragenter', (function(_this) {
-          return function(ev) {
-            ev.stopPropagation();
-            ev.preventDefault();
-            ev.dataTransfer.dropEffect = 'copy';
-            return false;
-          };
-        })(this)).on('dragover', (function(_this) {
-          return function(ev) {
-            ev.stopPropagation();
-            ev.preventDefault();
-            ev.dataTransfer.dropEffect = 'copy';
-            return false;
-          };
-        })(this)).on('drop', (function(dirpath, nanika) {
-          return (function(_this) {
-            return function(ev) {
-              var file, _i, _len, _ref1, _results1;
-              ev.stopPropagation();
-              ev.preventDefault();
-              ev.dataTransfer.dropEffect = 'copy';
-              _ref1 = ev.dataTransfer.files;
-              _results1 = [];
-              for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-                file = _ref1[_i];
-                _results1.push(install_nar(file, dirpath, nanika.ghost.descript['sakura.name']));
-              }
-              return _results1;
-            };
-          })(this);
-        })(dirpath, nanika));
-        install.append(install_file);
-        change = $('<button />').text('交代').addClass('change').on('click', (function(dirpath, container_dropdown) {
-          return function() {
-            var list;
-            if (container_dropdown.hasClass('change')) {
-              container_dropdown.removeClass('change call shell');
-              return container_dropdown.html('');
-            } else {
-              container_dropdown.removeClass('change call shell');
-              container_dropdown.addClass('change');
-              container_dropdown.html('');
-              list = $('<ul />').addClass('list');
-              return storage.ghosts().then(function(ghosts) {
-                var dst_dirpath, _fn, _i, _len;
-                _fn = function(dst_dirpath) {
-                  return storage.ghost_name(dst_dirpath).then(function(name) {
-                    var elem;
-                    elem = $('<li />').addClass('ok').text(name + ' に交代').on('click', function() {
-                      return nanikamanager.change(dirpath, dst_dirpath);
-                    });
-                    return list.append(elem);
-                  });
-                };
-                for (_i = 0, _len = ghosts.length; _i < _len; _i++) {
-                  dst_dirpath = ghosts[_i];
-                  _fn(dst_dirpath);
-                }
-                return container_dropdown.append(list);
-              });
-            }
-          };
-        })(dirpath, container_dropdown));
-        call = $('<button />').text('呼出').addClass('call').on('click', (function(dirpath, container_dropdown) {
-          return function() {
-            var list;
-            if (container_dropdown.hasClass('call')) {
-              container_dropdown.removeClass('change call shell');
-              return container_dropdown.html('');
-            } else {
-              container_dropdown.removeClass('change call shell');
-              container_dropdown.addClass('call');
-              container_dropdown.html('');
-              list = $('<ul />').addClass('list');
-              return storage.ghosts().then(function(ghosts) {
-                var dst_dirpath, _fn, _i, _len;
-                _fn = function(dst_dirpath) {
-                  return storage.ghost_name(dst_dirpath).then(function(name) {
-                    var elem;
-                    if (nanikamanager.is_existing_ghost(dst_dirpath)) {
-                      elem = $('<li />').addClass('ng').text(name + ' を呼出');
-                    } else {
-                      elem = $('<li />').addClass('ok').text(name + ' を呼出').on('click', function() {
-                        return nanikamanager.call(dirpath, dst_dirpath);
-                      });
-                    }
-                    return list.append(elem);
-                  });
-                };
-                for (_i = 0, _len = ghosts.length; _i < _len; _i++) {
-                  dst_dirpath = ghosts[_i];
-                  _fn(dst_dirpath);
-                }
-                return container_dropdown.append(list);
-              });
-            }
-          };
-        })(dirpath, container_dropdown));
-        shell = $('<button />').text('シェル').addClass('shell').on('click', (function(dirpath, container_dropdown) {
-          return function() {
-            var list;
-            if (container_dropdown.hasClass('shell')) {
-              container_dropdown.removeClass('change call shell');
-              return container_dropdown.html('');
-            } else {
-              container_dropdown.removeClass('change call shell');
-              container_dropdown.addClass('shell');
-              container_dropdown.html('');
-              list = $('<ul />').addClass('list');
-              return storage.shells(dirpath).then(function(shells) {
-                var dst_shellpath, _fn, _i, _len;
-                _fn = function(dst_shellpath) {
-                  return storage.shell_name(dirpath, dst_shellpath).then(function(name) {
-                    var elem;
-                    nanika = nanikamanager.nanikas[dirpath];
-                    if (nanika.named.shell.descript.name === name) {
-                      elem = $('<li />').addClass('ng').text(name + ' に変更');
-                    } else {
-                      elem = $('<li />').addClass('ok').text(name + ' に変更').on('click', function() {
-                        return nanika.change_named(dst_shellpath, nanika.profile.balloonpath);
-                      });
-                    }
-                    return list.append(elem);
-                  });
-                };
-                for (_i = 0, _len = shells.length; _i < _len; _i++) {
-                  dst_shellpath = shells[_i];
-                  _fn(dst_shellpath);
-                }
-                return container_dropdown.append(list);
-              });
-            }
-          };
-        })(dirpath, container_dropdown));
-        close = $('<button />').text('終了').addClass('close').on('click', (function(dirpath) {
-          return function() {
-            return nanikamanager.close(dirpath, 'user');
-          };
-        })(dirpath));
-        container_label.append(label);
-        container_menu.append(change).append(call).append(shell).append(close).append(install);
-        container.append(container_label).append(container_menu).append(container_dropdown);
-        _results.push(nanikas_dom.append(container));
-      }
-      return _results;
-    });
     view_contextmenu = function(nanika, mouse, menulist) {
       var body, dom, item, li_css, li_css_disabled, menu, named, offset, x, y, _i, _len;
       $('#contextmenu').remove();
@@ -444,7 +272,22 @@ $(function() {
                             return {
                               text: name + ' に変更',
                               cb: function() {
-                                return nanika.change_named(dst_shellpath, nanika.profile.balloonpath);
+                                var id, scope, scope_surfaces, _ref;
+                                scope_surfaces = {};
+                                _ref = nanika.named.scopes;
+                                for (id in _ref) {
+                                  scope = _ref[id];
+                                  scope_surfaces[id] = scope.currentSurface.surfaces.surfaces[scope.currentSurface.surfaceName].is;
+                                }
+                                return nanika.change_named(dst_shellpath, nanika.profile.balloonpath).then(function() {
+                                  var surface, _results;
+                                  _results = [];
+                                  for (scope in scope_surfaces) {
+                                    surface = scope_surfaces[scope];
+                                    _results.push(nanika.named.scope(scope).surface(surface));
+                                  }
+                                  return _results;
+                                });
                               }
                             };
                           }
@@ -453,6 +296,52 @@ $(function() {
                       for (_i = 0, _len = shells.length; _i < _len; _i++) {
                         dst_shellpath = shells[_i];
                         _fn(dst_shellpath);
+                      }
+                      return Promise.all(promises).then(function(submenulist) {
+                        return view_contextmenu(nanika, mouse, submenulist);
+                      });
+                    });
+                  }
+                }, {
+                  text: 'バルーン',
+                  cb: function() {
+                    return storage.balloons().then(function(balloons) {
+                      var dst_dirpath, promises, _fn, _i, _len;
+                      promises = [];
+                      _fn = function(dst_dirpath) {
+                        return promises.push(storage.balloon_name(dst_dirpath).then(function(name) {
+                          if (nanika.named.balloon.descript.name === name) {
+                            return {
+                              text: name + ' に変更'
+                            };
+                          } else {
+                            return {
+                              text: name + ' に変更',
+                              cb: function() {
+                                var id, scope, scope_surfaces, _ref;
+                                scope_surfaces = {};
+                                _ref = nanika.named.scopes;
+                                for (id in _ref) {
+                                  scope = _ref[id];
+                                  scope_surfaces[id] = scope.currentSurface.surfaces.surfaces[scope.currentSurface.surfaceName].is;
+                                }
+                                return nanika.change_named(nanika.profile.shellpath, dst_dirpath).then(function() {
+                                  var surface, _results;
+                                  _results = [];
+                                  for (scope in scope_surfaces) {
+                                    surface = scope_surfaces[scope];
+                                    _results.push(nanika.named.scope(scope).surface(surface));
+                                  }
+                                  return _results;
+                                });
+                              }
+                            };
+                          }
+                        }));
+                      };
+                      for (_i = 0, _len = balloons.length; _i < _len; _i++) {
+                        dst_dirpath = balloons[_i];
+                        _fn(dst_dirpath);
                       }
                       return Promise.all(promises).then(function(submenulist) {
                         return view_contextmenu(nanika, mouse, submenulist);
@@ -505,6 +394,59 @@ $(function() {
         });
       }
     };
+    install = {
+      initialize: function(nanika) {
+        var main;
+        main = function() {
+          var $named;
+          if (nanika.namedid == null) {
+            return;
+          }
+          $named = namedmanager.named(nanika.namedid).$named;
+          return $named.attr('draggable', 'true').on('dragenter', (function(_this) {
+            return function(ev) {
+              ev.stopPropagation();
+              ev.preventDefault();
+              ev.dataTransfer.dropEffect = 'copy';
+              return false;
+            };
+          })(this)).on('dragover', (function(_this) {
+            return function(ev) {
+              ev.stopPropagation();
+              ev.preventDefault();
+              ev.dataTransfer.dropEffect = 'copy';
+              return false;
+            };
+          })(this)).on('drop', (function(_this) {
+            return function(ev) {
+              var file, _i, _len, _ref, _results;
+              ev.stopPropagation();
+              ev.preventDefault();
+              ev.dataTransfer.dropEffect = 'copy';
+              _ref = ev.dataTransfer.files;
+              _results = [];
+              for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+                file = _ref[_i];
+                _results.push(install_nar(file, nanika.ghostpath, nanika.ghost.descript['sakura.name']));
+              }
+              return _results;
+            };
+          })(this));
+        };
+        main();
+        return nanika.on('named.initialized', main);
+      }
+    };
+    notice_events = {
+      initialize: function(nanika) {
+        var name;
+        name = nanika.ghost.descript.name;
+        console.log('materialized ' + name);
+        return nanika.on('halted', function() {
+          return console.log('halted ' + name);
+        });
+      }
+    };
     nanikamanager.on('change.existing.ghosts', function() {
       var dirpath, nanika, _ref, _results;
       _ref = nanikamanager.nanikas;
@@ -512,7 +454,13 @@ $(function() {
       for (dirpath in _ref) {
         nanika = _ref[dirpath];
         if (nanika.plugins.contextmenu == null) {
-          _results.push(nanika.add_plugin('contextmenu', contextmenu));
+          nanika.add_plugin('contextmenu', contextmenu);
+        }
+        if (nanika.plugins.install == null) {
+          nanika.add_plugin('install', install);
+        }
+        if (nanika.plugins.notice_events == null) {
+          _results.push(nanika.add_plugin('notice_events', notice_events));
         } else {
           _results.push(void 0);
         }
@@ -589,14 +537,19 @@ $(function() {
   };
   storage = null;
   cb = function(err, idbfs) {
-    var buffer, fs, path;
+    var buffer, fs, path, _window;
+    _window = {};
     if (typeof require === "undefined" || require === null) {
-      BrowserFS.install(window);
+      BrowserFS.install(_window);
       BrowserFS.initialize(idbfs);
+      fs = _window.require('fs');
+      path = _window.require('path');
+      buffer = _window.require('buffer');
+    } else {
+      fs = require('fs');
+      path = require('path');
+      buffer = require('buffer');
     }
-    fs = require('fs');
-    path = require('path');
-    buffer = require('buffer');
     storage = new NanikaStorage(new NanikaStorage.Backend.FS(fs_root, fs, path, buffer.Buffer));
     return storage.base_profile().then(function(profile) {
       if (profile.ghosts == null) {

@@ -83,130 +83,6 @@ $ ->
 		nanikamanager = new NanikaManager(storage, namedmanager, append_path: './vendor/js/', logging: true)
 		$('#ikagaka_boot').attr('disabled', true)
 		$('#ikagaka_halt').removeAttr('disabled')
-		nanikamanager.on 'change.existing.ghosts', ->
-			nanikas_dom = $('.ghosts').html('')
-			for dirpath, nanika of nanikamanager.nanikas
-				container = $('<li />')
-				container_label = $('<p />')
-				container_menu = $('<p />')
-				container_dropdown = $('<p />')
-				label = $('<span />').text(nanika.ghost.descript.name).addClass('name')
-				install_file = $('<input type="file" />')
-				.change ((dirpath, nanika) ->
-					(ev) =>
-						for file in ev.target.files
-							install_nar file, dirpath, nanika.ghost.descript['sakura.name']
-				)(dirpath, nanika)
-				install = $('<label draggable="true">narをドロップしてインストール</label>').addClass('install')
-				.on 'dragenter', (ev) =>
-					ev.stopPropagation()
-					ev.preventDefault()
-					ev.dataTransfer.dropEffect = 'copy'
-					false
-				.on 'dragover', (ev) =>
-					ev.stopPropagation()
-					ev.preventDefault()
-					ev.dataTransfer.dropEffect = 'copy'
-					false
-				.on 'drop', ((dirpath, nanika) ->
-					(ev) =>
-						ev.stopPropagation()
-						ev.preventDefault()
-						ev.dataTransfer.dropEffect = 'copy'
-						for file in ev.dataTransfer.files
-							install_nar file, dirpath, nanika.ghost.descript['sakura.name']
-				)(dirpath, nanika)
-				install.append install_file
-				change = $('<button />').text('交代').addClass('change')
-				.on 'click', ((dirpath, container_dropdown) ->
-					->
-						if container_dropdown.hasClass('change')
-							container_dropdown.removeClass('change call shell')
-							container_dropdown.html('')
-						else
-							container_dropdown.removeClass('change call shell')
-							container_dropdown.addClass('change')
-							container_dropdown.html('')
-							list = $('<ul />').addClass('list')
-							storage.ghosts()
-							.then (ghosts) ->
-								for dst_dirpath in ghosts
-									((dst_dirpath) ->
-										storage.ghost_name(dst_dirpath).then (name) ->
-											elem = $('<li />').addClass('ok').text(name + ' に交代')
-											.on 'click', -> nanikamanager.change(dirpath, dst_dirpath)
-											list.append(elem)
-									)(dst_dirpath)
-								container_dropdown.append(list)
-				)(dirpath, container_dropdown)
-				call = $('<button />').text('呼出').addClass('call')
-				.on 'click', ((dirpath, container_dropdown) ->
-					->
-						if container_dropdown.hasClass('call')
-							container_dropdown.removeClass('change call shell')
-							container_dropdown.html('')
-						else
-							container_dropdown.removeClass('change call shell')
-							container_dropdown.addClass('call')
-							container_dropdown.html('')
-							list = $('<ul />').addClass('list')
-							storage.ghosts()
-							.then (ghosts) ->
-								for dst_dirpath in ghosts
-									((dst_dirpath) ->
-										storage.ghost_name(dst_dirpath).then (name) ->
-											if nanikamanager.is_existing_ghost(dst_dirpath)
-												elem = $('<li />').addClass('ng').text(name + ' を呼出')
-											else
-												elem = $('<li />').addClass('ok').text(name + ' を呼出')
-												.on 'click', -> nanikamanager.call(dirpath, dst_dirpath)
-											list.append(elem)
-									)(dst_dirpath)
-								container_dropdown.append(list)
-				)(dirpath, container_dropdown)
-				shell = $('<button />').text('シェル').addClass('shell')
-				.on 'click', ((dirpath, container_dropdown) ->
-					->
-						if container_dropdown.hasClass('shell')
-							container_dropdown.removeClass('change call shell')
-							container_dropdown.html('')
-						else
-							container_dropdown.removeClass('change call shell')
-							container_dropdown.addClass('shell')
-							container_dropdown.html('')
-							list = $('<ul />').addClass('list')
-							storage.shells(dirpath)
-							.then (shells) ->
-								for dst_shellpath in shells
-									((dst_shellpath) ->
-										storage.shell_name(dirpath, dst_shellpath).then (name) ->
-											nanika = nanikamanager.nanikas[dirpath]
-											if nanika.named.shell.descript.name == name
-												elem = $('<li />').addClass('ng').text(name + ' に変更')
-											else
-												elem = $('<li />').addClass('ok').text(name + ' に変更')
-												.on 'click', -> nanika.change_named(dst_shellpath, nanika.profile.balloonpath)
-											list.append(elem)
-									)(dst_shellpath)
-								container_dropdown.append(list)
-				)(dirpath, container_dropdown)
-				close = $('<button />').text('終了').addClass('close')
-				.on 'click', ((dirpath) ->
-					-> nanikamanager.close(dirpath, 'user')
-				)(dirpath)
-				container_label
-				.append label
-				container_menu
-				.append change
-				.append call
-				.append shell
-				.append close
-				.append install
-				container
-				.append container_label
-				.append container_menu
-				.append container_dropdown
-				nanikas_dom.append container
 		view_contextmenu = (nanika, mouse, menulist) ->
 			$('#contextmenu').remove()
 			named = namedmanager.named nanika.namedid
@@ -281,8 +157,38 @@ $ ->
 												if nanika.named.shell.descript.name == name
 													text: name + ' に変更'
 												else
-													text: name + ' に変更', cb: -> nanika.change_named(dst_shellpath, nanika.profile.balloonpath)
+													text: name + ' に変更', cb: ->
+														scope_surfaces = {}
+														for id, scope of nanika.named.scopes
+															scope_surfaces[id] = scope.currentSurface.surfaces.surfaces[scope.currentSurface.surfaceName].is
+														nanika.change_named(dst_shellpath, nanika.profile.balloonpath)
+														.then ->
+															for scope, surface of scope_surfaces
+																nanika.named.scope(scope).surface(surface)
 										)(dst_shellpath)
+									Promise.all promises
+									.then (submenulist) ->
+										view_contextmenu nanika, mouse, submenulist
+							}
+							{text: 'バルーン', cb: ->
+								storage.balloons()
+								.then (balloons) ->
+									promises = []
+									for dst_dirpath in balloons
+										((dst_dirpath) ->
+											promises.push storage.balloon_name(dst_dirpath).then (name) ->
+												if nanika.named.balloon.descript.name == name
+													text: name + ' に変更'
+												else
+													text: name + ' に変更', cb: ->
+														scope_surfaces = {}
+														for id, scope of nanika.named.scopes
+															scope_surfaces[id] = scope.currentSurface.surfaces.surfaces[scope.currentSurface.surfaceName].is
+														nanika.change_named(nanika.profile.shellpath, dst_dirpath)
+														.then ->
+															for scope, surface of scope_surfaces
+																nanika.named.scope(scope).surface(surface)
+										)(dst_dirpath)
 									Promise.all promises
 									.then (submenulist) ->
 										view_contextmenu nanika, mouse, submenulist
@@ -306,10 +212,42 @@ $ ->
 						hide_contextmenu()
 				else
 					hide_contextmenu()
+		install = initialize: (nanika) ->
+			main = ->
+				unless nanika.namedid?
+					return
+				$named = namedmanager.named(nanika.namedid).$named
+				$named.attr('draggable', 'true')
+				.on 'dragenter', (ev) =>
+					ev.stopPropagation()
+					ev.preventDefault()
+					ev.dataTransfer.dropEffect = 'copy'
+					false
+				.on 'dragover', (ev) =>
+					ev.stopPropagation()
+					ev.preventDefault()
+					ev.dataTransfer.dropEffect = 'copy'
+					false
+				.on 'drop', (ev) =>
+					ev.stopPropagation()
+					ev.preventDefault()
+					ev.dataTransfer.dropEffect = 'copy'
+					for file in ev.dataTransfer.files
+						install_nar file, nanika.ghostpath, nanika.ghost.descript['sakura.name']
+			main()
+			nanika.on 'named.initialized', main
+		notice_events = initialize: (nanika) ->
+			name = nanika.ghost.descript.name
+			console.log 'materialized '+name
+			nanika.on 'halted', -> console.log 'halted '+name
 		nanikamanager.on 'change.existing.ghosts', ->
 			for dirpath, nanika of nanikamanager.nanikas
 				unless nanika.plugins.contextmenu?
 					nanika.add_plugin('contextmenu', contextmenu)
+				unless nanika.plugins.install?
+					nanika.add_plugin('install', install)
+				unless nanika.plugins.notice_events?
+					nanika.add_plugin('notice_events', notice_events)
 		nanikamanager.on 'destroyed', ->
 			nanikamanager = null
 			$('#ikagaka_boot').removeAttr('disabled')
@@ -364,12 +302,17 @@ $ ->
 	
 	storage = null
 	cb = (err, idbfs) ->
+		_window = {}
 		unless require?
-			BrowserFS.install(window)
+			BrowserFS.install(_window)
 			BrowserFS.initialize(idbfs)
-		fs = require 'fs'
-		path = require 'path'
-		buffer = require 'buffer'
+			fs = _window.require 'fs'
+			path = _window.require 'path'
+			buffer = _window.require 'buffer'
+		else
+			fs = require 'fs'
+			path = require 'path'
+			buffer = require 'buffer'
 #		storage = new NanikaStorage(new NanikaStorage.Backend.InMemory())
 		storage = new NanikaStorage(new NanikaStorage.Backend.FS(fs_root, fs, path, buffer.Buffer))
 		storage.base_profile()

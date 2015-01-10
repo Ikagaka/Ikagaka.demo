@@ -104,7 +104,7 @@
 
   NanikaPlugin.choice_anchor = {
     initialize: function(nanika) {
-      return nanika.on('materialized', function() {
+      return nanika.on('named.initialized', function() {
         nanika.named.on('choiceselect', function(event) {
           if (/^On/.test(event.id)) {
             return nanika.request('any', {
@@ -269,7 +269,7 @@
 
   NanikaPlugin.input = {
     initialize: function(nanika) {
-      return nanika.on('materialized', function() {
+      return nanika.on('named.initialized', function() {
         nanika.named.on('userinput', function(event) {
           if (event.content != null) {
             return nanika.request('userinput', {
@@ -317,7 +317,7 @@
 
   NanikaPlugin.mouse = {
     initialize: function(nanika) {
-      return nanika.on('materialized', function() {
+      return nanika.on('named.initialized', function() {
         var event_id, mouseevents, _i, _len, _results;
         mouseevents = ['mousedown', 'mousemove', 'mouseup', 'mouseclick', 'mousedblclick'];
         _results = [];
@@ -437,9 +437,9 @@
       nanika.on('version.set', basewareversion);
       nanika.on('version.set', notifyosinfo);
       nanika.on('version.set', notifyfontinfo);
-      nanika.on('version.set', notifyselfinfo);
-      nanika.on('version.set', notifyballooninfo);
-      nanika.on('version.set', notifyshellinfo);
+      nanika.on('named.initialized', notifyselfinfo);
+      nanika.on('named.initialized', notifyballooninfo);
+      nanika.on('named.initialized', notifyshellinfo);
       nanika.on('version.set', notifyuserinfo);
       nanika.on('version.set', notifydressupinfo);
       nanika.on('version.set', ghostpathlist);
@@ -471,7 +471,7 @@
 
   NanikaPlugin.ssp = {
     initialize: function(nanika) {
-      return nanika.on('materialized', function() {
+      return nanika.on('ssp.initialized', function() {
         nanika.ssp.on('script:raise', function(_arg) {
           var args, id;
           id = _arg[0], args = 2 <= _arg.length ? __slice.call(_arg, 1) : [];
