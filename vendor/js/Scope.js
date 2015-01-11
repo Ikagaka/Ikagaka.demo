@@ -68,21 +68,33 @@
         switch (style) {
           case "square":
             return {
-              color: "#" + font_color,
-              outline: "solid 1px #" + pen_color,
-              background: "#" + brush_color
+              base: {
+                color: "#" + font_color
+              },
+              over: {
+                outline: "solid 1px #" + pen_color,
+                background: "#" + brush_color
+              }
             };
           case "underline":
             return {
-              color: "#" + font_color,
-              'border-bottom': "solid 1px #" + pen_color
+              base: {
+                color: "#" + font_color
+              },
+              over: {
+                'border-bottom': "solid 1px #" + pen_color
+              }
             };
           case "square+underline":
             return {
-              color: "#" + font_color,
-              outline: "solid 1px #" + pen_color,
-              background: "#" + brush_color,
-              'border-bottom': "solid 1px #" + pen_color
+              base: {
+                color: "#" + font_color
+              },
+              over: {
+                outline: "solid 1px #" + pen_color,
+                background: "#" + brush_color,
+                'border-bottom': "solid 1px #" + pen_color
+              }
             };
         }
       };
@@ -181,12 +193,12 @@
             _id = $(document.createElement("div")).text(id).html();
             $a = $("<a />");
             $a.addClass("ikagaka-anchor");
-            $a.css(_this._style);
+            $a.css(_this._style).css(_this._anchor_style.base);
             $a.mouseover(function() {
-              return $a.css(_this._anchor_style);
+              return $a.css(_this._anchor_style.over);
             });
             $a.mouseout(function() {
-              return $a.css(_this._style);
+              return $a.css(_this._style).css(_this._anchor_style.base);
             });
             $a.attr("data-id", _id);
             $a.attr("data-argc", args.length);
@@ -215,7 +227,7 @@
             $a.addClass("ikagaka-choice");
             $a.css(_this._style);
             $a.mouseover(function() {
-              return $a.css(_this._choice_style);
+              return $a.css(_this._choice_style.base).css(_this._choice_style.over);
             });
             $a.mouseout(function() {
               return $a.css(_this._style);
@@ -241,7 +253,7 @@
             $a.addClass("ikagaka-choice");
             $a.css(_this._style);
             $a.mouseover(function() {
-              return $a.css(_this._choice_style);
+              return $a.css(_this._choice_style.base).css(_this._choice_style.over);
             });
             $a.mouseout(function() {
               return $a.css(_this._style);
