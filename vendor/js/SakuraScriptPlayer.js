@@ -187,7 +187,12 @@
         }, {
           re: /^\\n\[half\]/,
           match: function(group, state) {
-            return this.named.scope().blimp().br();
+            return this.named.scope().blimp().br(0.5);
+          }
+        }, {
+          re: /^\\n\[(\d+)\]/,
+          match: function(group, state) {
+            return this.named.scope().blimp().br(group[1] / 100);
           }
         }, {
           re: /^\\n/,

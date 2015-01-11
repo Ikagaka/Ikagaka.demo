@@ -259,7 +259,16 @@
           };
         })(this),
         br: (function(_this) {
-          return function() {
+          return function(ratio) {
+            var $newimp;
+            if (ratio != null) {
+              $newimp = $('<span />').css({
+                'position': 'relative',
+                'top': (ratio - 1) + 'em'
+              });
+              _this.insertPoint = $newimp.appendTo(_this.insertPoint);
+              _this.insertPoint.css(_this._blimpTextCSS(_this._current_text_style));
+            }
             _this.insertPoint.append("<br />");
           };
         })(this),
