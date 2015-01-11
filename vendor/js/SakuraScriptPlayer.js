@@ -258,6 +258,11 @@
             })(this)), 0);
           }
         }, {
+          re: /^\\!\[\*\]/,
+          match: function(group, state) {
+            return this.named.scope().blimp().marker();
+          }
+        }, {
           re: /^\\_u\[0x(\d+)\]/,
           match: function(group, state) {
             state.wait = this.wait_default;
@@ -296,7 +301,7 @@
             return this.named.scope().blimp().talk(group[0]);
           }
         }, {
-          re: /^\\_[bl!?s]\[.*?\]/,
+          re: /^\\_[bl!?sv]\[.*?\]/,
           match: function(group, state) {
             return this.named.scope().blimp().talk(group[0]);
           }
@@ -307,11 +312,6 @@
           }
         }, {
           re: /^\\!\[.*?\]/,
-          match: function(group, state) {
-            return this.named.scope().blimp().talk(group[0]);
-          }
-        }, {
-          re: /^\\!_[v]\[.*?\]/,
           match: function(group, state) {
             return this.named.scope().blimp().talk(group[0]);
           }
