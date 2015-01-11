@@ -60,7 +60,7 @@
     };
 
     Scope.prototype.blimp = function(balloonId) {
-      var b, descript, h, l, r, t, tmp, type, w;
+      var b, descript, fc, fh, fontcolor, fsc, fsh, h, l, r, t, tmp, type, w;
       if (Number(balloonId) < 0) {
         this.$blimp.hide();
       } else {
@@ -91,11 +91,25 @@
           l = descript["origin.x"] || descript["validrect.left"] || "10";
           w = this.$blimpCanvas[0].width;
           h = this.$blimpCanvas[0].height;
+          fh = descript["font.height"] || "12";
+          fontcolor = function(r, g, b) {
+            if ((isNaN(r) || r < 0) && (isNaN(g) || g < 0) && (isNaN(b) || b < 0)) {
+
+            } else {
+              return ("000000" + ((r > 0 ? r : 0) * 65536 + (g > 0 ? g : 0) * 256 + (b > 0 ? b : 0) * 1).toString(16)).slice(-6);
+            }
+          };
+          fc = fontcolor(descript["font.color.r"], descript["font.color.g"], descript["font.color.b"]);
+          fsc = fontcolor(descript["font.shadowcolor.r"], descript["font.shadowcolor.g"], descript["font.shadowcolor.b"]);
+          fsh = fsc ? "1px 1px 0 #" + fsc : "none";
           this.$blimpText.css({
             "top": "" + t + "px",
             "left": "" + l + "px",
             "width": "" + (w - (Number(l) + Number(r))) + "px",
-            "height": "" + (h - (Number(t) - Number(b))) + "px"
+            "height": "" + (h - (Number(t) - Number(b))) + "px",
+            "font-size": "" + fh + "px",
+            "color": "#" + fc,
+            "text-shadow": fsh
           });
         }
       }

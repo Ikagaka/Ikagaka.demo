@@ -184,7 +184,7 @@
     FS.prototype.balloon_names = function() {
       var target;
       target = this.path.join(this.home, 'balloon');
-      return this._elements_name(target, 'install.txt');
+      return this._elements_name(target, 'descript.txt');
     };
 
     FS.prototype.shell_names = function(dirpath) {
@@ -204,8 +204,8 @@
     FS.prototype.balloon_name = function(dirpath) {
       var target;
       target = this.path.join(this.home, 'balloon', dirpath);
-      return this._FSFileToDirectory(target, 'install.txt').then(function(directory) {
-        return directory.install.name;
+      return this._FSFileToDirectory(target, 'descript.txt').then(function(directory) {
+        return directory.descript.name;
       });
     };
 
