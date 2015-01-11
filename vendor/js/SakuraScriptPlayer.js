@@ -195,6 +195,13 @@
             return this.named.scope().blimp().br();
           }
         }, {
+          re: /^\\_l\[([^\]]+)\]/,
+          match: function(group, state) {
+            var blimp;
+            blimp = this.named.scope().blimp();
+            return blimp.location.apply(blimp, splitargs(group[1]));
+          }
+        }, {
           re: /^\\c/,
           match: function(group, state) {
             return this.named.scope().blimp().clear();
