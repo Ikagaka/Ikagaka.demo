@@ -7,6 +7,7 @@
 
   Scope = (function() {
     function Scope(scopeId, shell, balloon) {
+      var clickable_element_style, cursor, descript, font_bold, font_color, font_height, font_italic, font_name, font_shadowcolor, getfontcolor, text_decoration;
       this.scopeId = scopeId;
       this.shell = shell;
       this.balloon = balloon;
@@ -16,6 +17,77 @@
       this.$blimp = $("<div />").addClass("blimp");
       this.$blimpCanvas = $("<canvas width='0' height='0' />").addClass("blimpCanvas");
       this.$blimpText = $("<div />").addClass("blimpText");
+      descript = this.balloon.descript;
+      cursor = descript["cursor"] || '';
+      font_name = (descript["font.name"] || "MS Gothic").split(/,/).map(function(name) {
+        return '"' + name + '"';
+      }).join(',');
+      font_height = descript["font.height"] || "12";
+      getfontcolor = function(r, g, b, can_ignore) {
+        if (can_ignore && (isNaN(r) || r < 0) && (isNaN(g) || g < 0) && (isNaN(b) || b < 0)) {
+
+        } else {
+          return ("000000" + ((r > 0 ? r : 0) * 65536 + (g > 0 ? g : 0) * 256 + (b > 0 ? b : 0) * 1).toString(16)).slice(-6);
+        }
+      };
+      font_color = getfontcolor(descript["font.color.r"], descript["font.color.g"], descript["font.color.b"]);
+      font_shadowcolor = getfontcolor(descript["font.shadowcolor.r"], descript["font.shadowcolor.g"], descript["font.shadowcolor.b"], true);
+      font_bold = descript["font.bold"];
+      font_italic = descript["font.italic"];
+      text_decoration = [];
+      if (descript["font.strike"]) {
+        text_decoration.push('line-through');
+      }
+      if (descript["font.underline"]) {
+        text_decoration.push('underline');
+      }
+      this._style = {
+        "cursor": cursor,
+        "font-family": font_name,
+        "font-size": "" + font_height + "px",
+        "color": "#" + font_color,
+        "background": "none",
+        "outline": "none",
+        "border": "none",
+        "text-shadow": font_shadowcolor ? "1px 1px 0 #" + font_shadowcolor : "none",
+        "font-weight": font_bold ? "bold" : "normal",
+        "font-style": font_italic ? "italic" : "normal",
+        "text-decoration": text_decoration.length ? text_decoration.join(' ') : "none"
+      };
+      this.$blimpText.css(this._style);
+      clickable_element_style = function(prefix, style_default) {
+        var brush_color, pen_color, style;
+        style = {
+          square: true,
+          underline: true,
+          'square+underline': true
+        }[descript["" + prefix + ".style"]] ? descript["" + prefix + ".style"] : style_default;
+        font_color = getfontcolor(descript["" + prefix + ".font.color.r"], descript["" + prefix + ".font.color.g"], descript["" + prefix + ".font.color.b"]);
+        pen_color = getfontcolor(descript["" + prefix + ".pen.color.r"], descript["" + prefix + ".pen.color.g"], descript["" + prefix + ".pen.color.b"]);
+        brush_color = getfontcolor(descript["" + prefix + ".brush.color.r"], descript["" + prefix + ".brush.color.g"], descript["" + prefix + ".brush.color.b"]);
+        switch (style) {
+          case "square":
+            return {
+              color: "#" + font_color,
+              outline: "solid 1px #" + pen_color,
+              background: "#" + brush_color
+            };
+          case "underline":
+            return {
+              color: "#" + font_color,
+              'border-bottom': "solid 1px #" + pen_color
+            };
+          case "square+underline":
+            return {
+              color: "#" + font_color,
+              outline: "solid 1px #" + pen_color,
+              background: "#" + brush_color,
+              'border-bottom': "solid 1px #" + pen_color
+            };
+        }
+      };
+      this._choice_style = clickable_element_style("cursor", "square");
+      this._anchor_style = clickable_element_style("anchor", "underline");
       this.element = this.$scope[0];
       this.destructors = [];
       this.currentSurface = this.shell.attachSurface(this.$surfaceCanvas[0], this.scopeId, 0);
@@ -60,7 +132,7 @@
     };
 
     Scope.prototype.blimp = function(balloonId) {
-      var b, descript, fc, fh, fontcolor, fsc, fsh, h, l, r, t, tmp, type, w;
+      var b, descript, h, l, r, t, tmp, type, w;
       if (Number(balloonId) < 0) {
         this.$blimp.hide();
       } else {
@@ -91,25 +163,11 @@
           l = descript["origin.x"] || descript["validrect.left"] || "10";
           w = this.$blimpCanvas[0].width;
           h = this.$blimpCanvas[0].height;
-          fh = descript["font.height"] || "12";
-          fontcolor = function(r, g, b) {
-            if ((isNaN(r) || r < 0) && (isNaN(g) || g < 0) && (isNaN(b) || b < 0)) {
-
-            } else {
-              return ("000000" + ((r > 0 ? r : 0) * 65536 + (g > 0 ? g : 0) * 256 + (b > 0 ? b : 0) * 1).toString(16)).slice(-6);
-            }
-          };
-          fc = fontcolor(descript["font.color.r"], descript["font.color.g"], descript["font.color.b"]);
-          fsc = fontcolor(descript["font.shadowcolor.r"], descript["font.shadowcolor.g"], descript["font.shadowcolor.b"]);
-          fsh = fsc ? "1px 1px 0 #" + fsc : "none";
           this.$blimpText.css({
             "top": "" + t + "px",
             "left": "" + l + "px",
             "width": "" + (w - (Number(l) + Number(r))) + "px",
-            "height": "" + (h - (Number(t) - Number(b))) + "px",
-            "font-size": "" + fh + "px",
-            "color": "#" + fc,
-            "text-shadow": fsh
+            "height": "" + (h - (Number(t) - Number(b))) + "px"
           });
         }
       }
@@ -123,18 +181,26 @@
             _id = $(document.createElement("div")).text(id).html();
             $a = $("<a />");
             $a.addClass("ikagaka-anchor");
+            $a.css(_this._style);
+            $a.mouseover(function() {
+              return $a.css(_this._anchor_style);
+            });
+            $a.mouseout(function() {
+              return $a.css(_this._style);
+            });
             $a.attr("data-id", _id);
             $a.attr("data-argc", args.length);
             for (index = _i = 0, _len = args.length; _i < _len; index = ++_i) {
               argv = args[index];
               $a.attr("data-argv" + index, argv);
             }
-            _this.insertPoint = $a.appendTo(_this.$blimpText);
+            _this.originalInsertPoint = _this.insertPoint;
+            _this.insertPoint = $a.appendTo(_this.insertPoint);
           };
         })(this),
         anchorEnd: (function(_this) {
           return function() {
-            _this.insertPoint = _this.$blimpText;
+            _this.insertPoint = _this.originalInsertPoint;
           };
         })(this),
         choice: (function(_this) {
@@ -147,6 +213,13 @@
             _id = $(document.createElement("div")).text(id).html();
             $a = $("<a />");
             $a.addClass("ikagaka-choice");
+            $a.css(_this._style);
+            $a.mouseover(function() {
+              return $a.css(_this._choice_style);
+            });
+            $a.mouseout(function() {
+              return $a.css(_this._style);
+            });
             $a.html(_text);
             $a.attr("data-id", _id);
             $a.attr("data-argc", args.length);
@@ -166,18 +239,26 @@
             _id = $(document.createElement("div")).text(id).html();
             $a = $("<a />");
             $a.addClass("ikagaka-choice");
+            $a.css(_this._style);
+            $a.mouseover(function() {
+              return $a.css(_this._choice_style);
+            });
+            $a.mouseout(function() {
+              return $a.css(_this._style);
+            });
             $a.attr("data-id", _id);
             $a.attr("data-argc", args.length);
             for (index = _i = 0, _len = args.length; _i < _len; index = ++_i) {
               argv = args[index];
               $a.attr("data-argv" + index, argv);
             }
-            _this.insertPoint = $a.appendTo(_this.$blimpText);
+            _this.originalInsertPoint = _this.insertPoint;
+            _this.insertPoint = $a.appendTo(_this.insertPoint);
           };
         })(this),
         choiceEnd: (function(_this) {
           return function() {
-            _this.insertPoint = _this.$blimpText;
+            _this.insertPoint = _this.originalInsertPoint;
           };
         })(this),
         talk: (function(_this) {
