@@ -145,7 +145,7 @@
             return state.choicetimeout = -1;
           }
         }, {
-          re: /^\\q\[([^\]]+)\]/,
+          re: /^\\q\[((?:\\\\|\\\]|[^\]])+)\]/,
           match: function(group, state) {
             var blimp;
             state.has_choice = true;
@@ -153,7 +153,7 @@
             return blimp.choice.apply(blimp, splitargs(group[1]));
           }
         }, {
-          re: /^\\__q\[([^\]]+)\]/,
+          re: /^\\__q\[((?:\\\\|\\\]|[^\]])+)\]/,
           match: function(group, state) {
             var blimp;
             state.has_choice = true;
@@ -166,14 +166,14 @@
             return this.named.scope().blimp().choiceEnd();
           }
         }, {
-          re: /^\\q(?:\d+)?\[([^\]]+)\]\[([^\]]+)\]/,
+          re: /^\\q(?:\d+)?\[((?:\\\\|\\\]|[^\]])+)\]\[((?:\\\\|\\\]|[^\]])+)\]/,
           match: function(group, state) {
             state.has_choice = true;
             this.named.scope().blimp().choice(group[2], group[1]);
             return this.named.scope().blimp().br();
           }
         }, {
-          re: /^\\_a\[([^\]]+)\]/,
+          re: /^\\_a\[((?:\\\\|\\\]|[^\]])+)\]/,
           match: function(group, state) {
             var blimp;
             blimp = this.named.scope().blimp();
@@ -205,6 +205,13 @@
             var blimp;
             blimp = this.named.scope().blimp();
             return blimp.location.apply(blimp, splitargs(group[1]));
+          }
+        }, {
+          re: /^\\f\[([^\]]+)\]/,
+          match: function(group, state) {
+            var blimp;
+            blimp = this.named.scope().blimp();
+            return blimp.font.apply(blimp, splitargs(group[1]));
           }
         }, {
           re: /^\\c/,

@@ -7,7 +7,7 @@
 
   Scope = (function() {
     function Scope(scopeId, shell, balloon) {
-      var clickable_element_style, descript, getfontcolor, styles;
+      var clickable_element_style, descript, styles;
       this.scopeId = scopeId;
       this.shell = shell;
       this.balloon = balloon;
@@ -23,34 +23,29 @@
       styles["font.name"] = (descript["font.name"] || "MS Gothic").split(/,/).map(function(name) {
         return '"' + name + '"';
       }).join(',');
-      styles["font.height"] = descript["font.height"] || "12";
-      getfontcolor = function(r, g, b, can_ignore) {
-        if (can_ignore && (isNaN(r) || r < 0) && (isNaN(g) || g < 0) && (isNaN(b) || b < 0)) {
-
-        } else {
-          return ("000000" + ((r > 0 ? r : 0) * 65536 + (g > 0 ? g : 0) * 256 + (b > 0 ? b : 0) * 1).toString(16)).slice(-6);
-        }
-      };
-      styles["font.color"] = getfontcolor(descript["font.color.r"], descript["font.color.g"], descript["font.color.b"]);
-      styles["font.shadowcolor"] = getfontcolor(descript["font.shadowcolor.r"], descript["font.shadowcolor.g"], descript["font.shadowcolor.b"], true);
+      styles["font.height"] = (descript["font.height"] || "12") + "px";
+      styles["font.color"] = this._getFontColor(descript["font.color.r"], descript["font.color.g"], descript["font.color.b"]);
+      styles["font.shadowcolor"] = this._getFontColor(descript["font.shadowcolor.r"], descript["font.shadowcolor.g"], descript["font.shadowcolor.b"], true);
       styles["font.bold"] = descript["font.bold"];
       styles["font.italic"] = descript["font.italic"];
       styles["font.strike"] = descript["font.strike"];
       styles["font.underline"] = descript["font.underline"];
       this._text_style = styles;
-      clickable_element_style = function(prefix, style_default) {
-        styles = {};
-        styles["style"] = {
-          square: true,
-          underline: true,
-          'square+underline': true,
-          none: true
-        }[descript["" + prefix + ".style"]] ? descript["" + prefix + ".style"] : style_default;
-        styles["font.color"] = getfontcolor(descript["" + prefix + ".font.color.r"], descript["" + prefix + ".font.color.g"], descript["" + prefix + ".font.color.b"]);
-        styles["pen.color"] = getfontcolor(descript["" + prefix + ".pen.color.r"], descript["" + prefix + ".pen.color.g"], descript["" + prefix + ".pen.color.b"]);
-        styles["brush.color"] = getfontcolor(descript["" + prefix + ".brush.color.r"], descript["" + prefix + ".brush.color.g"], descript["" + prefix + ".brush.color.b"]);
-        return styles;
-      };
+      clickable_element_style = (function(_this) {
+        return function(prefix, style_default) {
+          styles = {};
+          styles["style"] = {
+            square: true,
+            underline: true,
+            'square+underline': true,
+            none: true
+          }[descript["" + prefix + ".style"]] ? descript["" + prefix + ".style"] : style_default;
+          styles["font.color"] = _this._getFontColor(descript["" + prefix + ".font.color.r"], descript["" + prefix + ".font.color.g"], descript["" + prefix + ".font.color.b"]);
+          styles["pen.color"] = _this._getFontColor(descript["" + prefix + ".pen.color.r"], descript["" + prefix + ".pen.color.g"], descript["" + prefix + ".pen.color.b"]);
+          styles["brush.color"] = _this._getFontColor(descript["" + prefix + ".brush.color.r"], descript["" + prefix + ".brush.color.g"], descript["" + prefix + ".brush.color.b"]);
+          return styles;
+        };
+      })(this);
       this._choice_style = clickable_element_style("cursor", "square");
       this._anchor_style = clickable_element_style("anchor", "underline");
       this.$blimpText.css(this._blimpTextCSS(this._text_style));
@@ -212,19 +207,21 @@
       return {
         anchorBegin: (function(_this) {
           return function() {
-            var $a, args, argv, id, index, _i, _id, _len;
+            var $a, anchor_css, args, argv, id, index, text_css, _i, _id, _len;
             id = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
             _this.$blimpText.find(".blink").hide();
             _this.$blimp.show();
             _id = $(document.createElement("div")).text(id).html();
             $a = $("<a />");
             $a.addClass("ikagaka-anchor");
-            $a.css(_this._blimpTextCSS(_this._current_text_style)).css(_this._blimpClickableTextCSS(_this._current_anchor_style).base);
+            text_css = _this._blimpTextCSS(_this._current_text_style);
+            anchor_css = _this._blimpClickableTextCSS(_this._current_anchor_style);
+            $a.css(text_css).css(anchor_css.base);
             $a.mouseover(function() {
-              return $a.css(_this._blimpClickableTextCSS(_this._current_anchor_style).over);
+              return $a.css(anchor_css.over);
             });
             $a.mouseout(function() {
-              return $a.css(_this._blimpTextCSS(_this._current_text_style)).css(_this._blimpClickableTextCSS(_this._current_anchor_style).base);
+              return $a.css(text_css).css(anchor_css.base);
             });
             $a.attr("data-id", _id);
             $a.attr("data-argc", args.length);
@@ -243,7 +240,7 @@
         })(this),
         choice: (function(_this) {
           return function() {
-            var $a, args, argv, id, index, text, _i, _id, _len, _text;
+            var $a, args, argv, choice_css, id, index, text, text_css, _i, _id, _len, _text;
             text = arguments[0], id = arguments[1], args = 3 <= arguments.length ? __slice.call(arguments, 2) : [];
             _this.$blimpText.find(".blink").hide();
             _this.$blimp.show();
@@ -251,12 +248,14 @@
             _id = $(document.createElement("div")).text(id).html();
             $a = $("<a />");
             $a.addClass("ikagaka-choice");
-            $a.css(_this._blimpTextCSS(_this._current_text_style));
+            text_css = _this._blimpTextCSS(_this._current_text_style);
+            choice_css = _this._blimpClickableTextCSS(_this._current_choice_style);
+            $a.css(text_css);
             $a.mouseover(function() {
-              return $a.css(_this._blimpClickableTextCSS(_this._current_choice_style).base).css(_this._blimpClickableTextCSS(_this._current_choice_style).over);
+              return $a.css(choice_css.base).css(choice_css.over);
             });
             $a.mouseout(function() {
-              return $a.css(_this._blimpTextCSS(_this._current_text_style));
+              return $a.css(text_css);
             });
             $a.html(_text);
             $a.attr("data-id", _id);
@@ -270,19 +269,21 @@
         })(this),
         choiceBegin: (function(_this) {
           return function() {
-            var $a, args, argv, id, index, _i, _id, _len;
+            var $a, args, argv, choice_css, id, index, text_css, _i, _id, _len;
             id = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
             _this.$blimpText.find(".blink").hide();
             _this.$blimp.show();
             _id = $(document.createElement("div")).text(id).html();
             $a = $("<a />");
             $a.addClass("ikagaka-choice");
-            $a.css(_this._blimpTextCSS(_this._current_text_style));
+            text_css = _this._blimpTextCSS(_this._current_text_style);
+            choice_css = _this._blimpClickableTextCSS(_this._current_choice_style);
+            $a.css(text_css);
             $a.mouseover(function() {
-              return $a.css(_this._blimpClickableTextCSS(_this._current_choice_style).base).css(_this._blimpClickableTextCSS(_this._current_choice_style).over);
+              return $a.css(choice_css.base).css(choice_css.over);
             });
             $a.mouseout(function() {
-              return $a.css(_this._blimpTextCSS(_this._current_text_style));
+              return $a.css(text_css);
             });
             $a.attr("data-id", _id);
             $a.attr("data-argc", args.length);
@@ -344,6 +345,167 @@
             _this.$blimpText[0].scrollTop = 999;
           };
         })(this),
+        font: (function(_this) {
+          return function() {
+            var $newimp, $size_checker, is_text_style, name, size, treat_bool, value, values;
+            name = arguments[0], values = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
+            value = values[0];
+            treat_bool = function(name, value) {
+              if (value === 'default') {
+                return _this._current_text_style["font." + name] = _this._text_style["font." + name];
+              } else {
+                return _this._current_text_style["font." + name] = !((value === 'false') || ((value - 0) === 0));
+              }
+            };
+            switch (name) {
+              case 'name':
+                is_text_style = true;
+                _this._current_text_style["font.name"] = values.map(function(name) {
+                  return '"' + name + '"';
+                }).join(',');
+                break;
+              case 'height':
+                is_text_style = true;
+                if (value === 'default') {
+                  _this._current_text_style["font.height"] = _this._text_style["font.height"];
+                } else if (/^[+-]/.test(value)) {
+                  $size_checker = $('<span />').text('I').css({
+                    position: 'absolute',
+                    visibility: 'hidden',
+                    'width': '1em',
+                    'font-size': '1em',
+                    padding: 0,
+                    'line-height': '1em'
+                  });
+                  _this.insertPoint.append($size_checker);
+                  size = $size_checker[0].clientHeight;
+                  $size_checker.remove();
+                  _this._current_text_style["font.height"] = (Number(size) + Number(value)) + 'px';
+                } else if (!isNaN(value)) {
+                  _this._current_text_style["font.height"] = value + 'px';
+                } else {
+                  _this._current_text_style["font.height"] = value;
+                }
+                break;
+              case 'color':
+                is_text_style = true;
+                if (value === 'default') {
+                  _this._current_text_style["font.color"] = _this._text_style["font.color"];
+                } else if ((values[0] != null) && (values[1] != null) && (values[2] != null)) {
+                  _this._current_text_style["font.color"] = _this._getFontColor(values[0], values[1], values[2]);
+                } else {
+                  _this._current_text_style["font.color"] = value;
+                }
+                break;
+              case 'shadowcolor':
+                is_text_style = true;
+                if (value === 'default') {
+                  _this._current_text_style["font.shadowcolor"] = _this._text_style["font.shadowcolor"];
+                } else if (value === 'none') {
+                  _this._current_text_style["font.shadowcolor"] = void 0;
+                } else if ((values[0] != null) && (values[1] != null) && (values[2] != null)) {
+                  _this._current_text_style["font.shadowcolor"] = _this._getFontColor(values[0], values[1], values[2]);
+                } else {
+                  _this._current_text_style["font.shadowcolor"] = value;
+                }
+                break;
+              case 'bold':
+                is_text_style = true;
+                treat_bool('bold', value);
+                break;
+              case 'italic':
+                is_text_style = true;
+                treat_bool('italic', value);
+                break;
+              case 'strike':
+                is_text_style = true;
+                treat_bool('strike', value);
+                break;
+              case 'underline':
+                is_text_style = true;
+                treat_bool('underline', value);
+                break;
+              case 'default':
+                is_text_style = true;
+                _this._initializeCurrentStyle();
+                break;
+              case 'cursorstyle':
+                if (value === 'default') {
+                  _this._current_choice_style["style"] = _this._choice_style["style"];
+                } else {
+                  _this._current_choice_style["style"] = value;
+                }
+                break;
+              case 'cursorfontcolor':
+                if (value === 'default') {
+                  _this._current_choice_style["font.color"] = _this._choice_style["font.color"];
+                } else if ((values[0] != null) && (values[1] != null) && (values[2] != null)) {
+                  _this._current_choice_style["font.color"] = _this._getFontColor(values[0], values[1], values[2]);
+                } else {
+                  _this._current_choice_style["font.color"] = value;
+                }
+                break;
+              case 'cursorpencolor':
+                if (value === 'default') {
+                  _this._current_choice_style["pen.color"] = _this._choice_style["pen.color"];
+                } else if ((values[0] != null) && (values[1] != null) && (values[2] != null)) {
+                  _this._current_choice_style["pen.color"] = _this._getpenColor(values[0], values[1], values[2]);
+                } else {
+                  _this._current_choice_style["pen.color"] = value;
+                }
+                break;
+              case 'cursorcolor':
+              case 'cursorbrushcolor':
+                if (value === 'default') {
+                  _this._current_choice_style["brush.color"] = _this._choice_style["brush.color"];
+                } else if ((values[0] != null) && (values[1] != null) && (values[2] != null)) {
+                  _this._current_choice_style["brush.color"] = _this._getFontColor(values[0], values[1], values[2]);
+                } else {
+                  _this._current_choice_style["brush.color"] = value;
+                }
+                break;
+              case 'anchorstyle':
+                if (value === 'default') {
+                  _this._current_anchor_style["style"] = _this._anchor_style["style"];
+                } else {
+                  _this._current_anchor_style["style"] = value;
+                }
+                break;
+              case 'anchorfontcolor':
+                if (value === 'default') {
+                  _this._current_anchor_style["font.color"] = _this._anchor_style["font.color"];
+                } else if ((values[0] != null) && (values[1] != null) && (values[2] != null)) {
+                  _this._current_anchor_style["font.color"] = _this._getFontColor(values[0], values[1], values[2]);
+                } else {
+                  _this._current_anchor_style["font.color"] = value;
+                }
+                break;
+              case 'anchorpencolor':
+                if (value === 'default') {
+                  _this._current_anchor_style["pen.color"] = _this._anchor_style["pen.color"];
+                } else if ((values[0] != null) && (values[1] != null) && (values[2] != null)) {
+                  _this._current_anchor_style["pen.color"] = _this._getpenColor(values[0], values[1], values[2]);
+                } else {
+                  _this._current_anchor_style["pen.color"] = value;
+                }
+                break;
+              case 'anchorcolor':
+              case 'anchorbrushcolor':
+                if (value === 'default') {
+                  _this._current_anchor_style["brush.color"] = _this._anchor_style["brush.color"];
+                } else if ((values[0] != null) && (values[1] != null) && (values[2] != null)) {
+                  _this._current_anchor_style["brush.color"] = _this._getFontColor(values[0], values[1], values[2]);
+                } else {
+                  _this._current_anchor_style["brush.color"] = value;
+                }
+            }
+            if (is_text_style) {
+              $newimp = $('<span />');
+              _this.insertPoint = $newimp.appendTo(_this.insertPoint);
+              return _this.insertPoint.css(_this._blimpTextCSS(_this._current_text_style));
+            }
+          };
+        })(this),
         location: location
       };
     };
@@ -353,12 +515,12 @@
       css = {};
       css["cursor"] = styles["cursor"];
       css["font-family"] = styles["font.name"];
-      css["font-size"] = "" + styles["font.height"] + "px";
-      css["color"] = "#" + styles["font.color"];
+      css["font-size"] = styles["font.height"];
+      css["color"] = styles["font.color"];
       css["background"] = "none";
       css["outline"] = "none";
       css["border"] = "none";
-      css["text-shadow"] = styles["font.shadowcolor"] ? "1px 1px 0 #" + styles["font.shadowcolor"] : "none";
+      css["text-shadow"] = styles["font.shadowcolor"] ? "1px 1px 0 " + styles["font.shadowcolor"] : "none";
       css["font-weight"] = styles["font.bold"] ? "bold" : "normal";
       css["font-style"] = styles["font.italic"] ? "italic" : "normal";
       text_decoration = [];
@@ -378,37 +540,37 @@
         case "square":
           return {
             base: {
-              color: "#" + styles["font.color"]
+              color: styles["font.color"]
             },
             over: {
-              outline: "solid 1px #" + styles["pen.color"],
-              background: "#" + styles["brush.color"]
+              outline: "solid 1px " + styles["pen.color"],
+              background: styles["brush.color"]
             }
           };
         case "underline":
           return {
             base: {
-              color: "#" + styles["font.color"]
+              color: styles["font.color"]
             },
             over: {
-              'border-bottom': "solid 1px #" + styles["pen.color"]
+              'border-bottom': "solid 1px " + styles["pen.color"]
             }
           };
         case "square+underline":
           return {
             base: {
-              color: "#" + styles["font.color"]
+              color: styles["font.color"]
             },
             over: {
-              outline: "solid 1px #" + styles["pen.color"],
-              background: "#" + styles["brush.color"],
-              'border-bottom': "solid 1px #" + styles["pen.color"]
+              outline: "solid 1px " + styles["pen.color"],
+              background: styles["brush.color"],
+              'border-bottom': "solid 1px " + styles["pen.color"]
             }
           };
         case "none":
           return {
             base: {
-              color: "#" + font_color
+              color: styles["font.color"]
             }
           };
       }
@@ -436,6 +598,18 @@
         _results.push(this._current_anchor_style[name] = value);
       }
       return _results;
+    };
+
+    Scope.prototype._getFontColor = function(r, g, b, can_ignore) {
+      var bc, gc, rc;
+      rc = r != null ? r.replace(/%$/, '') : void 0;
+      gc = g != null ? g.replace(/%$/, '') : void 0;
+      bc = b != null ? b.replace(/%$/, '') : void 0;
+      if (can_ignore && (isNaN(rc) || rc < 0) && (isNaN(gc) || gc < 0) && (isNaN(bc) || bc < 0)) {
+
+      } else {
+        return "rgb(" + r + "," + g + "," + b + ")";
+      }
     };
 
     return Scope;
