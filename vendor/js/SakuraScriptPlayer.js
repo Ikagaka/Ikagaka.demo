@@ -285,19 +285,19 @@
           re: /^\\_u\[0x(\d+)\]/,
           match: function(group, state) {
             state.wait = this.wait_default;
-            return this.named.scope().blimp().talk('&#x' + group[1] + ';');
+            return this.named.scope().blimp().talkraw('&#x' + group[1] + ';');
           }
         }, {
           re: /^\\_m\[0x(\d+)\]/,
           match: function(group, state) {
             state.wait = this.wait_default;
-            return this.named.scope().blimp().talk('&#x' + group[1] + ';');
+            return this.named.scope().blimp().talkraw('&#x' + group[1] + ';');
           }
         }, {
           re: /^\\&\[([^\]]+)\]/,
           match: function(group, state) {
             state.wait = this.wait_default;
-            return this.named.scope().blimp().talk('&' + group[1] + ';');
+            return this.named.scope().blimp().talkraw('&' + group[1] + ';');
           }
         }, {
           re: /^\\[45Cx67+v8]/,

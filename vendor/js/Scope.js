@@ -318,6 +318,17 @@
             _this.$blimpText[0].scrollTop = 999;
           };
         })(this),
+        talkraw: (function(_this) {
+          return function(text) {
+            _this.$blimpText.find(".blink").hide();
+            if (!!_this.currentSurface) {
+              _this.currentSurface.talk();
+            }
+            _this.$blimp.show();
+            _this.insertPoint.append(text);
+            _this.$blimpText[0].scrollTop = 999;
+          };
+        })(this),
         marker: (function(_this) {
           return function() {
             var _text;
