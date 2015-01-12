@@ -281,10 +281,10 @@
         location: (function(_this) {
           return function(x, y) {
             var $imp_position_checker, $newimp, $newimp_container, baseoffset, offset, offsetx, offsety, re, toparam, xp, yp;
-            re = /^(?:(@)?(-?\d*\.?\d*e?\d*)(em|%)?)?$/;
+            re = /^(@)?(-?\d*\.?\d*e?\d*)(em|%)?$/;
             toparam = function(r) {
               var rp, unit, value;
-              if (r == null) {
+              if (!((r != null) && r.length)) {
                 return {
                   relative: true,
                   value: 0
@@ -293,12 +293,6 @@
               rp = r.match(re);
               if (!rp) {
                 return;
-              }
-              if (!rp[2].length) {
-                return {
-                  relative: true,
-                  value: 0
-                };
               }
               if (isNaN(rp[2])) {
                 return;
