@@ -203,6 +203,7 @@ $ ->
 								$('body').append install_field
 								install_field.click()
 							}
+							{text: '開発用 スクリプト入力', cb: -> nanika.ssp.play window.prompt('send')}
 							{text: '全消去', cb: delete_storage}
 							{text: '終了', cb: -> nanikamanager.close(nanika.ghostpath, 'user')}
 							{text: '全て終了', cb: -> nanikamanager.closeall('user')}

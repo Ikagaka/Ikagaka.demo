@@ -370,6 +370,11 @@ $(function() {
                     return install_field.click();
                   }
                 }, {
+                  text: '開発用 スクリプト入力',
+                  cb: function() {
+                    return nanika.ssp.play(window.prompt('send'));
+                  }
+                }, {
                   text: '全消去',
                   cb: delete_storage
                 }, {
