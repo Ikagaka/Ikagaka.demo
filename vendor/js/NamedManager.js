@@ -66,7 +66,7 @@
       return this.namedies[namedId];
     };
 
-    NamedManager.prototype.style = ".scope {\n  position: absolute;\n  pointer-events: none;\n  user-select: none;\n  -webkit-tap-highlight-color: transparent;\n}\n.surface {\n}\n.surfaceCanvas {\n  pointer-events: auto;\n}\n.blimp {\n  position: absolute;\n  top: 0px;\n  left: 0px;\n  pointer-events: auto;\n}\n.blimpCanvas {\n  position: absolute;\n  top: 0px;\n  left: 0px;\n}\n.blimpText {\n  position: absolute;\n  top: 0px;\n  left: 0px;\n  overflow-y: scroll;\n  white-space: pre;\n  white-space: pre-wrap;\n  white-space: pre-line;\n  word-wrap: break-word;\n}\n.blimpText a {\n  text-decoration: underline;\n  cursor: pointer;\n}\n.blimpText a:hover { background-color: yellow; }\n.blimpText a.ikagaka-choice { color: blue; }\n.blimpText a.ikagaka-anchor { color: red; }\n\n@keyframes blink {\n  75% { opacity: 0.0; }\n}\n.blink {\n  animation: blink 1s step-end infinite;\n}";
+    NamedManager.prototype.style = ".scope {\n  position: absolute;\n  pointer-events: none;\n  user-select: none;\n  -webkit-tap-highlight-color: transparent;\n}\n.surface {\n}\n.surfaceCanvas {\n  pointer-events: auto;\n}\n.blimp {\n  position: absolute;\n  top: 0px;\n  left: 0px;\n  pointer-events: auto;\n}\n.blimpCanvas {\n  position: absolute;\n  top: 0px;\n  left: 0px;\n}\n.blimpText {\n  position: absolute;\n  top: 0px;\n  left: 0px;\n  overflow-y: scroll;\n  white-space: pre-wrap;\n  word-wrap: break-all;\n}\n.blimpText a {\n  cursor: pointer;\n}\n\n@keyframes blink {\n  75% { opacity: 0.0; }\n}\n.blink {\n  animation: blink 1s step-end infinite;\n}";
 
     return NamedManager;
 

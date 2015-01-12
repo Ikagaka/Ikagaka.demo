@@ -99,7 +99,7 @@
     };
 
     Scope.prototype.blimp = function(balloonId) {
-      var b, descript, h, l, r, t, tmp, type, w;
+      var b, descript, h, l, location, r, t, tmp, type, w;
       if (Number(balloonId) < 0) {
         this.$blimp.hide();
       } else {
@@ -138,6 +138,77 @@
           });
         }
       }
+      location = (function(_this) {
+        return function(x, y) {
+          var $imp_position_checker, $newimp, $newimp_container, $newimp_container_top, baseoffset, offset, offsetx, offsety, re, toparam, xp, yp;
+          re = /^(@)?(-?\d*\.?\d*e?\d*)(em|%)?$/;
+          toparam = function(r) {
+            var rp, unit, value;
+            if (!((r != null) && r.length)) {
+              return {
+                relative: true,
+                value: 0
+              };
+            }
+            rp = r.match(re);
+            if (!rp) {
+              return;
+            }
+            if (isNaN(rp[2])) {
+              return;
+            }
+            if (rp[3] === '%') {
+              value = rp[2] / 100;
+              unit = 'em';
+            } else {
+              value = Number(rp[2]);
+              unit = rp[3] || 'px';
+            }
+            return {
+              relative: !!rp[1],
+              value: value + unit
+            };
+          };
+          xp = toparam(x);
+          yp = toparam(y);
+          if (!((xp != null) && (yp != null))) {
+            return;
+          }
+          if (xp.relative || yp.relative) {
+            $imp_position_checker = $('<span>.</span>');
+            _this.insertPoint.append($imp_position_checker);
+            offset = $imp_position_checker.offset();
+            baseoffset = _this.$blimpText.offset();
+            offsetx = offset.left - baseoffset.left;
+            offsety = offset.top - baseoffset.top + _this.$blimpText.scrollTop();
+            $imp_position_checker.remove();
+          }
+          if (!xp.relative) {
+            offsetx = 0;
+          }
+          if (!yp.relative) {
+            offsety = 0;
+          }
+          $newimp_container_top = $('<div />').css({
+            'position': 'absolute',
+            'pointer-events': 'none',
+            'top': yp.value
+          });
+          $newimp_container = $('<div />').css({
+            'position': 'absolute',
+            'pointer-events': 'none',
+            'text-indent': offsetx + 'px',
+            'top': offsety + 'px',
+            'width': _this.$blimpText[0].clientWidth
+          });
+          $newimp = $('<span />').css({
+            'pointer-events': 'auto',
+            'margin-left': xp.value
+          });
+          _this.insertPoint = $newimp.appendTo($newimp_container.appendTo($newimp_container_top.appendTo(_this.$blimpText)));
+          return _this.insertPoint.css(_this._blimpTextCSS(_this._current_text_style));
+        };
+      })(this);
       return {
         anchorBegin: (function(_this) {
           return function() {
@@ -253,23 +324,18 @@
         })(this),
         clear: (function(_this) {
           return function() {
+            _this.$blimpText.html("");
             _this.insertPoint = _this.$blimpText;
             _this._initializeCurrentStyle();
-            _this.$blimpText.html("");
           };
         })(this),
         br: (function(_this) {
           return function(ratio) {
-            var $newimp;
             if (ratio != null) {
-              $newimp = $('<span />').css({
-                'position': 'relative',
-                'top': (ratio - 1) + 'em'
-              });
-              _this.insertPoint = $newimp.appendTo(_this.insertPoint);
-              _this.insertPoint.css(_this._blimpTextCSS(_this._current_text_style));
+              location('0', '@' + ratio + 'em');
+            } else {
+              _this.insertPoint.append("<br />");
             }
-            _this.insertPoint.append("<br />");
           };
         })(this),
         showWait: (function(_this) {
@@ -278,82 +344,7 @@
             _this.$blimpText[0].scrollTop = 999;
           };
         })(this),
-        location: (function(_this) {
-          return function(x, y) {
-            var $imp_position_checker, $newimp, $newimp_container, baseoffset, offset, offsetx, offsety, re, toparam, xp, yp;
-            re = /^(@)?(-?\d*\.?\d*e?\d*)(em|%)?$/;
-            toparam = function(r) {
-              var rp, unit, value;
-              if (!((r != null) && r.length)) {
-                return {
-                  relative: true,
-                  value: 0
-                };
-              }
-              rp = r.match(re);
-              if (!rp) {
-                return;
-              }
-              if (isNaN(rp[2])) {
-                return;
-              }
-              if (rp[3] === '%') {
-                value = rp[2] / 100;
-                unit = 'em';
-              } else {
-                value = Number(rp[2]);
-                unit = rp[3] || 'px';
-              }
-              return {
-                relative: !!rp[1],
-                value: value + unit
-              };
-            };
-            xp = toparam(x);
-            yp = toparam(y);
-            if (!((xp != null) && (yp != null))) {
-              return;
-            }
-            if (xp.relative && yp.relative) {
-              $newimp = $('<span />').css({
-                'position': 'relative',
-                'margin-left': xp.value,
-                'top': yp.value
-              });
-              _this.insertPoint = $newimp.appendTo(_this.insertPoint);
-            } else {
-              if (xp.relative || yp.relative) {
-                $imp_position_checker = $('<span>.</span>');
-                _this.insertPoint.append($imp_position_checker);
-                offset = $imp_position_checker.offset();
-                baseoffset = _this.$blimpText.offset();
-                offsetx = offset.left - baseoffset.left;
-                offsety = offset.top - baseoffset.top;
-                $imp_position_checker.remove();
-              }
-              if (!xp.relative) {
-                offsetx = 0;
-              }
-              if (!yp.relative) {
-                offsety = 0;
-              }
-              $newimp_container = $('<div />').css({
-                'position': 'absolute',
-                'pointer-events': 'none',
-                'text-indent': offsetx + 'px',
-                'top': offsety + 'px'
-              });
-              $newimp = $('<span />').css({
-                'position': 'relative',
-                'pointer-events': 'auto',
-                'margin-left': xp.value,
-                'top': yp.value
-              });
-              _this.insertPoint = $newimp.appendTo($newimp_container.appendTo(_this.$blimpText));
-            }
-            return _this.insertPoint.css(_this._blimpTextCSS(_this._current_text_style));
-          };
-        })(this)
+        location: location
       };
     };
 
@@ -378,6 +369,7 @@
         text_decoration.push('underline');
       }
       css["text-decoration"] = text_decoration.length ? text_decoration.join(' ') : "none";
+      css["line-height"] = "1.2em";
       return css;
     };
 
