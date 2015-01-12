@@ -47,9 +47,9 @@
         };
       })(this);
       this._choice_style = clickable_element_style("cursor", "square", descript);
-      this._choice_notselect_style = clickable_element_style("cursor.notselect", void 0, descript);
+      this._choice_notselect_style = clickable_element_style("cursor.notselect", void 0, descript, true);
       this._anchor_style = clickable_element_style("anchor", "underline", descript);
-      this._anchor_notselect_style = clickable_element_style("anchor.notselect", void 0, descript);
+      this._anchor_notselect_style = clickable_element_style("anchor.notselect", void 0, descript, true);
       this.$blimpText.css(this._blimpTextCSS(this._text_style));
       this._initializeCurrentStyle();
       this.element = this.$scope[0];
@@ -253,7 +253,7 @@
             $a.addClass("ikagaka-choice");
             text_css = _this._blimpTextCSS(_this._current_text_style);
             choice_css = _this._blimpClickableTextCSS(_this._current_choice_style);
-            choice_notselect_css = _this._blimpClickableTextCSS(_this._current_choice_notselect_style, _this._current_choice_style);
+            choice_notselect_css = _this._blimpClickableTextCSS(_this._current_choice_notselect_style, _this._current_text_style);
             $a.css(text_css).css(choice_notselect_css.base).css(choice_notselect_css.over);
             $a.mouseover(function() {
               return $a.css(choice_css.base).css(choice_css.over);
@@ -282,7 +282,7 @@
             $a.addClass("ikagaka-choice");
             text_css = _this._blimpTextCSS(_this._current_text_style);
             choice_css = _this._blimpClickableTextCSS(_this._current_choice_style);
-            choice_notselect_css = _this._blimpClickableTextCSS(_this._current_choice_notselect_style, _this._current_choice_style);
+            choice_notselect_css = _this._blimpClickableTextCSS(_this._current_choice_notselect_style, _this._current_text_style);
             $a.css(text_css).css(choice_notselect_css.base).css(choice_notselect_css.over);
             $a.mouseover(function() {
               return $a.css(choice_css.base).css(choice_css.over);
@@ -537,47 +537,52 @@
     };
 
     Scope.prototype._blimpClickableTextCSS = function(styles, default_styles) {
+      var background, border_bottom, color, outline;
       if (default_styles == null) {
         default_styles = {};
       }
+      color = styles["font.color"] || default_styles["font.color"];
+      outline = styles["pen.color"] ? "solid 1px " + styles["pen.color"] : default_styles["pen.color"] ? "solid 1px " + default_styles["pen.color"] : "solid 1px " + default_styles["font.color"];
+      background = styles["brush.color"] || default_styles["brush.color"] || default_styles["font.color"];
+      border_bottom = styles["pen.color"] ? "solid 1px " + styles["pen.color"] : default_styles["pen.color"] ? "solid 1px " + default_styles["pen.color"] : "solid 1px " + default_styles["font.color"];
       switch (styles["style"]) {
         case "square":
           return {
             base: {
-              color: styles["font.color"] || default_styles["font.color"]
+              color: color
             },
             over: {
-              outline: styles["pen.color"] ? "solid 1px " + styles["pen.color"] : "solid 1px " + default_styles["pen.color"],
-              background: styles["brush.color"] || default_styles["brush.color"],
+              outline: outline,
+              background: background,
               "border-bottom": "none"
             }
           };
         case "underline":
           return {
             base: {
-              color: styles["font.color"] || default_styles["font.color"]
+              color: color
             },
             over: {
               outline: "none",
               background: "none",
-              'border-bottom': styles["pen.color"] ? "solid 1px " + styles["pen.color"] : "solid 1px " + default_styles["pen.color"]
+              'border-bottom': border_bottom
             }
           };
         case "square+underline":
           return {
             base: {
-              color: styles["font.color"] || default_styles["font.color"]
+              color: color
             },
             over: {
-              outline: styles["pen.color"] ? "solid 1px " + styles["pen.color"] : "solid 1px " + default_styles["pen.color"],
-              background: styles["brush.color"] || default_styles["brush.color"],
-              'border-bottom': styles["pen.color"] ? "solid 1px " + styles["pen.color"] : "solid 1px " + default_styles["pen.color"]
+              outline: outline,
+              background: background,
+              'border-bottom': border_bottom
             }
           };
         case "none":
           return {
             base: {
-              color: styles["font.color"] || default_styles["font.color"]
+              color: color
             },
             over: {
               outline: "none",
