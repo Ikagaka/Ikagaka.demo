@@ -282,19 +282,19 @@
             return this.named.scope().blimp().marker();
           }
         }, {
-          re: /^\\_u\[0x(\d+)\]/,
+          re: /^\\_u\[([A-Fa-fXx0-9]+)\]/,
           match: function(group, state) {
             state.wait = this.wait_default;
-            return this.named.scope().blimp().talkraw('&#x' + group[1] + ';');
+            return this.named.scope().blimp().talkraw('&#' + Number(group[1]) + ';');
           }
         }, {
-          re: /^\\_m\[0x(\d+)\]/,
+          re: /^\\_m\[([A-Fa-fXx0-9]+)\]/,
           match: function(group, state) {
             state.wait = this.wait_default;
-            return this.named.scope().blimp().talkraw('&#x' + group[1] + ';');
+            return this.named.scope().blimp().talkraw('&#' + Number(group[1]) + ';');
           }
         }, {
-          re: /^\\&\[([^\]]+)\]/,
+          re: /^\\&\[([A-Za-z0-9]+)\]/,
           match: function(group, state) {
             state.wait = this.wait_default;
             return this.named.scope().blimp().talkraw('&' + group[1] + ';');
