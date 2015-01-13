@@ -126,6 +126,9 @@ NativeShiori.prototype._pull_FS = function(base_directory){
 	return storage;
 };
 
+NativeShiori.prototype._canonical = function(path){
+	return path.replace(/\\/, '/').replace(/\/\/+/, '/');
+}
 NativeShiori.prototype._catfile = function(){
 	var path = ''
 	var i = 0;
@@ -133,7 +136,7 @@ NativeShiori.prototype._catfile = function(){
 		var token = arguments[i];
 		path += token.replace(/^\/?/, '/').replace(/\/?$/, '');
 	}
-	return path.replace(/\/\/+/, '/').replace(/\/?$/, '');
+	return NativeShiori.prototype._canonical(path).replace(/\/?$/, '');
 };
 
 NativeShiori.prototype._catfile_rel = function(){
@@ -141,7 +144,7 @@ NativeShiori.prototype._catfile_rel = function(){
 }
 
 NativeShiori.prototype._dirname = function(path){
-	return path.replace(/\/?[^\/]*\/?$/, '');
+	return NativeShiori.prototype._canonical(path).replace(/\/?[^\/]*\/?$/, '');
 };
 
 NativeShiori.prototype._mkpath = function(path){
@@ -160,7 +163,7 @@ NativeShiori.prototype._mkpath = function(path){
 			FS.mkdir(path);
 		}
 	};
-	mkdir(path);
+	mkdir(this._canonical(path));
 	return true;
 };
 
@@ -191,7 +194,7 @@ NativeShiori.prototype._readdirAll = function(path){ // not contain directory
 		}
 		return elements;
 	};
-	elements = readdir(path, '');
+	elements = readdir(this._canonical(path), '');
 	return elements;
 };
 

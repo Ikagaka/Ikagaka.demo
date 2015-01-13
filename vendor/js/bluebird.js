@@ -23,7 +23,7 @@
  * 
  */
 /**
- * bluebird build version 2.6.2
+ * bluebird build version 2.6.4
  * Features enabled: core, race, call_get, generators, map, nodeify, promisify, props, reduce, settle, some, progress, cancel, using, filter, any, each, timers
 */
 !function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.Promise=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
@@ -2386,10 +2386,12 @@ Promise.prototype._settlePromiseAt = function (index) {
                 receiver._promiseRejected(value, promise);
             }
         }
-    } else if (this._isFulfilled()) {
-        promise._fulfill(value);
-    } else {
-        promise._reject(value, carriedStackTrace);
+    } else if (isPromise) {
+        if (this._isFulfilled()) {
+            promise._fulfill(value);
+        } else {
+            promise._reject(value, carriedStackTrace);
+        }
     }
 
     if (index >= 4 && (index & 31) === 4)
@@ -2694,11 +2696,13 @@ PromiseArray.prototype._init = function init(_, resolveValueIfEmpty) {
     this._values = this.shouldCopyValues() ? new Array(len) : this._values;
     var promise = this._promise;
     for (var i = 0; i < len; ++i) {
-        if (this._isResolved()) return;
+        var isResolved = this._isResolved();
         var maybePromise = tryConvertToPromise(values[i], promise);
         if (maybePromise instanceof Promise) {
             maybePromise = maybePromise._target();
-            if (maybePromise._isPending()) {
+            if (isResolved) {
+                maybePromise._unsetRejectionIsUnhandled();
+            } else if (maybePromise._isPending()) {
                 maybePromise._proxyPromiseArray(this, i);
             } else if (maybePromise._isFulfilled()) {
                 this._promiseFulfilled(maybePromise._value(), i);
@@ -2706,7 +2710,7 @@ PromiseArray.prototype._init = function init(_, resolveValueIfEmpty) {
                 maybePromise._unsetRejectionIsUnhandled();
                 this._promiseRejected(maybePromise._reason(), i);
             }
-        } else {
+        } else if (!isResolved) {
             this._promiseFulfilled(maybePromise, i);
         }
     }
@@ -2778,15 +2782,25 @@ function isUntypedError(obj) {
         es5.getPrototypeOf(obj) === Error.prototype;
 }
 
+var rErrorKey = /^(?:name|message|stack|cause)$/;
 function wrapAsOperationalError(obj) {
     var ret;
     if (isUntypedError(obj)) {
         ret = new OperationalError(obj);
-    } else {
-        ret = obj;
+        ret.name = obj.name;
+        ret.message = obj.message;
+        ret.stack = obj.stack;
+        var keys = es5.keys(obj);
+        for (var i = 0; i < keys.length; ++i) {
+            var key = keys[i];
+            if (!rErrorKey.test(key)) {
+                ret[key] = obj[key];
+            }
+        }
+        return ret;
     }
-    errors.markAsOriginatingFromRejection(ret);
-    return ret;
+    errors.markAsOriginatingFromRejection(obj);
+    return obj;
 }
 
 function nodebackForPromise(promise) {
@@ -4171,8 +4185,8 @@ module.exports = function (Promise, apiRejection, tryConvertToPromise) {
     };
 
     Disposer.prototype.resource = function () {
-        if (this.promise()._isFulfilled()) {
-            return this.promise()._value();
+        if (this.promise().isFulfilled()) {
+            return this.promise().value();
         }
         return null;
     };
@@ -4182,7 +4196,7 @@ module.exports = function (Promise, apiRejection, tryConvertToPromise) {
         var ret = resource !== null
             ? this.doDispose(resource, inspection) : null;
         this._promise._unsetDisposable();
-        this._data = this._promise = null;
+        this._data = null;
         return ret;
     };
 
@@ -4202,6 +4216,14 @@ module.exports = function (Promise, apiRejection, tryConvertToPromise) {
         return fn.call(resource, resource, inspection);
     };
 
+    function maybeUnwrapDisposer(value) {
+        if (Disposer.isDisposer(value)) {
+            this.resources[this.index]._setDisposable(value);
+            return value.promise();
+        }
+        return value;
+    }
+
     Promise.using = function () {
         var len = arguments.length;
         if (len < 2) return apiRejection(
@@ -4216,6 +4238,15 @@ module.exports = function (Promise, apiRejection, tryConvertToPromise) {
                 var disposer = resource;
                 resource = resource.promise();
                 resource._setDisposable(disposer);
+            } else {
+                var maybePromise = tryConvertToPromise(resource, undefined);
+                if (maybePromise instanceof Promise) {
+                    resource =
+                        maybePromise._then(maybeUnwrapDisposer, null, null, {
+                            resources: resources,
+                            index: i
+                    }, undefined);
+                }
             }
             resources[i] = resource;
         }
@@ -4247,7 +4278,7 @@ module.exports = function (Promise, apiRejection, tryConvertToPromise) {
 
     Promise.prototype.disposer = function (fn) {
         if (typeof fn === "function") {
-            return new FunctionDisposer(fn, this._target());
+            return new FunctionDisposer(fn, this);
         }
         throw new TypeError();
     };
