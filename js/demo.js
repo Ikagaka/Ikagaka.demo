@@ -557,22 +557,28 @@ $(function() {
     }
     return fs.mkdir(fs_root, function() {
       storage = new NanikaStorage(new NanikaStorage.Backend.FS(fs_root, fs, path, buffer.Buffer));
-      return storage.base_profile().then(function(profile) {
-        if (profile.ghosts == null) {
-          profile.balloonpath = 'origin';
-          profile.ghosts = ['ikaga'];
-          return storage.base_profile(profile).then(function() {
-            install_nar(ghost_nar2, '', '', 'url');
-            return Promise.all([install_nar(balloon_nar, '', '', 'url'), install_nar(ghost_nar, '', '', 'url')]);
-          });
-        } else {
-          return install_nar(ghost_nar, '', '', 'url');
+      return fs.stat(path.dirname(storage.base_profile_path()), function(err, stat) {
+        if (stat != null ? stat.isFile() : void 0) {
+          window.alert("互換性の無い変更が加わりました。\n動作のためには古いファイルを削除する必要があります。");
+          delete_storage();
         }
-      }).then(function() {
-        $('#ikagaka_boot').click(boot_nanikamanager);
-        $('#ikagaka_halt').click(halt_nanikamanager);
-        $('#ikagaka_clean').click(delete_storage);
-        return boot_nanikamanager();
+        return storage.base_profile().then(function(profile) {
+          if (profile.ghosts == null) {
+            profile.balloonpath = 'origin';
+            profile.ghosts = ['ikaga'];
+            return storage.base_profile(profile).then(function() {
+              install_nar(ghost_nar2, '', '', 'url');
+              return Promise.all([install_nar(balloon_nar, '', '', 'url'), install_nar(ghost_nar, '', '', 'url')]);
+            });
+          } else {
+            return install_nar(ghost_nar, '', '', 'url');
+          }
+        }).then(function() {
+          $('#ikagaka_boot').click(boot_nanikamanager);
+          $('#ikagaka_halt').click(halt_nanikamanager);
+          $('#ikagaka_clean').click(delete_storage);
+          return boot_nanikamanager();
+        });
       });
     });
   };

@@ -313,22 +313,26 @@ $ ->
 #		storage = new NanikaStorage(new NanikaStorage.Backend.InMemory())
 		fs.mkdir fs_root, ->
 			storage = new NanikaStorage(new NanikaStorage.Backend.FS(fs_root, fs, path, buffer.Buffer))
-			storage.base_profile()
-			.then (profile) ->
-				unless profile.ghosts?
-					profile.balloonpath = 'origin'
-					profile.ghosts = ['ikaga']
-					storage.base_profile(profile)
-					.then ->
-						install_nar(ghost_nar2, '', '', 'url')
-						Promise.all [install_nar(balloon_nar, '', '', 'url'), install_nar(ghost_nar, '', '', 'url')]
-				else
-					install_nar(ghost_nar, '', '', 'url')
-			.then ->
-				$('#ikagaka_boot').click boot_nanikamanager
-				$('#ikagaka_halt').click halt_nanikamanager
-				$('#ikagaka_clean').click delete_storage
-				boot_nanikamanager()
+			fs.stat path.dirname(storage.base_profile_path()), (err, stat) ->
+				if stat?.isFile()
+					window.alert("互換性の無い変更が加わりました。\n動作のためには古いファイルを削除する必要があります。")
+					delete_storage()
+				storage.base_profile()
+				.then (profile) ->
+					unless profile.ghosts?
+						profile.balloonpath = 'origin'
+						profile.ghosts = ['ikaga']
+						storage.base_profile(profile)
+						.then ->
+							install_nar(ghost_nar2, '', '', 'url')
+							Promise.all [install_nar(balloon_nar, '', '', 'url'), install_nar(ghost_nar, '', '', 'url')]
+					else
+						install_nar(ghost_nar, '', '', 'url')
+				.then ->
+					$('#ikagaka_boot').click boot_nanikamanager
+					$('#ikagaka_halt').click halt_nanikamanager
+					$('#ikagaka_clean').click delete_storage
+					boot_nanikamanager()
 	if require?
 		cb()
 	else
