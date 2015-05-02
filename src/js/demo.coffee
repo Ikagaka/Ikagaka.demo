@@ -311,23 +311,24 @@ $ ->
 			path = require 'path'
 			buffer = require 'buffer'
 #		storage = new NanikaStorage(new NanikaStorage.Backend.InMemory())
-		storage = new NanikaStorage(new NanikaStorage.Backend.FS(fs_root, fs, path, buffer.Buffer))
-		storage.base_profile()
-		.then (profile) ->
-			unless profile.ghosts?
-				profile.balloonpath = 'origin'
-				profile.ghosts = ['ikaga']
-				storage.base_profile(profile)
-				.then ->
-					install_nar(ghost_nar2, '', '', 'url')
-					Promise.all [install_nar(balloon_nar, '', '', 'url'), install_nar(ghost_nar, '', '', 'url')]
-			else
-				install_nar(ghost_nar, '', '', 'url')
-		.then ->
-			$('#ikagaka_boot').click boot_nanikamanager
-			$('#ikagaka_halt').click halt_nanikamanager
-			$('#ikagaka_clean').click delete_storage
-			boot_nanikamanager()
+		fs.mkdir fs_root, ->
+			storage = new NanikaStorage(new NanikaStorage.Backend.FS(fs_root, fs, path, buffer.Buffer))
+			storage.base_profile()
+			.then (profile) ->
+				unless profile.ghosts?
+					profile.balloonpath = 'origin'
+					profile.ghosts = ['ikaga']
+					storage.base_profile(profile)
+					.then ->
+						install_nar(ghost_nar2, '', '', 'url')
+						Promise.all [install_nar(balloon_nar, '', '', 'url'), install_nar(ghost_nar, '', '', 'url')]
+				else
+					install_nar(ghost_nar, '', '', 'url')
+			.then ->
+				$('#ikagaka_boot').click boot_nanikamanager
+				$('#ikagaka_halt').click halt_nanikamanager
+				$('#ikagaka_clean').click delete_storage
+				boot_nanikamanager()
 	if require?
 		cb()
 	else

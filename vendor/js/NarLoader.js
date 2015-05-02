@@ -304,7 +304,7 @@
       descript = {};
       for (i = 0, len = descript_lines.length; i < len; i++) {
         descript_line = descript_lines[i];
-        result = descript_line.match(/^\s*([^,]+?)\s*,\s*(.+?)\s*$/);
+        result = descript_line.match(/^\s*([^,]+?)\s*,\s*(.*?)\s*$/);
         if (!result) {
           throw new Error("wrong descript definition : " + descript_line);
         }

@@ -3685,14 +3685,11 @@ define('core/node_path',["require", "exports", './node_process'], function(requi
             var absolute = p.charAt(0) === path.sep;
             var sections = p.split(path.sep);
 
-			if(sections.length == 2 && sections[0] != '' && sections[1] != ''){
- //               return sections[0];
-			}
             // Do 1 if it's /foo/bar, 2 if it's /foo/bar/
             if (sections.pop() === '' && sections.length > 0) {
                 sections.pop();
             }
-            if (sections.length > 1 || (sections.length === 1 && !absolute)) {
+            if (sections.length > 1) {
                 return sections.join(path.sep);
             } else if (absolute) {
                 return path.sep;

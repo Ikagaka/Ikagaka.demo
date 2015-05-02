@@ -1,6 +1,6 @@
 var EventEmitter, Nanika, NanikaManager, Promise,
-  __hasProp = {}.hasOwnProperty,
-  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+  extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+  hasProp = {}.hasOwnProperty;
 
 Promise = this.Promise;
 
@@ -8,8 +8,8 @@ Nanika = this.Nanika;
 
 EventEmitter = this.EventEmitter2;
 
-NanikaManager = (function(_super) {
-  __extends(NanikaManager, _super);
+NanikaManager = (function(superClass) {
+  extend(NanikaManager, superClass);
 
   function NanikaManager(storage, namedmanager, options) {
     this.storage = storage;
@@ -36,15 +36,15 @@ NanikaManager = (function(_super) {
   };
 
   NanikaManager.prototype.bootall = function() {
-    var dirpath, _i, _len, _ref, _results;
+    var dirpath, i, len, ref, results;
     if (this.profile.ghosts != null) {
-      _ref = this.profile.ghosts;
-      _results = [];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        dirpath = _ref[_i];
-        _results.push(this.boot(dirpath));
+      ref = this.profile.ghosts;
+      results = [];
+      for (i = 0, len = ref.length; i < len; i++) {
+        dirpath = ref[i];
+        results.push(this.boot(dirpath));
       }
-      return _results;
+      return results;
     }
   };
 
@@ -105,9 +105,9 @@ NanikaManager = (function(_super) {
         return Promise.all([close_promise, halt_promise]);
       };
     })(this)).then((function(_this) {
-      return function(_arg) {
+      return function(arg) {
         var changing_script;
-        changing_script = _arg[0];
+        changing_script = arg[0];
         return _this.materialize(dst_dirpath).then(function(dst_nanika) {
           var promise;
           delete _this.no_halt;
@@ -117,10 +117,10 @@ NanikaManager = (function(_super) {
             promise = _this.transact_changed(src_nanika_descript, dst_nanika, changing_script);
           }
           return promise.then(function(changed_script) {
-            var other_dirpath, other_nanika, _ref;
-            _ref = _this.nanikas;
-            for (other_dirpath in _ref) {
-              other_nanika = _ref[other_dirpath];
+            var other_dirpath, other_nanika, ref;
+            ref = _this.nanikas;
+            for (other_dirpath in ref) {
+              other_nanika = ref[other_dirpath];
               if (src_dirpath !== other_dirpath && dst_dirpath !== other_dirpath) {
                 _this.transact_otherchanged(other_nanika, src_nanika_descript, dst_nanika, changing_script, changed_script);
               }
@@ -162,11 +162,11 @@ NanikaManager = (function(_super) {
             promise = _this.transact_called(src_nanika, dst_nanika, calling_script);
           }
           return promise.then(function(called_script) {
-            var other_dirpath, other_nanika, _ref;
+            var other_dirpath, other_nanika, ref;
             _this.transact_callcomplete(src_nanika, dst_nanika, called_script);
-            _ref = _this.nanikas;
-            for (other_dirpath in _ref) {
-              other_nanika = _ref[other_dirpath];
+            ref = _this.nanikas;
+            for (other_dirpath in ref) {
+              other_nanika = ref[other_dirpath];
               if (src_dirpath !== other_dirpath && dst_dirpath !== other_dirpath) {
                 _this.transact_otherbooted(other_nanika, dst_nanika, called_script);
               }
@@ -214,34 +214,34 @@ NanikaManager = (function(_super) {
         return Promise.all([close_promise, halt_promise]);
       };
     })(this)).then((function(_this) {
-      return function(_arg) {
-        var close_script, other_dirpath, other_nanika, _ref, _results;
-        close_script = _arg[0];
-        _ref = _this.nanikas;
-        _results = [];
-        for (other_dirpath in _ref) {
-          other_nanika = _ref[other_dirpath];
+      return function(arg) {
+        var close_script, other_dirpath, other_nanika, ref, results;
+        close_script = arg[0];
+        ref = _this.nanikas;
+        results = [];
+        for (other_dirpath in ref) {
+          other_nanika = ref[other_dirpath];
           if (dirpath !== other_dirpath) {
-            _results.push(_this.transact_otherclosed(other_nanika, nanika_descript, close_script));
+            results.push(_this.transact_otherclosed(other_nanika, nanika_descript, close_script));
           } else {
-            _results.push(void 0);
+            results.push(void 0);
           }
         }
-        return _results;
+        return results;
       };
     })(this));
   };
 
   NanikaManager.prototype.closeall = function(reason) {
-    var dirpath, nanika, promise, promises, _ref;
+    var dirpath, nanika, promise, promises, ref;
     if (reason == null) {
       reason = 'user';
     }
     this.haltghosts = Object.keys(this.nanikas);
     promises = [];
-    _ref = this.nanikas;
-    for (dirpath in _ref) {
-      nanika = _ref[dirpath];
+    ref = this.nanikas;
+    for (dirpath in ref) {
+      nanika = ref[dirpath];
       promise = this.transact_closeall(nanika, reason).then(((function(_this) {
         return function(nanika) {
           return function(script) {
@@ -309,19 +309,19 @@ NanikaManager = (function(_super) {
   };
 
   NanikaManager.prototype.communicate = function(from, to, script, args, age, surface) {
-    var dirpath, nanika, to_match, to_single, _i, _len, _ref, _ref1, _ref2, _results;
+    var dirpath, i, len, nanika, ref, ref1, ref2, results, to_match, to_single;
     if (to === '__SYSTEM_ALL_GHOST__') {
       to_match = {};
-      _ref = this.nanikas;
-      for (dirpath in _ref) {
-        nanika = _ref[dirpath];
+      ref = this.nanikas;
+      for (dirpath in ref) {
+        nanika = ref[dirpath];
         to_match[nanika.ghost.descript['sakura.name']] = true;
       }
     } else if (/\x01/.test(to)) {
       to_match = {};
-      _ref1 = to.split(/\x01/);
-      for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-        to_single = _ref1[_i];
+      ref1 = to.split(/\x01/);
+      for (i = 0, len = ref1.length; i < len; i++) {
+        to_single = ref1[i];
         to_match[to_single] = true;
       }
     } else {
@@ -329,12 +329,12 @@ NanikaManager = (function(_super) {
         to: true
       };
     }
-    _ref2 = this.nanikas;
-    _results = [];
-    for (dirpath in _ref2) {
-      nanika = _ref2[dirpath];
+    ref2 = this.nanikas;
+    results = [];
+    for (dirpath in ref2) {
+      nanika = ref2[dirpath];
       if (to_match[nanika.ghost.descript['sakura.name']]) {
-        _results.push(nanika.request('communicate', {
+        results.push(nanika.request('communicate', {
           sender: from,
           content: script,
           args: args,
@@ -342,16 +342,16 @@ NanikaManager = (function(_super) {
           surface: surface
         }));
       } else {
-        _results.push(void 0);
+        results.push(void 0);
       }
     }
-    return _results;
+    return results;
   };
 
   NanikaManager.prototype._request_callback = function(resolve) {
     return function(args) {
-      var _ref;
-      if (!((_ref = args.value) != null ? _ref.length : void 0)) {
+      var ref;
+      if (!((ref = args.value) != null ? ref.length : void 0)) {
         return resolve('');
       }
     };

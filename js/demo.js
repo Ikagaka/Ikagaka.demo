@@ -1,5 +1,5 @@
 var Console, Nanika, NanikaStorage, NarLoader, Promise,
-  __slice = [].slice;
+  slice = [].slice;
 
 Promise = this.Promise;
 
@@ -80,7 +80,7 @@ $(function() {
   console.log = (function(_this) {
     return function() {
       var args, t;
-      args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+      args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
       log.apply(console, args);
       t = args.join('');
       if (!/SHIORI\/\d\.\d|^\[object Object\]$/.test(t)) {
@@ -91,7 +91,7 @@ $(function() {
   console.warn = (function(_this) {
     return function() {
       var args;
-      args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+      args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
       warn.apply(console, args);
       return con.warn(args.join(''));
     };
@@ -99,7 +99,7 @@ $(function() {
   console.error = (function(_this) {
     return function() {
       var args;
-      args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+      args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
       error.apply(console, args);
       return con.error(args.join(''));
     };
@@ -131,7 +131,7 @@ $(function() {
     $('#ikagaka_boot').attr('disabled', true);
     $('#ikagaka_halt').removeAttr('disabled');
     view_contextmenu = function(nanika, mouse, menulist) {
-      var body, dom, item, li_css, li_css_disabled, li_css_hover, menu, named, offset, x, y, _i, _len;
+      var body, dom, i, item, len, li_css, li_css_disabled, li_css_hover, menu, named, offset, x, y;
       $('#contextmenu').remove();
       named = namedmanager.named(nanika.namedid);
       dom = named.scopes[mouse.args.scope].$scope;
@@ -169,8 +169,8 @@ $(function() {
         margin: '0',
         padding: '0.3em'
       };
-      for (_i = 0, _len = menulist.length; _i < _len; _i++) {
-        item = menulist[_i];
+      for (i = 0, len = menulist.length; i < len; i++) {
+        item = menulist[i];
         if (item.cb != null) {
           (function(item) {
             return menu.append($('<li />').text(item.text).css(li_css).mouseover(function() {
@@ -213,9 +213,9 @@ $(function() {
                   text: 'ゴースト切り替え',
                   cb: function() {
                     return storage.ghosts().then(function(ghosts) {
-                      var dst_dirpath, promises, _fn, _i, _len;
+                      var dst_dirpath, fn, i, len, promises;
                       promises = [];
-                      _fn = function(dst_dirpath) {
+                      fn = function(dst_dirpath) {
                         return promises.push(storage.ghost_name(dst_dirpath).then(function(name) {
                           if (nanikamanager.is_existing_ghost(dst_dirpath) && ghostpath !== dst_dirpath) {
                             return {
@@ -231,9 +231,9 @@ $(function() {
                           }
                         }));
                       };
-                      for (_i = 0, _len = ghosts.length; _i < _len; _i++) {
-                        dst_dirpath = ghosts[_i];
-                        _fn(dst_dirpath);
+                      for (i = 0, len = ghosts.length; i < len; i++) {
+                        dst_dirpath = ghosts[i];
+                        fn(dst_dirpath);
                       }
                       return Promise.all(promises).then(function(submenulist) {
                         return view_contextmenu(nanika, mouse, submenulist);
@@ -244,9 +244,9 @@ $(function() {
                   text: '他のゴーストを呼ぶ',
                   cb: function() {
                     return storage.ghosts().then(function(ghosts) {
-                      var dst_dirpath, promises, _fn, _i, _len;
+                      var dst_dirpath, fn, i, len, promises;
                       promises = [];
-                      _fn = function(dst_dirpath) {
+                      fn = function(dst_dirpath) {
                         return promises.push(storage.ghost_name(dst_dirpath).then(function(name) {
                           if (nanikamanager.is_existing_ghost(dst_dirpath)) {
                             return {
@@ -262,9 +262,9 @@ $(function() {
                           }
                         }));
                       };
-                      for (_i = 0, _len = ghosts.length; _i < _len; _i++) {
-                        dst_dirpath = ghosts[_i];
-                        _fn(dst_dirpath);
+                      for (i = 0, len = ghosts.length; i < len; i++) {
+                        dst_dirpath = ghosts[i];
+                        fn(dst_dirpath);
                       }
                       return Promise.all(promises).then(function(submenulist) {
                         return view_contextmenu(nanika, mouse, submenulist);
@@ -275,9 +275,9 @@ $(function() {
                   text: 'シェル',
                   cb: function() {
                     return storage.shells(ghostpath).then(function(shells) {
-                      var dst_shellpath, promises, _fn, _i, _len;
+                      var dst_shellpath, fn, i, len, promises;
                       promises = [];
-                      _fn = function(dst_shellpath) {
+                      fn = function(dst_shellpath) {
                         return promises.push(storage.shell_name(ghostpath, dst_shellpath).then(function(name) {
                           if (nanika.named.shell.descript.name === name) {
                             return {
@@ -287,30 +287,30 @@ $(function() {
                             return {
                               text: name + ' に変更',
                               cb: function() {
-                                var id, scope, scope_surfaces, _ref;
+                                var id, ref, scope, scope_surfaces;
                                 scope_surfaces = {};
-                                _ref = nanika.named.scopes;
-                                for (id in _ref) {
-                                  scope = _ref[id];
+                                ref = nanika.named.scopes;
+                                for (id in ref) {
+                                  scope = ref[id];
                                   scope_surfaces[id] = scope.currentSurface.surfaces.surfaces[scope.currentSurface.surfaceName].is;
                                 }
                                 return nanika.change_named(dst_shellpath, nanika.profile.balloonpath).then(function() {
-                                  var surface, _results;
-                                  _results = [];
+                                  var results, surface;
+                                  results = [];
                                   for (scope in scope_surfaces) {
                                     surface = scope_surfaces[scope];
-                                    _results.push(nanika.named.scope(scope).surface(surface));
+                                    results.push(nanika.named.scope(scope).surface(surface));
                                   }
-                                  return _results;
+                                  return results;
                                 });
                               }
                             };
                           }
                         }));
                       };
-                      for (_i = 0, _len = shells.length; _i < _len; _i++) {
-                        dst_shellpath = shells[_i];
-                        _fn(dst_shellpath);
+                      for (i = 0, len = shells.length; i < len; i++) {
+                        dst_shellpath = shells[i];
+                        fn(dst_shellpath);
                       }
                       return Promise.all(promises).then(function(submenulist) {
                         return view_contextmenu(nanika, mouse, submenulist);
@@ -321,9 +321,9 @@ $(function() {
                   text: 'バルーン',
                   cb: function() {
                     return storage.balloons().then(function(balloons) {
-                      var dst_dirpath, promises, _fn, _i, _len;
+                      var dst_dirpath, fn, i, len, promises;
                       promises = [];
-                      _fn = function(dst_dirpath) {
+                      fn = function(dst_dirpath) {
                         return promises.push(storage.balloon_name(dst_dirpath).then(function(name) {
                           if (nanika.named.balloon.descript.name === name) {
                             return {
@@ -333,30 +333,30 @@ $(function() {
                             return {
                               text: name + ' に変更',
                               cb: function() {
-                                var id, scope, scope_surfaces, _ref;
+                                var id, ref, scope, scope_surfaces;
                                 scope_surfaces = {};
-                                _ref = nanika.named.scopes;
-                                for (id in _ref) {
-                                  scope = _ref[id];
+                                ref = nanika.named.scopes;
+                                for (id in ref) {
+                                  scope = ref[id];
                                   scope_surfaces[id] = scope.currentSurface.surfaces.surfaces[scope.currentSurface.surfaceName].is;
                                 }
                                 return nanika.change_named(nanika.profile.shellpath, dst_dirpath).then(function() {
-                                  var surface, _results;
-                                  _results = [];
+                                  var results, surface;
+                                  results = [];
                                   for (scope in scope_surfaces) {
                                     surface = scope_surfaces[scope];
-                                    _results.push(nanika.named.scope(scope).surface(surface));
+                                    results.push(nanika.named.scope(scope).surface(surface));
                                   }
-                                  return _results;
+                                  return results;
                                 });
                               }
                             };
                           }
                         }));
                       };
-                      for (_i = 0, _len = balloons.length; _i < _len; _i++) {
-                        dst_dirpath = balloons[_i];
-                        _fn(dst_dirpath);
+                      for (i = 0, len = balloons.length; i < len; i++) {
+                        dst_dirpath = balloons[i];
+                        fn(dst_dirpath);
                       }
                       return Promise.all(promises).then(function(submenulist) {
                         return view_contextmenu(nanika, mouse, submenulist);
@@ -372,10 +372,10 @@ $(function() {
                       display: 'none'
                     }).change((function(_this) {
                       return function(ev) {
-                        var file, _i, _len, _ref;
-                        _ref = ev.target.files;
-                        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-                          file = _ref[_i];
+                        var file, i, len, ref;
+                        ref = ev.target.files;
+                        for (i = 0, len = ref.length; i < len; i++) {
+                          file = ref[i];
                           install_nar(file, ghostpath, nanika.ghost.descript['sakura.name']);
                         }
                         return $('#install_field').remove();
@@ -439,17 +439,17 @@ $(function() {
             };
           })(this)).on('drop', (function(_this) {
             return function(ev) {
-              var file, _i, _len, _ref, _results;
+              var file, i, len, ref, results;
               ev.stopPropagation();
               ev.preventDefault();
               ev.dataTransfer.dropEffect = 'copy';
-              _ref = ev.dataTransfer.files;
-              _results = [];
-              for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-                file = _ref[_i];
-                _results.push(install_nar(file, nanika.ghostpath, nanika.ghost.descript['sakura.name']));
+              ref = ev.dataTransfer.files;
+              results = [];
+              for (i = 0, len = ref.length; i < len; i++) {
+                file = ref[i];
+                results.push(install_nar(file, nanika.ghostpath, nanika.ghost.descript['sakura.name']));
               }
-              return _results;
+              return results;
             };
           })(this));
         };
@@ -511,7 +511,7 @@ $(function() {
       console.error(err.stack);
       throw err;
     }).then(function(install_results) {
-      var balloon, ghost, install_result, _i, _len;
+      var balloon, ghost, i, install_result, len;
       if (install_results == null) {
         console.error('install not accepted: ' + (file.name || file));
         return;
@@ -519,8 +519,8 @@ $(function() {
       console.log('install succeed: ' + (file.name || file));
       ghost = null;
       balloon = null;
-      for (_i = 0, _len = install_results.length; _i < _len; _i++) {
-        install_result = install_results[_i];
+      for (i = 0, len = install_results.length; i < len; i++) {
+        install_result = install_results[i];
         if (install_result.type === 'ghost') {
           ghost = install_result;
         } else if (install_result.type === 'balloon') {
@@ -542,7 +542,7 @@ $(function() {
   };
   storage = null;
   cb = function(err, idbfs) {
-    var buffer, fs, path, _window;
+    var _window, buffer, fs, path;
     _window = {};
     if (typeof require === "undefined" || require === null) {
       BrowserFS.install(_window);
@@ -555,23 +555,25 @@ $(function() {
       path = require('path');
       buffer = require('buffer');
     }
-    storage = new NanikaStorage(new NanikaStorage.Backend.FS(fs_root, fs, path, buffer.Buffer));
-    return storage.base_profile().then(function(profile) {
-      if (profile.ghosts == null) {
-        profile.balloonpath = 'origin';
-        profile.ghosts = ['ikaga'];
-        return storage.base_profile(profile).then(function() {
-          install_nar(ghost_nar2, '', '', 'url');
-          return Promise.all([install_nar(balloon_nar, '', '', 'url'), install_nar(ghost_nar, '', '', 'url')]);
-        });
-      } else {
-        return install_nar(ghost_nar, '', '', 'url');
-      }
-    }).then(function() {
-      $('#ikagaka_boot').click(boot_nanikamanager);
-      $('#ikagaka_halt').click(halt_nanikamanager);
-      $('#ikagaka_clean').click(delete_storage);
-      return boot_nanikamanager();
+    return fs.mkdir(fs_root, function() {
+      storage = new NanikaStorage(new NanikaStorage.Backend.FS(fs_root, fs, path, buffer.Buffer));
+      return storage.base_profile().then(function(profile) {
+        if (profile.ghosts == null) {
+          profile.balloonpath = 'origin';
+          profile.ghosts = ['ikaga'];
+          return storage.base_profile(profile).then(function() {
+            install_nar(ghost_nar2, '', '', 'url');
+            return Promise.all([install_nar(balloon_nar, '', '', 'url'), install_nar(ghost_nar, '', '', 'url')]);
+          });
+        } else {
+          return install_nar(ghost_nar, '', '', 'url');
+        }
+      }).then(function() {
+        $('#ikagaka_boot').click(boot_nanikamanager);
+        $('#ikagaka_halt').click(halt_nanikamanager);
+        $('#ikagaka_clean').click(delete_storage);
+        return boot_nanikamanager();
+      });
     });
   };
   if (typeof require !== "undefined" && require !== null) {
