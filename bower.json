@@ -3,51 +3,19 @@
 	"dependencies": {
 		"es6-shim": ">= 0.21.0",
 		"bluebird": ">= 2.3.11",
-		"underscore": ">= 1.7.0",
-		"zepto": ">= 1.1.4",
 		"jszip": "",
-		"encoding-japanese": "polygonplanet/encoding.js#master",
-		"eventemitter2": ">= 0.4.14",
-		"surfaces_txt2yaml": "",
-		"shiorijk": "",
+		"browserfs": "",
+		"narloader": "",
+		"nanikastorage": "Ikagaka/NanikaStorage",
+		"nanika": "Ikagaka/Nanika",
+		"nanikadefaulteventdefinition": "Ikagaka/NanikaDefaultEventDefinition",
+		"nanikadefaultplugin": "Ikagaka/NanikaDefaultPlugin",
+		"cuttlebone": "",
 		"nativeshiori": "",
 		"kawari.js": "",
 		"kawari7.js": "",
 		"libsatori.js": "",
 		"yaya.js": "",
 		"aya5.js": "",
-		"narloader": "",
-		"nanikastorage": "Ikagaka/NanikaStorage",
-		"nanika": "Ikagaka/Nanika",
-		"nanikadefaulteventdefinition": "Ikagaka/NanikaDefaultEventDefinition",
-		"nanikadefaultplugin": "Ikagaka/NanikaDefaultPlugin",
-		"uupaa.xhrproxy.js": "uupaa/XHRProxy.js",
-		"ikagaka.wmdescript.js": "Ikagaka/WMDescript.js",
-		"ikagaka.nar.js": "",
-		"ikagaka.ghost.js": "",
-		"ikagaka.shell.js": "Ikagaka/Shell.js",
-		"ikagaka.balloon.js": "Ikagaka/Balloon.js",
-		"ikagaka.named.js": "Ikagaka/Named.js",
-		"ikagaka.sakurascriptplayer.js": ""
 	},
-	"exportsOverride": {
-		"encoding-japanese": {
-			"js": "encoding.min.js"
-		},
-		"uupaa.xhrproxy.js": {
-			"js": "lib/XHRProxy.js"
-		},
-		"ikagaka.wmdescript.js": {
-			"js": "src/Descript.js"
-		},
-		"ikagaka.shell.js": {
-			"js": ["Shell.js", "Surface.js", "SurfaceUtil.js"]
-		},
-		"ikagaka.balloon.js": {
-			"js": ["Balloon.js", "BalloonSurface.js"]
-		},
-		"ikagaka.named.js": {
-			"js": ["NamedManager.js", "Named.js", "Scope.js"]
-		}
-	}
 }

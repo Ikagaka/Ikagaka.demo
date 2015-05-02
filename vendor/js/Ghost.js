@@ -101,7 +101,7 @@
       this.directory = directory;
       buffer = this.directory["descript.txt"];
       descriptTxt = Nar.convert(buffer);
-      this.descript = Nar.parseDescript(descriptTxt);
+      this.descript = NarDescript.parse(descriptTxt);
       shiori = Object.keys(Ghost.shiories).find((function(_this) {
         return function(shiori) {
           return Ghost.shiories[shiori].detect(_this.directory);

@@ -74,7 +74,7 @@ $ ->
 				window.onbeforeunload = ->
 				location.reload()
 
-	namedmanager = new NamedManager()
+	namedmanager = new cuttlebone.NamedManager()
 	$(namedmanager.element).appendTo("body")
 
 	nanikamanager = null

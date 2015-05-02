@@ -21,6 +21,50 @@
       this.Buffer = Buffer;
     }
 
+    FS.prototype.ghost_base_path = function() {
+      return this.path.join(this.home, 'ghost');
+    };
+
+    FS.prototype.balloon_base_path = function() {
+      return this.path.join(this.home, 'balloon');
+    };
+
+    FS.prototype.shell_base_path = function(dirpath) {
+      return this.path.join(this.ghost_path(dirpath), 'shell');
+    };
+
+    FS.prototype.ghost_path = function(dirpath) {
+      return this.path.join(this.home, 'ghost', dirpath);
+    };
+
+    FS.prototype.balloon_path = function(dirpath) {
+      return this.path.join(this.home, 'balloon', dirpath);
+    };
+
+    FS.prototype.ghost_master_path = function(dirpath) {
+      return this.path.join(this.ghost_path(dirpath), 'ghost', 'master');
+    };
+
+    FS.prototype.shell_path = function(dirpath, shellpath) {
+      return this.path.join(this.ghost_path(dirpath), 'shell', shellpath);
+    };
+
+    FS.prototype.base_profile_path = function() {
+      return this.path.join(this.home, 'profile', 'base.profile.json');
+    };
+
+    FS.prototype.ghost_profile_path = function(dirpath) {
+      return this.path.join(this.ghost_master_path(dirpath), 'profile', 'ghost.profile.json');
+    };
+
+    FS.prototype.balloon_profile_path = function(dirpath) {
+      return this.path.join(this.balloon_path(dirpath), 'profile', 'balloon.profile.json');
+    };
+
+    FS.prototype.shell_profile_path = function(dirpath, shellpath) {
+      return this.path.join(this.shell_path(dirpath, shellpath), 'profile', 'shell.profile.json');
+    };
+
     FS.prototype._accessor = function(target, directory, merge) {
       var promise;
       promise = new Promise(function(resolve) {
@@ -50,25 +94,25 @@
 
     FS.prototype.ghost = function(dirpath, directory, merge) {
       var target;
-      target = this.path.join(this.home, 'ghost', dirpath);
+      target = this.ghost_path(dirpath);
       return this._accessor(target, directory, merge);
     };
 
     FS.prototype.balloon = function(dirpath, directory, merge) {
       var target;
-      target = this.path.join(this.home, 'balloon', dirpath);
+      target = this.balloon_path(dirpath);
       return this._accessor(target, directory, merge);
     };
 
     FS.prototype.ghost_master = function(dirpath, directory, merge) {
       var target;
-      target = this.path.join(this.home, 'ghost', dirpath, 'ghost', 'master');
+      target = this.ghost_master_path(dirpath);
       return this._accessor(target, directory, merge);
     };
 
     FS.prototype.shell = function(dirpath, shellpath, directory, merge) {
       var target;
-      target = this.path.join(this.home, 'ghost', dirpath, 'shell', shellpath);
+      target = this.shell_path(dirpath, shellpath);
       return this._accessor(target, directory, merge);
     };
 
@@ -110,43 +154,43 @@
 
     FS.prototype.base_profile = function(profile) {
       var target;
-      target = this.path.join(this.home, 'profile');
+      target = this.base_profile_path();
       return this._profile(target, profile);
     };
 
     FS.prototype.ghost_profile = function(dirpath, profile) {
       var target;
-      target = this.path.join(this.home, 'ghost', dirpath, 'ghost', 'master', 'profile');
+      target = this.ghost_profile_path(dirpath);
       return this._profile(target, profile);
     };
 
     FS.prototype.balloon_profile = function(dirpath, profile) {
       var target;
-      target = this.path.join(this.home, 'balloon', dirpath, 'profile');
+      target = this.balloon_profile_path(dirpath);
       return this._profile(target, profile);
     };
 
     FS.prototype.shell_profile = function(dirpath, shellpath, profile) {
       var target;
-      target = this.path.join(this.home, 'ghost', dirpath, 'shell', shellpath, 'profile');
+      target = this.shell_profile_path(dirpath, shellpath);
       return this._profile(target, profile);
     };
 
     FS.prototype.ghosts = function() {
       var target;
-      target = this.path.join(this.home, 'ghost');
+      target = this.ghost_base_path();
       return this._readdir(target);
     };
 
     FS.prototype.balloons = function() {
       var target;
-      target = this.path.join(this.home, 'balloon');
+      target = this.balloon_base_path();
       return this._readdir(target);
     };
 
     FS.prototype.shells = function(dirpath) {
       var target;
-      target = this.path.join(this.home, 'ghost', dirpath, 'shell');
+      target = this.shell_base_path(dirpath);
       return this._readdir(target);
     };
 
@@ -177,25 +221,25 @@
 
     FS.prototype.ghost_names = function() {
       var target;
-      target = this.path.join(this.home, 'ghost');
+      target = this.ghost_base_path();
       return this._elements_name(target, 'install.txt');
     };
 
     FS.prototype.balloon_names = function() {
       var target;
-      target = this.path.join(this.home, 'balloon');
+      target = this.balloon_base_path();
       return this._elements_name(target, 'descript.txt');
     };
 
     FS.prototype.shell_names = function(dirpath) {
       var target;
-      target = this.path.join(this.home, 'ghost', dirpath, 'shell');
+      target = this.shell_base_path(dirpath);
       return this._elements_name(target, 'descript.txt');
     };
 
     FS.prototype.ghost_name = function(dirpath) {
       var target;
-      target = this.path.join(this.home, 'ghost', dirpath);
+      target = this.ghost_path(dirpath);
       return this._FSFileToDirectory(target, 'install.txt').then(function(directory) {
         return directory.install.name;
       });
@@ -203,7 +247,7 @@
 
     FS.prototype.balloon_name = function(dirpath) {
       var target;
-      target = this.path.join(this.home, 'balloon', dirpath);
+      target = this.balloon_path(dirpath);
       return this._FSFileToDirectory(target, 'descript.txt').then(function(directory) {
         return directory.descript.name;
       });
@@ -211,7 +255,7 @@
 
     FS.prototype.shell_name = function(dirpath, shellpath) {
       var target;
-      target = this.path.join(this.home, 'ghost', dirpath, 'shell', shellpath);
+      target = this.shell_path(dirpath, shellpath);
       return this._FSFileToDirectory(target, 'descript.txt').then(function(directory) {
         return directory.descript.name;
       });
@@ -219,13 +263,13 @@
 
     FS.prototype.delete_ghost = function(dirpath) {
       var target;
-      target = this.path.join(this.home, 'ghost', dirpath);
+      target = this.ghost_path(dirpath);
       return this._rmAll(target);
     };
 
     FS.prototype.delete_balloon = function(dirpath) {
       var target;
-      target = this.path.join(this.home, 'balloon', dirpath);
+      target = this.balloon_path(dirpath);
       return this._rmAll(target);
     };
 
@@ -296,19 +340,19 @@
 
     FS.prototype.filter_ghost = function(dirpath, paths) {
       var target;
-      target = this.path.join(this.home, 'ghost', dirpath);
+      target = this.ghost_path(dirpath);
       return this._filter_elements(target, paths);
     };
 
     FS.prototype.filter_balloon = function(dirpath, paths) {
       var target;
-      target = this.path.join(this.home, 'balloon', dirpath);
+      target = this.balloon_path(dirpath);
       return this._filter_elements(target, paths);
     };
 
     FS.prototype.filter_shell = function(dirpath, shellpath, paths) {
       var target;
-      target = this.path.join(this.home, 'ghost', dirpath, 'shell', shellpath);
+      target = this.shell_path(dirpath, shellpath);
       return this._filter_elements(target, paths);
     };
 

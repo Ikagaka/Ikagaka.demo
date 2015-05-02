@@ -11,6 +11,50 @@
       this.backend = backend;
     }
 
+    NanikaStorage.prototype.ghost_base_path = function() {
+      return this.backend.ghost_base_path();
+    };
+
+    NanikaStorage.prototype.balloon_base_path = function() {
+      return this.backend.balloon_base_path();
+    };
+
+    NanikaStorage.prototype.shell_base_path = function(dirpath) {
+      return this.backend.shell_base_path(dirpath);
+    };
+
+    NanikaStorage.prototype.ghost_path = function(dirpath) {
+      return this.backend.ghost_path(dirpath);
+    };
+
+    NanikaStorage.prototype.balloon_path = function(dirpath) {
+      return this.backend.balloon_path(dirpath);
+    };
+
+    NanikaStorage.prototype.ghost_master_path = function(dirpath) {
+      return this.backend.ghost_master_path(dirpath);
+    };
+
+    NanikaStorage.prototype.shell_path = function(dirpath, shellpath) {
+      return this.backend.shell_path(dirpath, shellpath);
+    };
+
+    NanikaStorage.prototype.base_profile_path = function() {
+      return this.backend.base_profile_path();
+    };
+
+    NanikaStorage.prototype.ghost_profile_path = function(dirpath) {
+      return this.backend.ghost_profile_path(dirpath);
+    };
+
+    NanikaStorage.prototype.balloon_profile_path = function(dirpath) {
+      return this.backend.balloon_profile_path(dirpath);
+    };
+
+    NanikaStorage.prototype.shell_profile_path = function(dirpath, shellpath) {
+      return this.backend.shell_profile_path(dirpath, shellpath);
+    };
+
     NanikaStorage.prototype.ghost = function(dirpath, directory, merge) {
       return new Promise(function(resolve) {
         return resolve();

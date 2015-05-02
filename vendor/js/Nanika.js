@@ -70,7 +70,7 @@
       return this.storage.shell(this.ghostpath, shellpath).then((function(_this) {
         return function(directory) {
           var shell;
-          shell = new Shell(directory.asArrayBuffer());
+          shell = new cuttlebone.Shell(directory.asArrayBuffer());
           return shell.load().then(function() {
             _this.log("shell loaded");
             _this.profile.shellpath = shellpath;
@@ -85,7 +85,7 @@
       return this.storage.balloon(balloonpath).then((function(_this) {
         return function(directory) {
           var balloon;
-          balloon = new Balloon(directory.asArrayBuffer());
+          balloon = new cuttlebone.Balloon(directory.asArrayBuffer());
           return balloon.load().then(function() {
             _this.log("balloon loaded");
             _this.profile.balloonpath = balloonpath;
