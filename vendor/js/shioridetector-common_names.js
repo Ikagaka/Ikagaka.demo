@@ -40,7 +40,7 @@
     });
   };
 
-  resolve_pseudo_shiori = function(resolve, reject, fs, shiori) {
+  resolve_pseudo_shiori = function(resolve, reject, fs, shiori, shiori_name) {
     var error;
     if (shiori != null) {
       try {
@@ -68,7 +68,7 @@
         shiori_name = shiori_by_dll_name[shiori_path];
         if (shiori_name != null) {
           shiori = shiories[shiori_name];
-          return resolve_pseudo_shiori(resolve, reject, fs, shiori);
+          return resolve_pseudo_shiori(resolve, reject, fs, shiori, shiori_name);
         } else {
           detect_promise = stat_detect(fs, dirpath + 'kawarirc.kis', 'kawari')["catch"](function() {
             return stat_detect(fs, dirpath + 'kawari.ini', 'kawari7');
@@ -83,7 +83,7 @@
           }
           return detect_promise.then(function(shiori_name) {
             shiori = shiories[shiori_name];
-            return resolve_pseudo_shiori(resolve, reject, fs, shiori);
+            return resolve_pseudo_shiori(resolve, reject, fs, shiori, shiori_name);
           }, function(error) {
             return resolve(null);
           });
