@@ -93,16 +93,17 @@ $ ->
 			menu = $('<ul />').attr('id', 'contextmenu')
 			.css(position: 'fixed', bottom: y, right: x, background: '#fff', 'z-index': 100, margin: '0', padding: '0', 'list-style': 'none', border: '1px solid black')
 			li_css = color: '#222', background: '#fff', margin: '0', padding: '0.3em', cursor: 'pointer'
+			li_css_hover = color: '#222', background: '#cff', margin: '0', padding: '0.3em', cursor: 'pointer'
 			li_css_disabled = color: '#666', background: '#eee', margin: '0', padding: '0.3em'
 			for item in menulist
 				if item.cb?
 					((item) ->
-						menu.append $('<li />').text(item.text).css(li_css).click ->
+						menu.append $('<li />').text(item.text).css(li_css).mouseover(-> $(@).css(li_css_hover)).mouseout(-> $(@).css(li_css)).click ->
 							hide_contextmenu()
 							item.cb()
 					)(item)
 				else
-					menu.append $('<li />').text(item.text).css(li_css_disabled)
+					menu.append $('<li />').text(item.text).css(li_css_disabled).mouseover(-> $(@).css(li_css_disabled)).mouseout(-> $(@).css(li_css_disabled))
 			body = $('body')
 			body.append(menu)
 		hide_contextmenu = -> $('#contextmenu').remove()

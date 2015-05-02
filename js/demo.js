@@ -131,7 +131,7 @@ $(function() {
     $('#ikagaka_boot').attr('disabled', true);
     $('#ikagaka_halt').removeAttr('disabled');
     view_contextmenu = function(nanika, mouse, menulist) {
-      var body, dom, item, li_css, li_css_disabled, menu, named, offset, x, y, _i, _len;
+      var body, dom, item, li_css, li_css_disabled, li_css_hover, menu, named, offset, x, y, _i, _len;
       $('#contextmenu').remove();
       named = namedmanager.named(nanika.namedid);
       dom = named.scopes[mouse.args.scope].$scope;
@@ -156,6 +156,13 @@ $(function() {
         padding: '0.3em',
         cursor: 'pointer'
       };
+      li_css_hover = {
+        color: '#222',
+        background: '#cff',
+        margin: '0',
+        padding: '0.3em',
+        cursor: 'pointer'
+      };
       li_css_disabled = {
         color: '#666',
         background: '#eee',
@@ -166,13 +173,21 @@ $(function() {
         item = menulist[_i];
         if (item.cb != null) {
           (function(item) {
-            return menu.append($('<li />').text(item.text).css(li_css).click(function() {
+            return menu.append($('<li />').text(item.text).css(li_css).mouseover(function() {
+              return $(this).css(li_css_hover);
+            }).mouseout(function() {
+              return $(this).css(li_css);
+            }).click(function() {
               hide_contextmenu();
               return item.cb();
             }));
           })(item);
         } else {
-          menu.append($('<li />').text(item.text).css(li_css_disabled));
+          menu.append($('<li />').text(item.text).css(li_css_disabled).mouseover(function() {
+            return $(this).css(li_css_disabled);
+          }).mouseout(function() {
+            return $(this).css(li_css_disabled);
+          }));
         }
       }
       body = $('body');
