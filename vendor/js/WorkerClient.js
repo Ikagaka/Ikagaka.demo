@@ -22,7 +22,7 @@
         contents = null;
       }
       if (transferable == null) {
-        transferable = null;
+        transferable = void 0;
       }
       id = this.request_id++;
       return new Promise((function(_this) {
