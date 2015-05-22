@@ -1679,7 +1679,7 @@ var cuttlebone;
             if (!this.hasFile(filename)) {
                 filename += ".png";
                 if (!this.hasFile(filename)) {
-                    throw new Error("no such file in directory: " + filename.replace(/\.png$/i, ""));
+                    return Promise.reject(new Error("no such file in directory: " + filename.replace(/\.png$/i, "")));
                 }
                 console.warn("element file " + filename + " need '.png' extension");
             }
