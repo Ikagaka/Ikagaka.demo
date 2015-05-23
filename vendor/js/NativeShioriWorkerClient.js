@@ -25,7 +25,7 @@
 
     NativeShioriWorkerClient.prototype.load = function(dirpath) {
       var fs_root, result;
-      result = dirpath.match(/^(.+)ghost\/([^\/]+)\/ghost\/master\/$/);
+      result = dirpath.match(/^(.+)ghost[\\\/]([^\/]+)[\\\/]ghost[\\\/]master[\\\/]$/);
       fs_root = result[1];
       this.dirpath = dirpath;
       this.ghostpath = result[2];
