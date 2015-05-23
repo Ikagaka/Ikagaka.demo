@@ -570,8 +570,6 @@ $(function() {
               install_nar(ghost_nar2, '', '', 'url');
               return Promise.all([install_nar(balloon_nar, '', '', 'url'), install_nar(ghost_nar, '', '', 'url')]);
             });
-          } else {
-            return install_nar(ghost_nar, '', '', 'url');
           }
         }).then(function() {
           $('#ikagaka_boot').click(boot_nanikamanager);

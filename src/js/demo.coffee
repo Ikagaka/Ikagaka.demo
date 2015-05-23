@@ -326,8 +326,9 @@ $ ->
 						.then ->
 							install_nar(ghost_nar2, '', '', 'url')
 							Promise.all [install_nar(balloon_nar, '', '', 'url'), install_nar(ghost_nar, '', '', 'url')]
-					else
-						install_nar(ghost_nar, '', '', 'url')
+#					else
+						# always update default ghost
+#						install_nar(ghost_nar, '', '', 'url')
 				.then ->
 					$('#ikagaka_boot').click boot_nanikamanager
 					$('#ikagaka_halt').click halt_nanikamanager
