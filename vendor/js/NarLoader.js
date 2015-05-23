@@ -67,22 +67,41 @@
     NarLoader.wget = function(url, type) {
       return new Promise((function(_this) {
         return function(resolve, reject) {
-          var xhr;
-          xhr = new XMLHttpRequest();
-          xhr.addEventListener("load", function() {
-            var ref;
-            if ((200 <= (ref = xhr.status) && ref < 300)) {
-              return resolve(xhr.response);
-            } else {
+          var fs, xhr;
+          if (typeof require !== "undefined" && require !== null) {
+            fs = require('fs');
+            return fs.readFile(url, function(error, buffer) {
+              var abuffer, i, view;
+              if (error) {
+                return reject(error);
+              } else {
+                abuffer = new ArrayBuffer(buffer.length);
+                view = new Uint8Array(abuffer);
+                i = 0;
+                while (i < buffer.length) {
+                  view[i] = buffer.readUInt8(i);
+                  i++;
+                }
+                return resolve(abuffer);
+              }
+            });
+          } else {
+            xhr = new XMLHttpRequest();
+            xhr.addEventListener("load", function() {
+              var ref;
+              if ((200 <= (ref = xhr.status) && ref < 300)) {
+                return resolve(xhr.response);
+              } else {
+                return reject(xhr.statusText);
+              }
+            });
+            xhr.addEventListener("error", function() {
               return reject(xhr.statusText);
-            }
-          });
-          xhr.addEventListener("error", function() {
-            return reject(xhr.statusText);
-          });
-          xhr.open("GET", url);
-          xhr.responseType = type;
-          return xhr.send();
+            });
+            xhr.open("GET", url);
+            xhr.responseType = type;
+            return xhr.send();
+          }
         };
       })(this));
     };
@@ -230,13 +249,13 @@
     };
 
     NanikaDirectory.prototype.getElements = function(elempaths, options) {
-      var directory, elempath, elempathre, i, len;
+      var directory, elempath, elempathre, j, len;
       if (!(elempaths instanceof Array)) {
         elempaths = [elempaths];
       }
       directory = {};
-      for (i = 0, len = elempaths.length; i < len; i++) {
-        elempath = elempaths[i];
+      for (j = 0, len = elempaths.length; j < len; j++) {
+        elempath = elempaths[j];
         elempathre = this.pathToRegExp(elempath);
         Object.keys(this.files).filter(function(path) {
           return elempathre.test(path);
@@ -248,7 +267,7 @@
     };
 
     NanikaDirectory.prototype.removeElements = function(elempaths, options) {
-      var directory, elempath, elempathre, file, i, len, path, ref;
+      var directory, elempath, elempathre, file, j, len, path, ref;
       if (!(elempaths instanceof Array)) {
         elempaths = [elempaths];
       }
@@ -258,8 +277,8 @@
         file = ref[path];
         directory[path] = file;
       }
-      for (i = 0, len = elempaths.length; i < len; i++) {
-        elempath = elempaths[i];
+      for (j = 0, len = elempaths.length; j < len; j++) {
+        elempath = elempaths[j];
         elempathre = this.pathToRegExp(elempath);
         Object.keys(directory).filter(function(path) {
           return elempathre.test(path);
@@ -299,11 +318,11 @@
     function NarDescript() {}
 
     NarDescript.parse = function(descript_str) {
-      var descript, descript_line, descript_lines, i, len, result;
+      var descript, descript_line, descript_lines, j, len, result;
       descript_lines = descript_str.replace(/(?:\r\n|\r|\n)/g, "\n").replace(/^\s*\/\/.*$/mg, "").replace(/\n+/g, "\n").replace(/\n$/, "").split(/\n/);
       descript = {};
-      for (i = 0, len = descript_lines.length; i < len; i++) {
-        descript_line = descript_lines[i];
+      for (j = 0, len = descript_lines.length; j < len; j++) {
+        descript_line = descript_lines[j];
         result = descript_line.match(/^\s*([^,]+?)\s*,\s*(.*?)\s*$/);
         if (!result) {
           throw new Error("wrong descript definition : " + descript_line);

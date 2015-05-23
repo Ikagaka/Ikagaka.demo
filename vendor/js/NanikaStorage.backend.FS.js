@@ -707,25 +707,21 @@
 
     FS.prototype._toArrayBuffer = function(buffer) {
       var abuffer, i, view;
-      if (buffer.set != null) {
-        abuffer = new ArrayBuffer(buffer.length);
-        view = new Uint8Array(abuffer);
-        i = 0;
-        while (i < buffer.length) {
-          view[i] = buffer.readUInt8(i);
-          i++;
-        }
-        return abuffer;
-      } else {
-        return new Uint8Array(buffer).buffer;
+      abuffer = new ArrayBuffer(buffer.length);
+      view = new Uint8Array(abuffer);
+      i = 0;
+      while (i < buffer.length) {
+        view[i] = buffer.readUInt8(i);
+        i++;
       }
+      return abuffer;
     };
 
     FS.prototype._fromArrayBuffer = function(abuffer) {
-      if (this.Buffer.prototype.set != null) {
-        return new this.Buffer(abuffer);
-      } else {
+      try {
         return new this.Buffer(new Uint8Array(abuffer));
+      } catch (_error) {
+        return new this.Buffer(abuffer);
       }
     };
 
