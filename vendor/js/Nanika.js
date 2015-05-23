@@ -51,9 +51,11 @@
     };
 
     Nanika.prototype.load_shiori = function() {
-      var dirpath;
+      var dirpath, path_separator;
       this.log("initializing shiori");
-      dirpath = this.storage.ghost_master_path(this.ghostpath).replace(/\/?$/, '/');
+      dirpath = this.storage.ghost_master_path(this.ghostpath);
+      path_separator = dirpath.match(/([\\\/])/)[1];
+      dirpath = dirpath.replace(new RegExp('\\' + path_separator + '?$'), path_separator);
       return this.storage.ghost_master(this.ghostpath).then((function(_this) {
         return function(directory) {
           return _this.ghost = {
