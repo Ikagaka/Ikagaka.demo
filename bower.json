@@ -8,6 +8,7 @@
 		"narloader": "",
 		"nanikastorage": "Ikagaka/NanikaStorage",
 		"nanika": "Ikagaka/Nanika",
+		"nanikamanager": "Ikagaka/NanikaManager",
 		"nanikadefaulteventdefinition": "Ikagaka/NanikaDefaultEventDefinition",
 		"nanikadefaultplugin": "Ikagaka/NanikaDefaultPlugin",
 		"cuttlebone": "",
