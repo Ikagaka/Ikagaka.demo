@@ -134,7 +134,7 @@ $(function() {
       var body, dom, i, item, len, li_css, li_css_disabled, li_css_hover, menu, named, offset, x, y;
       $('#contextmenu').remove();
       named = namedmanager.named(nanika.namedid);
-      dom = named.scopes[mouse.args.scope].$scope;
+      dom = named.scopes[mouse.args.scopeId].$scope;
       offset = dom.offset();
       x = window.innerWidth - (offset.left + mouse.args.offsetX);
       y = window.innerHeight - (offset.top + mouse.args.offsetY);
@@ -205,6 +205,7 @@ $(function() {
         });
         return nanika.on('response.mouseclick', function(args) {
           var ghostpath, menulist;
+          mouse.args.event.preventDefault();
           if ((args.value == null) || !args.value.length) {
             if (mouse.args.button === 1) {
               ghostpath = nanika.ghostpath;
@@ -418,32 +419,18 @@ $(function() {
       initialize: function(nanika) {
         var main;
         main = function() {
-          var $named;
+          var named;
           if (nanika.namedid == null) {
             return;
           }
-          $named = namedmanager.named(nanika.namedid).$named;
-          return $named.attr('draggable', 'true').on('dragenter', (function(_this) {
-            return function(ev) {
-              ev.stopPropagation();
-              ev.preventDefault();
-              ev.dataTransfer.dropEffect = 'copy';
-              return false;
-            };
-          })(this)).on('dragover', (function(_this) {
-            return function(ev) {
-              ev.stopPropagation();
-              ev.preventDefault();
-              ev.dataTransfer.dropEffect = 'copy';
-              return false;
-            };
-          })(this)).on('drop', (function(_this) {
+          named = namedmanager.named(nanika.namedid);
+          return named.on('filedrop', (function(_this) {
             return function(ev) {
               var file, i, len, ref, results;
-              ev.stopPropagation();
-              ev.preventDefault();
-              ev.dataTransfer.dropEffect = 'copy';
-              ref = ev.dataTransfer.files;
+              ev.event.stopPropagation();
+              ev.event.preventDefault();
+              ev.event.originalEvent.dataTransfer.dropEffect = 'copy';
+              ref = ev.event.originalEvent.dataTransfer.files;
               results = [];
               for (i = 0, len = ref.length; i < len; i++) {
                 file = ref[i];

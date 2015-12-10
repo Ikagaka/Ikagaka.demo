@@ -62,7 +62,7 @@ $ ->
 	console.error = (args...) =>
 		error.apply console, args
 		con.error args.join ''
-	
+
 	fs_root = 'ikagaka'
 	balloon_nar = './vendor/nar/origin.nar'
 	ghost_nar = './vendor/nar/ikaga.nar'
@@ -86,7 +86,7 @@ $ ->
 		view_contextmenu = (nanika, mouse, menulist) ->
 			$('#contextmenu').remove()
 			named = namedmanager.named nanika.namedid
-			dom = named.scopes[mouse.args.scope].$scope
+			dom = named.scopes[mouse.args.scopeId].$scope
 			offset = dom.offset()
 			x = window.innerWidth - (offset.left + mouse.args.offsetX)
 			y = window.innerHeight - (offset.top + mouse.args.offsetY)
@@ -112,6 +112,7 @@ $ ->
 			nanika.on 'request.mouseclick', (args) ->
 				mouse.args = args
 			nanika.on 'response.mouseclick', (args) ->
+				mouse.args.event.preventDefault()
 				if not args.value? or not args.value.length
 					if mouse.args.button == 1
 						ghostpath = nanika.ghostpath
@@ -218,23 +219,12 @@ $ ->
 			main = ->
 				unless nanika.namedid?
 					return
-				$named = namedmanager.named(nanika.namedid).$named
-				$named.attr('draggable', 'true')
-				.on 'dragenter', (ev) =>
-					ev.stopPropagation()
-					ev.preventDefault()
-					ev.dataTransfer.dropEffect = 'copy'
-					false
-				.on 'dragover', (ev) =>
-					ev.stopPropagation()
-					ev.preventDefault()
-					ev.dataTransfer.dropEffect = 'copy'
-					false
-				.on 'drop', (ev) =>
-					ev.stopPropagation()
-					ev.preventDefault()
-					ev.dataTransfer.dropEffect = 'copy'
-					for file in ev.dataTransfer.files
+				named = namedmanager.named(nanika.namedid)
+				named.on 'filedrop', (ev) =>
+					ev.event.stopPropagation()
+					ev.event.preventDefault()
+					ev.event.originalEvent.dataTransfer.dropEffect = 'copy'
+					for file in ev.event.originalEvent.dataTransfer.files
 						install_nar file, nanika.ghostpath, nanika.ghost.descript['sakura.name']
 			main()
 			nanika.on 'named.initialized', main
@@ -296,7 +286,7 @@ $ ->
 		.catch (err) ->
 			console.error(err, err.stack)
 			alert(err)
-	
+
 	storage = null
 	cb = (err, idbfs) ->
 		_window = {}
