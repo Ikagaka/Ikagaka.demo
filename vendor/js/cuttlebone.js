@@ -13372,7 +13372,7 @@ module.exports={
     "/"
   ],
   "_resolved": "git://github.com/ikagaka/Balloon.js.git#17de24c156985f38868833140b253b7571ab2be9",
-  "_shasum": "907df9eb96b9afa9fef52126e60917c2dabb73af",
+  "_shasum": "1c682b7ef635c8154fc509b87c65e61ed3fe15c6",
   "_shrinkwrap": null,
   "_spec": "github:ikagaka/Balloon.js",
   "_where": "/Users/yohsukeino/GitHub/Ikagaka/cuttlebone",
@@ -13632,6 +13632,7 @@ module.exports={
                   return _this.$named.appendTo(_this.nmdmgr.element);
                 }), 300);
             }
+            ev.scope = ev.scopeId;
             _this.emit(ev.type, ev);
           });
         });
@@ -13701,6 +13702,7 @@ module.exports={
                   return _this.$named.appendTo(_this.nmdmgr.element);
                 }), wait);
             }
+            ev.scope = ev.scopeId;
             switch (ev.type) {
               case "click":
                 ev.type = "balloonclick";
@@ -13715,6 +13717,7 @@ module.exports={
       })(this)();
       this.balloon.on("select", (function(_this) {
         return function(ev) {
+          ev.scope = ev.scopeId;
           switch (ev.type) {
             case "choiceselect":
               _this.emit("choiceselect", ev);
@@ -13740,20 +13743,26 @@ module.exports={
         return ev.stopPropagation();
       });
       this.$named.on("dragover", function(ev) {
+        var scopeId;
         ev.preventDefault();
         ev.stopPropagation();
+        scopeId = Number($(this).attr("scopeId"));
         return that.emit("filedropping", {
           type: "filedropping",
-          scopeId: Number($(this).attr("scopeId")),
+          scopeId: scopeId,
+          scope: scopeId,
           event: ev
         });
       });
       this.$named.on("drop", ".scope", function(ev) {
+        var scopeId;
         ev.preventDefault();
         ev.stopPropagation();
+        scopeId = Number($(this).attr("scopeId"));
         return that.emit("filedrop", {
           type: "filedrop",
-          scopeId: Number($(this).attr("scopeId")),
+          scopeId: scopeId,
+          scope: scopeId,
           event: ev
         });
       });
@@ -15895,7 +15904,7 @@ module.exports={
     "/ikagaka.namedmanager.js"
   ],
   "_resolved": "git://github.com/ikagaka/Shell.js.git#ac4e474eb5aa2d315ea6a575c75ea8ddad0de233",
-  "_shasum": "f1f0b5ac006f2102424354d336faa3986d69c45b",
+  "_shasum": "6a2efcc5cb7f0c832ad2ed863ca089e2778402e9",
   "_shrinkwrap": null,
   "_spec": "ikagaka.shell.js@github:ikagaka/Shell.js#master",
   "_where": "/Users/yohsukeino/GitHub/Ikagaka/cuttlebone/node_modules/ikagaka.namedmanager.js",
@@ -15972,7 +15981,7 @@ module.exports={
     ]
   ],
   "_from": "ikagaka/namedmanager.js",
-  "_id": "ikagaka.namedmanager.js@4.1.16",
+  "_id": "ikagaka.namedmanager.js@4.1.17",
   "_inCache": true,
   "_installable": true,
   "_location": "/ikagaka.namedmanager.js",
@@ -16003,8 +16012,8 @@ module.exports={
   "_requiredBy": [
     "/"
   ],
-  "_resolved": "git://github.com/ikagaka/namedmanager.js.git#2a5d03a52c41e5e62a8e0ed65cddc323a21a4732",
-  "_shasum": "e7ea8ef420d6e28abbd5001e61a2efa1e9eaa38b",
+  "_resolved": "git://github.com/ikagaka/namedmanager.js.git#e97ed46ea8165d1cffdf65f3fea7558db8b4d401",
+  "_shasum": "e5d00610dfaf9ad2446c340d83a416f8738481ff",
   "_shrinkwrap": null,
   "_spec": "github:ikagaka/namedmanager.js",
   "_where": "/Users/yohsukeino/GitHub/Ikagaka/cuttlebone",
@@ -16029,7 +16038,7 @@ module.exports={
   },
   "description": "Ikagaka Window Manager",
   "devDependencies": {},
-  "gitHead": "2a5d03a52c41e5e62a8e0ed65cddc323a21a4732",
+  "gitHead": "e97ed46ea8165d1cffdf65f3fea7558db8b4d401",
   "homepage": "https://github.com/ikagaka/NamedManager.js#readme",
   "keywords": [
     "ikagaka",
@@ -16057,7 +16066,7 @@ module.exports={
     "update": "rm -rf bower_components node_modules; npm update; bower update"
   },
   "url": "https://github.com/ikagaka/NamedManager.js",
-  "version": "4.1.16"
+  "version": "4.1.17"
 }
 
 },{}],22:[function(require,module,exports){
@@ -16106,7 +16115,7 @@ module.exports={
     "/ikagaka.balloon.js"
   ],
   "_resolved": "git://github.com/ikagaka/Shell.js.git#ac4e474eb5aa2d315ea6a575c75ea8ddad0de233",
-  "_shasum": "747d3ac78b318fd09e72c8ff3dcd77215af4abea",
+  "_shasum": "084ca1ab2f7a39313ff6cefe43edc09a3504d22c",
   "_shrinkwrap": null,
   "_spec": "github:ikagaka/Shell.js",
   "_where": "/Users/yohsukeino/GitHub/Ikagaka/cuttlebone",
