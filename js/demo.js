@@ -205,7 +205,6 @@ $(function() {
         });
         return nanika.on('response.mouseclick', function(args) {
           var ghostpath, menulist;
-          mouse.args.event.preventDefault();
           if ((args.value == null) || !args.value.length) {
             if (mouse.args.button === 1) {
               ghostpath = nanika.ghostpath;

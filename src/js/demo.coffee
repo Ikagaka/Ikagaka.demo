@@ -112,7 +112,6 @@ $ ->
 			nanika.on 'request.mouseclick', (args) ->
 				mouse.args = args
 			nanika.on 'response.mouseclick', (args) ->
-				mouse.args.event.preventDefault()
 				if not args.value? or not args.value.length
 					if mouse.args.button == 1
 						ghostpath = nanika.ghostpath
