@@ -66,7 +66,7 @@ Console = (function() {
 })();
 
 $(function() {
-  var balloon_nar, boot_nanikamanager, cb, con, delete_storage, error, fs_root, ghost_nar, ghost_nar2, gui, halt_nanikamanager, install_nar, log, namedmanager, nanikamanager, storage, warn, win;
+  var balloon_nar, balloonnames, boot_nanikamanager, cb, con, delete_storage, error, fs_root, ghost_nar, ghost_nar2, ghostnames, gui, halt_nanikamanager, install_nar, log, namedmanager, nanikamanager, shellnames, storage, update_balloonnames, update_ghostnames, update_shellnames, warn, win;
   if (typeof require !== "undefined" && require !== null) {
     gui = require('nw.gui');
     win = gui.Window.get();
@@ -132,57 +132,18 @@ $(function() {
     $('#ikagaka_halt').removeAttr('disabled');
     contextmenu = {
       initialize: function(nanika) {
-        var balloonnames, ghostnames, shellnames, update_balloonnames, update_ghostnames, update_shellnames;
-        ghostnames = [];
-        update_ghostnames = function() {
-          return storage.ghosts().then(function(ghosts) {
-            return Promise.all(ghosts.map(function(dst_dirpath) {
-              return storage.ghost_name(dst_dirpath).then(function(name) {
-                return [name, dst_dirpath];
-              });
-            })).then(function(_ghostnames) {
-              return ghostnames = _ghostnames;
-            });
-          });
-        };
-        shellnames = [];
-        update_shellnames = function() {
-          return storage.shells(nanika.ghostpath).then(function(shells) {
-            return Promise.all(shells.map(function(dst_dirpath) {
-              return storage.shell_name(nanika.ghostpath, dst_dirpath).then(function(name) {
-                return [name, dst_dirpath];
-              });
-            })).then(function(_shellnames) {
-              return shellnames = _shellnames;
-            });
-          });
-        };
-        balloonnames = [];
-        update_balloonnames = function() {
-          return storage.balloons().then(function(balloons) {
-            return Promise.all(balloons.map(function(dst_dirpath) {
-              return storage.balloon_name(dst_dirpath).then(function(name) {
-                return [name, dst_dirpath];
-              });
-            })).then(function(_balloonnames) {
-              return balloonnames = _balloonnames;
-            });
-          });
-        };
-        return nanika.on('named.initialized', function(args) {
+        update_ghostnames(nanika);
+        update_shellnames(nanika);
+        update_balloonnames(nanika);
+        return nanika.on('named.initialized', function() {
           var named;
+          console.log("named.initialized", nanika);
           if (nanika.namedid == null) {
             return;
           }
-          update_ghostnames();
-          update_shellnames();
-          update_balloonnames();
           named = namedmanager.named(nanika.namedid);
           return named.contextmenu(function(ev) {
             var scopeId;
-            if (nanika.namedid == null) {
-              return;
-            }
             scopeId = ev.scopeId;
             return {
               items: {
@@ -192,7 +153,8 @@ $(function() {
                     var dst_dirpath, name;
                     name = arg[0], dst_dirpath = arg[1];
                     o["changeGhost>" + dst_dirpath] = nanikamanager.is_existing_ghost(dst_dirpath) && nanika.ghostpath !== dst_dirpath ? {
-                      name: name + "に変更"
+                      name: name + "に変更",
+                      disabled: true
                     } : {
                       name: name + "に変更",
                       callback: function() {
@@ -209,7 +171,8 @@ $(function() {
                     var dst_dirpath, name;
                     name = arg[0], dst_dirpath = arg[1];
                     o["callGhost>" + dst_dirpath] = nanikamanager.is_existing_ghost(dst_dirpath) ? {
-                      name: name + "を呼ぶ"
+                      name: name + "を呼ぶ",
+                      disabled: true
                     } : {
                       name: name + "を呼ぶ",
                       callback: function() {
@@ -226,7 +189,8 @@ $(function() {
                     var dst_dirpath, name;
                     name = arg[0], dst_dirpath = arg[1];
                     o["changeShell>" + dst_dirpath] = named.shell.descript.name === name ? {
-                      name: name + "に変更"
+                      name: name + "に変更",
+                      disabled: true
                     } : {
                       name: name + "に変更",
                       callback: function() {
@@ -252,7 +216,8 @@ $(function() {
                     var dst_dirpath, name;
                     name = arg[0], dst_dirpath = arg[1];
                     o["changeBalloon>" + dst_dirpath] = named.balloon.descript.name === name ? {
-                      name: name + "に変更"
+                      name: name + "に変更",
+                      disabled: true
                     } : {
                       name: name + "に変更",
                       callback: function() {
@@ -285,7 +250,11 @@ $(function() {
                         ref = ev.target.files;
                         for (i = 0, len = ref.length; i < len; i++) {
                           file = ref[i];
-                          install_nar(file, nanika.ghostpath, nanika.ghost.descript['sakura.name']);
+                          install_nar(file, nanika.ghostpath, nanika.ghost.descript['sakura.name']).then(function() {
+                            update_ghostnames(nanika);
+                            update_shellnames(nanika);
+                            return update_balloonnames(nanika);
+                          });
                         }
                         return $('#install_field').remove();
                       };
@@ -342,7 +311,11 @@ $(function() {
               results = [];
               for (i = 0, len = ref.length; i < len; i++) {
                 file = ref[i];
-                results.push(install_nar(file, nanika.ghostpath, nanika.ghost.descript['sakura.name']));
+                results.push(install_nar(file, nanika.ghostpath, nanika.ghost.descript['sakura.name']).then(function() {
+                  update_ghostnames(nanika);
+                  update_shellnames(nanika);
+                  return update_balloonnames(nanika);
+                }));
               }
               return results;
             };
@@ -385,7 +358,7 @@ $(function() {
   halt_nanikamanager = function() {
     return nanikamanager.closeall('user');
   };
-  install_nar = function(file, dirpath, sakuraname, type) {
+  install_nar = function(file, dirpath, sakuraname, type, cb) {
     var promise;
     if (type == null) {
       type = "blob";
@@ -474,8 +447,44 @@ $(function() {
     });
   };
   if (typeof require !== "undefined" && require !== null) {
-    return cb();
+    cb();
   } else {
-    return new BrowserFS.FileSystem.IndexedDB(cb);
+    new BrowserFS.FileSystem.IndexedDB(cb);
   }
+  ghostnames = [];
+  update_ghostnames = function(nanika) {
+    return storage.ghosts().then(function(ghosts) {
+      return Promise.all(ghosts.map(function(dst_dirpath) {
+        return storage.ghost_name(dst_dirpath).then(function(name) {
+          return [name, dst_dirpath];
+        });
+      })).then(function(_ghostnames) {
+        return ghostnames = _ghostnames;
+      });
+    });
+  };
+  shellnames = [];
+  update_shellnames = function(nanika) {
+    return storage.shells(nanika.ghostpath).then(function(shells) {
+      return Promise.all(shells.map(function(dst_dirpath) {
+        return storage.shell_name(nanika.ghostpath, dst_dirpath).then(function(name) {
+          return [name, dst_dirpath];
+        });
+      })).then(function(_shellnames) {
+        return shellnames = _shellnames;
+      });
+    });
+  };
+  balloonnames = [];
+  return update_balloonnames = function(nanika) {
+    return storage.balloons().then(function(balloons) {
+      return Promise.all(balloons.map(function(dst_dirpath) {
+        return storage.balloon_name(dst_dirpath).then(function(name) {
+          return [name, dst_dirpath];
+        });
+      })).then(function(_balloonnames) {
+        return balloonnames = _balloonnames;
+      });
+    });
+  };
 });

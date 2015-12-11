@@ -79,41 +79,27 @@ $ ->
 
 	nanikamanager = null
 	boot_nanikamanager = ->
+		# メニュー項目取得
 		if nanikamanager then return
 		nanikamanager = new NanikaManager(storage, namedmanager, append_path: './vendor/js/', logging: true)
 		$('#ikagaka_boot').attr('disabled', true)
 		$('#ikagaka_halt').removeAttr('disabled')
 		contextmenu = initialize: (nanika) ->
-			ghostnames = []
-			update_ghostnames = ->
-				storage.ghosts().then (ghosts) ->
-					Promise.all ghosts.map (dst_dirpath) -> storage.ghost_name(dst_dirpath).then (name) -> [name, dst_dirpath]
-					.then (_ghostnames)-> ghostnames = _ghostnames
-			shellnames = []
-			update_shellnames = ->
-				storage.shells(nanika.ghostpath).then (shells) ->
-					Promise.all shells.map (dst_dirpath) -> storage.shell_name(nanika.ghostpath, dst_dirpath).then (name) -> [name, dst_dirpath]
-					.then (_shellnames)-> shellnames = _shellnames
-			balloonnames = []
-			update_balloonnames = ->
-				storage.balloons().then (balloons) ->
-					Promise.all balloons.map (dst_dirpath) -> storage.balloon_name(dst_dirpath).then (name) -> [name, dst_dirpath]
-					.then (_balloonnames)-> balloonnames = _balloonnames
-			nanika.on 'named.initialized', (args)->
+			update_ghostnames(nanika)
+			update_shellnames(nanika)
+			update_balloonnames(nanika)
+			nanika.on 'named.initialized', ->
+				console.log "named.initialized", nanika
 				return unless nanika.namedid?
-				update_ghostnames() # narインストール後にこれ呼びたい
-				update_shellnames() # narインストール後にこれ呼びたい
-				update_balloonnames() # narインストール後にこれ呼びたい
 				named = namedmanager.named(nanika.namedid)
 				named.contextmenu (ev)->
-					return unless nanika.namedid?
 					{scopeId} = ev
 					items:
 						changeGhost:
 							name: "ゴースト切り替え"
 							items: ghostnames.reduce(((o, [name, dst_dirpath])->
 								o["changeGhost>"+dst_dirpath] = if nanikamanager.is_existing_ghost(dst_dirpath) && nanika.ghostpath != dst_dirpath
-								then name: name+"に変更"
+								then name: name+"に変更", disabled: true
 								else name: name+"に変更", callback: ->
 									console.log("change Ghost>", name, dst_dirpath)
 									nanikamanager.change(nanika.ghostpath, dst_dirpath)
@@ -123,7 +109,7 @@ $ ->
 							name: "他のゴーストを呼ぶ"
 							items: ghostnames.reduce(((o, [name, dst_dirpath])->
 								o["callGhost>"+dst_dirpath] = if nanikamanager.is_existing_ghost(dst_dirpath)
-								then name: name+"を呼ぶ"
+								then name: name+"を呼ぶ", disabled: true
 								else name: name+"を呼ぶ", callback: ->
 									console.log("call Ghost>", name, dst_dirpath)
 									nanikamanager.call(nanika.ghostpath, dst_dirpath)
@@ -133,7 +119,7 @@ $ ->
 							name: "シェル"
 							items: shellnames.reduce(((o, [name, dst_dirpath])->
 								o["changeShell>"+dst_dirpath] = if named.shell.descript.name == name
-								then name: name+"に変更"
+								then name: name+"に変更", disabled: true
 								else name: name+"に変更", callback: ->
 									console.log("change Shell>", name, dst_dirpath)
 									scope_surfaces = {}
@@ -148,7 +134,7 @@ $ ->
 							name: "バルーン"
 							items: balloonnames.reduce(((o, [name, dst_dirpath])->
 								o["changeBalloon>"+dst_dirpath] = if named.balloon.descript.name == name
-								then name: name+"に変更"
+								then name: name+"に変更", disabled: true
 								else name: name+"に変更", callback: ->
 									console.log("change Balloon>", name, dst_dirpath)
 									scope_surfaces = {}
@@ -165,6 +151,10 @@ $ ->
 							.change (ev) =>
 								for file in ev.target.files
 									install_nar file, nanika.ghostpath, nanika.ghost.descript['sakura.name']
+									.then ->
+										update_ghostnames(nanika)
+										update_shellnames(nanika)
+										update_balloonnames(nanika)
 								$('#install_field').remove()
 							$('body').append install_field
 							install_field.click()
@@ -183,6 +173,11 @@ $ ->
 					ev.event.originalEvent.dataTransfer.dropEffect = 'copy'
 					for file in ev.event.originalEvent.dataTransfer.files
 						install_nar file, nanika.ghostpath, nanika.ghost.descript['sakura.name']
+						.then ->
+							update_ghostnames(nanika)
+							update_shellnames(nanika)
+							update_balloonnames(nanika)
+
 		notice_events = initialize: (nanika) ->
 			name = nanika.ghost.descript.name
 			nanika.on 'named.initialized', -> console.log 'materialized '+name
@@ -205,7 +200,7 @@ $ ->
 	halt_nanikamanager = ->
 		nanikamanager.closeall('user')
 
-	install_nar = (file, dirpath, sakuraname, type="blob") ->
+	install_nar = (file, dirpath, sakuraname, type="blob", cb) ->
 		console.log("load nar : "+(file.name || file))
 		if type == "url"
 			promise = NarLoader.loadFromURL file
@@ -285,3 +280,19 @@ $ ->
 		new BrowserFS.FileSystem.IndexedDB cb
 #	mfs = new BrowserFS.FileSystem.InMemory()
 #	cb(null, mfs)
+# メニュー表示用の項目リスト
+	ghostnames = []
+	update_ghostnames = (nanika)->
+		storage.ghosts().then (ghosts) ->
+			Promise.all ghosts.map (dst_dirpath) -> storage.ghost_name(dst_dirpath).then (name) -> [name, dst_dirpath]
+			.then (_ghostnames)-> ghostnames = _ghostnames
+	shellnames = []
+	update_shellnames = (nanika)->
+		storage.shells(nanika.ghostpath).then (shells) ->
+			Promise.all shells.map (dst_dirpath) -> storage.shell_name(nanika.ghostpath, dst_dirpath).then (name) -> [name, dst_dirpath]
+			.then (_shellnames)-> shellnames = _shellnames
+	balloonnames = []
+	update_balloonnames = (nanika)->
+		storage.balloons().then (balloons) ->
+			Promise.all balloons.map (dst_dirpath) -> storage.balloon_name(dst_dirpath).then (name) -> [name, dst_dirpath]
+			.then (_balloonnames)-> balloonnames = _balloonnames

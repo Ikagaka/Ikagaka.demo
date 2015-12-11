@@ -13370,7 +13370,7 @@ module.exports={
     "/"
   ],
   "_resolved": "git://github.com/ikagaka/Balloon.js.git#17de24c156985f38868833140b253b7571ab2be9",
-  "_shasum": "78f2a2ba7416f193810aabf5c243fd64522158cf",
+  "_shasum": "3f2fd7c43d01a1413d447fd3c80ae7720912b959",
   "_shrinkwrap": null,
   "_spec": "github:ikagaka/Balloon.js",
   "_where": "/Users/yohsukeino/GitHub/Ikagaka/cuttlebone",
@@ -15407,18 +15407,14 @@ module.exports = function ($) {
     }
 
     Named.prototype.initDOMStructure = function() {
-      this.$named = $(this.element).addClass("named");
-    };
-
-    Named.prototype.contextmenu = function(contextmenuHandler) {
-      this.contextmenuHandler = contextmenuHandler;
+      this.$named = $(this.element).addClass("named").attr("namedId", this.namedId);
     };
 
     Named.prototype.initEventListener = function() {
       (function(_this) {
         return (function() {
-          return $.contextMenu({
-            selector: ".context-menu",
+          $.contextMenu({
+            selector: ".namedMgr .named[namedId=" + _this.namedId + "] .context-menu",
             build: function($trigger, ev) {
               var scopeId;
               ev.preventDefault();
@@ -15438,6 +15434,9 @@ module.exports = function ($) {
                 };
               }
             }
+          });
+          _this.destructors.push(function() {
+            return _this.$named.find(".context-menu").contextMenu("destroy");
           });
         });
       })(this)();
@@ -15664,6 +15663,7 @@ module.exports = function ($) {
         return scope.destructor();
       });
       this.scopes = [];
+      this.contextmenuHandler = null;
       this.destructors.forEach(function(fn) {
         return fn();
       });
@@ -15720,6 +15720,10 @@ module.exports = function ($) {
         "content": prompt("Communicate", text)
       };
       this.emit("communicateinput", event);
+    };
+
+    Named.prototype.contextmenu = function(contextmenuHandler) {
+      this.contextmenuHandler = contextmenuHandler;
     };
 
     return Named;
@@ -17800,7 +17804,7 @@ module.exports={
     "/ikagaka.namedmanager.js"
   ],
   "_resolved": "git://github.com/ikagaka/Shell.js.git#f8e9fd3201eb847bd5f326a933f761c41bc4b928",
-  "_shasum": "8e7d54dc522dd0bf5191d5c4b34cf31346c6f023",
+  "_shasum": "c9e650c2b1b1960aaaef5f8836a7018f6ba0ba86",
   "_shrinkwrap": null,
   "_spec": "ikagaka.shell.js@github:ikagaka/Shell.js#master",
   "_where": "/Users/yohsukeino/GitHub/Ikagaka/cuttlebone/node_modules/ikagaka.namedmanager.js",
@@ -28260,8 +28264,8 @@ module.exports={
   "_requiredBy": [
     "/"
   ],
-  "_resolved": "git://github.com/ikagaka/NamedManager.js.git#f346cf8509ee6e0370cc4db4687abb4d9be27a1e",
-  "_shasum": "6da64ce3c3548dc085bb1d419b65a4db21b050d5",
+  "_resolved": "git://github.com/ikagaka/NamedManager.js.git#2663f382a6003fd9123bbc62803714dd96e545fb",
+  "_shasum": "52ba2fcd31977a313abdf65555cbeeefb9802a21",
   "_shrinkwrap": null,
   "_spec": "github:ikagaka/NamedManager.js",
   "_where": "/Users/yohsukeino/GitHub/Ikagaka/cuttlebone",
@@ -28286,7 +28290,7 @@ module.exports={
   },
   "description": "Ikagaka Window Manager",
   "devDependencies": {},
-  "gitHead": "f346cf8509ee6e0370cc4db4687abb4d9be27a1e",
+  "gitHead": "2663f382a6003fd9123bbc62803714dd96e545fb",
   "homepage": "https://github.com/ikagaka/NamedManager.js#readme",
   "keywords": [
     "ikagaka",
@@ -28363,7 +28367,7 @@ module.exports={
     "/ikagaka.balloon.js"
   ],
   "_resolved": "git://github.com/ikagaka/Shell.js.git#f8e9fd3201eb847bd5f326a933f761c41bc4b928",
-  "_shasum": "6e7bdaacd76f7039d649c9465cb4afcbd5cbae7f",
+  "_shasum": "2ca9060b7e5eb1896a15efcd1bb991bec7a4f9fe",
   "_shrinkwrap": null,
   "_spec": "github:ikagaka/Shell.js",
   "_where": "/Users/yohsukeino/GitHub/Ikagaka/cuttlebone",
