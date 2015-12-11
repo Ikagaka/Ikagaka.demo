@@ -83,139 +83,97 @@ $ ->
 		nanikamanager = new NanikaManager(storage, namedmanager, append_path: './vendor/js/', logging: true)
 		$('#ikagaka_boot').attr('disabled', true)
 		$('#ikagaka_halt').removeAttr('disabled')
-		view_contextmenu = (nanika, mouse, menulist) ->
-			$('#contextmenu').remove()
-			named = namedmanager.named nanika.namedid
-			dom = named.scopes[mouse.args.scopeId].$scope
-			offset = dom.offset()
-			x = window.innerWidth - (offset.left + mouse.args.offsetX)
-			y = window.innerHeight - (offset.top + mouse.args.offsetY)
-			menu = $('<ul />').attr('id', 'contextmenu')
-			.css(position: 'fixed', bottom: y, right: x, background: '#fff', 'z-index': 100, margin: '0', padding: '0', 'list-style': 'none', border: '1px solid black')
-			li_css = color: '#222', background: '#fff', margin: '0', padding: '0.3em', cursor: 'pointer'
-			li_css_hover = color: '#222', background: '#cff', margin: '0', padding: '0.3em', cursor: 'pointer'
-			li_css_disabled = color: '#666', background: '#eee', margin: '0', padding: '0.3em'
-			for item in menulist
-				if item.cb?
-					((item) ->
-						menu.append $('<li />').text(item.text).css(li_css).mouseover(-> $(@).css(li_css_hover)).mouseout(-> $(@).css(li_css)).click ->
-							hide_contextmenu()
-							item.cb()
-					)(item)
-				else
-					menu.append $('<li />').text(item.text).css(li_css_disabled).mouseover(-> $(@).css(li_css_disabled)).mouseout(-> $(@).css(li_css_disabled))
-			body = $('body')
-			body.append(menu)
-		hide_contextmenu = -> $('#contextmenu').remove()
 		contextmenu = initialize: (nanika) ->
-			mouse = {}
-			nanika.on 'request.mouseclick', (args) ->
-				mouse.args = args
-			nanika.on 'response.mouseclick', (args) ->
-				if not args.value? or not args.value.length
-					if mouse.args.button == 1
-						ghostpath = nanika.ghostpath
-						menulist = [
-							{text: 'ゴースト切り替え', cb: ->
-								storage.ghosts()
-								.then (ghosts) ->
-									promises = []
-									for dst_dirpath in ghosts
-										((dst_dirpath) ->
-											promises.push storage.ghost_name(dst_dirpath).then (name) ->
-												if nanikamanager.is_existing_ghost(dst_dirpath) && ghostpath != dst_dirpath
-													text: name + ' に切り替え'
-												else
-													text: name + ' に切り替え', cb: -> nanikamanager.change(ghostpath, dst_dirpath)
-										)(dst_dirpath)
-									Promise.all promises
-									.then (submenulist) ->
-										view_contextmenu nanika, mouse, submenulist
-							}
-							{text: '他のゴーストを呼ぶ', cb: ->
-								storage.ghosts()
-								.then (ghosts) ->
-									promises = []
-									for dst_dirpath in ghosts
-										((dst_dirpath) ->
-											promises.push storage.ghost_name(dst_dirpath).then (name) ->
-												if nanikamanager.is_existing_ghost(dst_dirpath)
-													text: name + ' を呼び出し'
-												else
-													text: name + ' を呼び出し', cb: -> nanikamanager.call(ghostpath, dst_dirpath)
-										)(dst_dirpath)
-									Promise.all promises
-									.then (submenulist) ->
-										view_contextmenu nanika, mouse, submenulist
-							}
-							{text: 'シェル', cb: ->
-								storage.shells(ghostpath)
-								.then (shells) ->
-									promises = []
-									for dst_shellpath in shells
-										((dst_shellpath) ->
-											promises.push storage.shell_name(ghostpath, dst_shellpath).then (name) ->
-												if nanika.named.shell.descript.name == name
-													text: name + ' に変更'
-												else
-													text: name + ' に変更', cb: ->
-														scope_surfaces = {}
-														for id, scope of nanika.named.scopes
-															scope_surfaces[id] = scope.currentSurface.surfaces.surfaces[scope.currentSurface.surfaceName].is
-														nanika.change_named(dst_shellpath, nanika.profile.balloonpath)
-														.then ->
-															for scope, surface of scope_surfaces
-																nanika.named.scope(scope).surface(surface)
-										)(dst_shellpath)
-									Promise.all promises
-									.then (submenulist) ->
-										view_contextmenu nanika, mouse, submenulist
-							}
-							{text: 'バルーン', cb: ->
-								storage.balloons()
-								.then (balloons) ->
-									promises = []
-									for dst_dirpath in balloons
-										((dst_dirpath) ->
-											promises.push storage.balloon_name(dst_dirpath).then (name) ->
-												if nanika.named.balloon.descript.name == name
-													text: name + ' に変更'
-												else
-													text: name + ' に変更', cb: ->
-														scope_surfaces = {}
-														for id, scope of nanika.named.scopes
-															scope_surfaces[id] = scope.currentSurface.surfaces.surfaces[scope.currentSurface.surfaceName].is
-														nanika.change_named(nanika.profile.shellpath, dst_dirpath)
-														.then ->
-															for scope, surface of scope_surfaces
-																nanika.named.scope(scope).surface(surface)
-										)(dst_dirpath)
-									Promise.all promises
-									.then (submenulist) ->
-										view_contextmenu nanika, mouse, submenulist
-							}
-							{text: 'インストール', cb: ->
+			ghostnames = []
+			update_ghostnames = ->
+				storage.ghosts().then (ghosts) ->
+					Promise.all ghosts.map (dst_dirpath) -> storage.ghost_name(dst_dirpath).then (name) -> [name, dst_dirpath]
+					.then (_ghostnames)-> ghostnames = _ghostnames
+			shellnames = []
+			update_shellnames = ->
+				storage.shells(nanika.ghostpath).then (shells) ->
+					Promise.all shells.map (dst_dirpath) -> storage.shell_name(nanika.ghostpath, dst_dirpath).then (name) -> [name, dst_dirpath]
+					.then (_shellnames)-> shellnames = _shellnames
+			balloonnames = []
+			update_balloonnames = ->
+				storage.balloons().then (balloons) ->
+					Promise.all balloons.map (dst_dirpath) -> storage.balloon_name(dst_dirpath).then (name) -> [name, dst_dirpath]
+					.then (_balloonnames)-> balloonnames = _balloonnames
+			nanika.on 'named.initialized', (args)->
+				return unless nanika.namedid?
+				update_ghostnames() # narインストール後にこれ呼びたい
+				update_shellnames() # narインストール後にこれ呼びたい
+				update_balloonnames() # narインストール後にこれ呼びたい
+				named = namedmanager.named(nanika.namedid)
+				named.contextmenu (ev)->
+					return unless nanika.namedid?
+					{scopeId} = ev
+					items:
+						changeGhost:
+							name: "ゴースト切り替え"
+							items: ghostnames.reduce(((o, [name, dst_dirpath])->
+								o["changeGhost>"+dst_dirpath] = if nanikamanager.is_existing_ghost(dst_dirpath) && nanika.ghostpath != dst_dirpath
+								then name: name+"に変更"
+								else name: name+"に変更", callback: ->
+									console.log("change Ghost>", name, dst_dirpath)
+									nanikamanager.change(nanika.ghostpath, dst_dirpath)
+								return o
+							), {})
+						callGhost:
+							name: "他のゴーストを呼ぶ"
+							items: ghostnames.reduce(((o, [name, dst_dirpath])->
+								o["callGhost>"+dst_dirpath] = if nanikamanager.is_existing_ghost(dst_dirpath)
+								then name: name+"を呼ぶ"
+								else name: name+"を呼ぶ", callback: ->
+									console.log("call Ghost>", name, dst_dirpath)
+									nanikamanager.call(nanika.ghostpath, dst_dirpath)
+								return o
+							), {})
+						changeShell:
+							name: "シェル"
+							items: shellnames.reduce(((o, [name, dst_dirpath])->
+								o["changeShell>"+dst_dirpath] = if named.shell.descript.name == name
+								then name: name+"に変更"
+								else name: name+"に変更", callback: ->
+									console.log("change Shell>", name, dst_dirpath)
+									scope_surfaces = {}
+									Object.keys(named.scopes).forEach (scopeId)->
+										scope_surfaces[scopeId] = named.scopes[scopeId].currentSurface.surfaceId
+									nanika.change_named(dst_dirpath, nanika.profile.balloonpath).then ->
+										Object.keys(scope_surfaces).forEach (scopeId)->
+											named.scope(scopeId).surface(scope_surfaces[scopeId])
+								return o
+							), {})
+						changeBalloon:
+							name: "バルーン"
+							items: balloonnames.reduce(((o, [name, dst_dirpath])->
+								o["changeBalloon>"+dst_dirpath] = if named.balloon.descript.name == name
+								then name: name+"に変更"
+								else name: name+"に変更", callback: ->
+									console.log("change Balloon>", name, dst_dirpath)
+									scope_surfaces = {}
+									Object.keys(named.scopes).forEach (scopeId)->
+										scope_surfaces[scopeId] = named.scopes[scopeId].currentSurface.surfaceId
+									nanika.change_named(nanika.profile.shellpath, dst_dirpath).then ->
+										Object.keys(scope_surfaces).forEach (scopeId)->
+											named.scope(scopeId).surface(scope_surfaces[scopeId])
+								return o
+							), {})
+						install: name: "インストール", callback: ->
+							$('#install_field').remove()
+							install_field = $('<input type="file" />').attr('id', 'install_field').css(display: 'none')
+							.change (ev) =>
+								for file in ev.target.files
+									install_nar file, nanika.ghostpath, nanika.ghost.descript['sakura.name']
 								$('#install_field').remove()
-								install_field = $('<input type="file" />').attr('id', 'install_field').css(display: 'none')
-								.change (ev) =>
-									for file in ev.target.files
-										install_nar file, ghostpath, nanika.ghost.descript['sakura.name']
-									$('#install_field').remove()
-								$('body').append install_field
-								install_field.click()
-							}
-							{text: '開発用 スクリプト入力', cb: -> nanika.ssp.play window.prompt('send')}
-							{text: '全消去', cb: delete_storage}
-							{text: '終了', cb: -> nanikamanager.close(nanika.ghostpath, 'user')}
-							{text: '全て終了', cb: -> nanikamanager.closeall('user')}
-						]
-						view_contextmenu nanika, mouse, menulist
-					else
-						hide_contextmenu()
-				else
-					hide_contextmenu()
+							$('body').append install_field
+							install_field.click()
+						inputScript: name: '開発用 スクリプト入力', callback: -> nanika.ssp.play window.prompt('send')
+						clearAll:    name: '全消去', callback: -> delete_storage()
+						quit:        name: '終了', callback: -> nanikamanager.close(nanika.ghostpath, 'user')
+						quitAll:     name: '全て終了', callback: -> nanikamanager.closeall('user')
 		install = initialize: (nanika) ->
-			main = ->
+			nanika.on 'named.initialized', ->
 				unless nanika.namedid?
 					return
 				named = namedmanager.named(nanika.namedid)
@@ -225,8 +183,6 @@ $ ->
 					ev.event.originalEvent.dataTransfer.dropEffect = 'copy'
 					for file in ev.event.originalEvent.dataTransfer.files
 						install_nar file, nanika.ghostpath, nanika.ghost.descript['sakura.name']
-			main()
-			nanika.on 'named.initialized', main
 		notice_events = initialize: (nanika) ->
 			name = nanika.ghost.descript.name
 			nanika.on 'named.initialized', -> console.log 'materialized '+name
