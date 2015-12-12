@@ -6,7 +6,7 @@
 		"jszip": "",
 		"browserfs": "= 0.3.6",
 		"ikagaka.sakurascriptplayer.js": "Ikagaka/SakuraScriptPlayer.js",
-		"narloader": "legokichi/NarLoader#issue12",
+		"narloader": "",
 		"nanikastorage": "Ikagaka/NanikaStorage",
 		"nanika": "Ikagaka/Nanika",
 		"nanikamanager": "Ikagaka/NanikaManager",
