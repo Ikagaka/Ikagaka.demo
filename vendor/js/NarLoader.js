@@ -167,8 +167,8 @@
     }
 
     NanikaDirectory.prototype.parse = function(arg) {
-      var _files, has_descript, has_install, nowarp, ref, wraped;
-      ref = arg != null ? arg : {}, has_install = ref.has_install, has_descript = ref.has_descript;
+      var _files, do_throw_descript, has_descript, has_install, nowarp, ref, wraped;
+      ref = arg != null ? arg : {}, has_install = ref.has_install, has_descript = ref.has_descript, do_throw_descript = ref.do_throw_descript;
       nowarp = Object.keys(this.files).filter(function(filePath) {
         return /^install\.txt/.exec(filePath);
       });
@@ -185,12 +185,12 @@
         this.files = _files;
       }
       if (this.files["install.txt"] != null) {
-        this.install = NarDescript.parse(this.files["install.txt"].toString());
+        this.install = NarDescript.parse(this.files["install.txt"].toString(), do_throw_descript);
       } else if (has_install) {
         throw "install.txt not found";
       }
       if (this.files["descript.txt"] != null) {
-        return this.descript = NarDescript.parse(this.files["descript.txt"].toString());
+        return this.descript = NarDescript.parse(this.files["descript.txt"].toString(), do_throw_descript);
       } else if (has_descript) {
         throw "descript.txt not found";
       }
@@ -335,9 +335,10 @@
   NarDescript = (function() {
     function NarDescript() {}
 
-    NarDescript.parse = function(descript_str) {
-      var descript, descript_line, descript_lines, j, len, result;
+    NarDescript.parse = function(descript_str, do_throw) {
+      var descript, descript_line, descript_lines, errors, j, len, result;
       descript_lines = descript_str.replace(/(?:\r\n|\r|\n)/g, "\n").replace(/^\s*\/\/.*$/mg, "").split(/\n/);
+      errors = [];
       descript = {};
       for (j = 0, len = descript_lines.length; j < len; j++) {
         descript_line = descript_lines[j];
@@ -346,10 +347,15 @@
         }
         result = descript_line.match(/^\s*([^,]+?)\s*,\s*(.*?)\s*$/);
         if (!result) {
-          throw new Error("wrong descript definition : " + descript_line);
+          errors.push("wrong descript definition : " + descript_line);
+          continue;
         }
         descript[result[1]] = result[2];
       }
+      if (do_throw) {
+        throw new Error(errors.join('\n'));
+      }
+      descript._errors = errors;
       return descript;
     };
 
