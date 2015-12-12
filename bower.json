@@ -12,7 +12,7 @@
 		"nanikamanager": "Ikagaka/NanikaManager",
 		"nanikadefaulteventdefinition": "Ikagaka/NanikaDefaultEventDefinition",
 		"nanikadefaultplugin": "Ikagaka/NanikaDefaultPlugin",
-		"cuttlebone": "Ikagaka/cuttlebone#master",
+		"cuttlebone": "Ikagaka/cuttlebone",
 		"shioriloader": "Ikagaka/ShioriLoader",
 		"shioridetector-common_names": "Ikagaka/shioridetector-common_names",
 		"kawariworker": "Narazaka/kawariworker.js",
