@@ -11,11 +11,11 @@
     if (typeof Promise === "undefined" || Promise === null) {
       Promise = require('bluebird');
     }
-  } else {
-    JSZip = this.JSZip;
-    Encoding = this.Encoding;
+  } else if (typeof window !== "undefined" && window !== null) {
+    JSZip = window.JSZip;
+    Encoding = window.Encoding;
     if (Promise == null) {
-      Promise = this.Promise;
+      Promise = window.Promise;
     }
   }
 
@@ -23,14 +23,12 @@
     function NarLoader() {}
 
     NarLoader.loadFromBuffer = function(buffer) {
-      return new Promise((function(_this) {
-        return function(resolve, reject) {
-          return resolve(new NanikaDirectory(NarLoader.unzip(buffer), {
-            has_install: true,
-            is_root_dir: true
-          }));
-        };
-      })(this));
+      return NarLoader.unzip(buffer).then(function(dir) {
+        return new NanikaDirectory(dir, {
+          has_install: true,
+          is_root_dir: true
+        });
+      });
     };
 
     NarLoader.loadFromURL = function(src) {
@@ -52,24 +50,56 @@
     };
 
     NarLoader.unzip = function(buffer) {
-      var dir, filePath, path, zip;
+      var zip;
       zip = new JSZip();
-      zip.load(buffer, {
-        checkCRC32: true
+      return zip.loadAsync(buffer).then(function(zip) {
+        var pairs, proms;
+        pairs = Object.keys(zip.files).map(function(filename) {
+          return {
+            filename: filename,
+            zipped: zip.file(filename)
+          };
+        }).filter(function(arg) {
+          var zipped;
+          zipped = arg.zipped;
+          return zipped != null;
+        });
+        proms = pairs.map(function(arg) {
+          var filename, zipped;
+          filename = arg.filename, zipped = arg.zipped;
+          return zipped.async("arraybuffer").then(function(unzipped) {
+            return {
+              filename: filename,
+              unzipped: unzipped
+            };
+          });
+        });
+        return Promise.all(proms);
+      }).then(function(pairs) {
+        var dic;
+        dic = pairs.reduce((function(o, arg) {
+          var filename, unzipped;
+          filename = arg.filename, unzipped = arg.unzipped;
+          o[filename] = unzipped;
+          return o;
+        }), {});
+        return dic;
+      }).then(function(files) {
+        var dir, filePath, path;
+        dir = {};
+        for (filePath in files) {
+          path = filePath.split("\\").join("/");
+          dir[path] = new NanikaFile(files[filePath]);
+        }
+        return dir;
       });
-      dir = {};
-      for (filePath in zip.files) {
-        path = filePath.split("\\").join("/");
-        dir[path] = new NanikaFile(zip.files[filePath]);
-      }
-      return dir;
     };
 
     NarLoader.wget = function(url, type) {
       return new Promise((function(_this) {
         return function(resolve, reject) {
           var fs, xhr;
-          if (typeof require !== "undefined" && require !== null) {
+          if ((typeof require !== "undefined" && require !== null) && (typeof process !== "undefined" && process !== null) && !process.browser) {
             fs = require('fs');
             return fs.readFile(url, function(error, buffer) {
               var abuffer, i, view;
@@ -373,11 +403,11 @@
       NanikaDirectory: NanikaDirectory,
       NarDescript: NarDescript
     };
-  } else {
-    this.NarLoader = NarLoader;
-    this.NanikaFile = NanikaFile;
-    this.NanikaDirectory = NanikaDirectory;
-    this.NarDescript = NarDescript;
+  } else if (typeof window !== "undefined" && window !== null) {
+    window.NarLoader = NarLoader;
+    window.NanikaFile = NanikaFile;
+    window.NanikaDirectory = NanikaDirectory;
+    window.NarDescript = NarDescript;
   }
 
 }).call(this);
