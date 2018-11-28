@@ -22,6 +22,7 @@ Console = (function() {
     this.console = $('<div />').addClass('Console');
     this.console.appendTo(this.window);
     this.window.appendTo(dom);
+    if (!ikagakaConfig.console) this.window.show = function() {};
     this.window.hide();
     this.has_error = false;
   }

@@ -3,10 +3,16 @@ var ikagakaConfig = {
     /**
      * 自動起動
      *
-     * ページ読み込み後に自動起動する場合true
+     * ページ読み込み後に自動起動する場合true、そうでない場合false
      * 自動起動しない場合、ボタンやその他何らかの手段でboot_nanikamanager()を実行して下さい。
      */
     autoBoot: true,
+    /**
+     * コンソールを出す
+     *
+     * コンソールを出す場合true、そうでない場合false
+     */
+    console: false,
     /**
      * ベースウェア準備完了後処理
      *
