@@ -24,7 +24,7 @@ http://ikagaka.github.io/Ikagaka.demo/
 
 ## ライセンス
 
-[Zlibライセンス](https://narazaka.net/license/Zlib?2018)とします。
+Zlibライセンス（ https://narazaka.net/license/Zlib?2018 ）とします。
 
 ・このソフトウェアは無保証です。
 ・ライセンス表示を削除しないこと、原著作者であると詐称しないこと、改変をオリジナルだと勘違いされないようにすることを守った上で、商用利用を含む利用、改変、再配布などが自由に可能です。
