@@ -12,7 +12,7 @@ var ikagakaConfig = {
      *
      * コンソールを出す場合true、そうでない場合false
      */
-    console: false,
+    console: true,
     /**
      * ベースウェア準備完了後処理
      *
