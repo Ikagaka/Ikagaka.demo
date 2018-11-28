@@ -1,3 +1,6 @@
+var ikagakaConfig;
+if (!ikagakaConfig) ikagakaConfig = {};
+
 var Console, Nanika, NanikaStorage, NarLoader, Promise,
   slice = [].slice;
 
@@ -352,7 +355,7 @@ $(function() {
       return event.returnValue = 'ベースウェアを終了していません。\n状態が保存されませんが本当にページを閉じますか？';
     };
     return nanikamanager.initialize().then(function() {
-      return nanikamanager.bootall();
+      return Promise.all(nanikamanager.bootall() || []);
     });
   };
   halt_nanikamanager = function() {
@@ -406,6 +409,15 @@ $(function() {
       return alert(err);
     });
   };
+
+  window.boot_nanikamanager = boot_nanikamanager;
+  window.halt_nanikamanager = halt_nanikamanager;
+  window.delete_storage = delete_storage;
+  window.install_nar = install_nar;
+  window.delete_database = function () {
+    window.indexedDB.deleteDatabase("browserfs");
+  };
+
   storage = null;
   cb = function(err, idbfs) {
     var _window, buffer, fs, path;
@@ -430,18 +442,21 @@ $(function() {
         }
         return storage.base_profile().then(function(profile) {
           if (profile.ghosts == null) {
-            profile.balloonpath = 'origin';
-            profile.ghosts = ['ikaga'];
+            profile.balloonpath = ikagakaConfig.initialBalloonpath;
+            profile.ghosts = ikagakaConfig.initialGhosts;
             return storage.base_profile(profile).then(function() {
-              install_nar(ghost_nar2, '', '', 'url');
-              return Promise.all([install_nar(balloon_nar, '', '', 'url'), install_nar(ghost_nar, '', '', 'url')]);
+              return Promise.all(ikagakaConfig.initialNars.map(function (narUrl) {return install_nar(narUrl, '', '', 'url');}));
             });
           }
         }).then(function() {
           $('#ikagaka_boot').click(boot_nanikamanager);
           $('#ikagaka_halt').click(halt_nanikamanager);
           $('#ikagaka_clean').click(delete_storage);
-          return boot_nanikamanager();
+          Promise.
+          resolve().
+          then(ikagakaConfig.afterPrepare).
+          then(ikagakaConfig.autoBoot ? boot_nanikamanager : undefined).
+          then(ikagakaConfig.afterAutoBoot);
         });
       });
     });

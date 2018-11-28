@@ -1,0 +1,25 @@
+.namedMgr .named .scope {
+    position: fixed !important;
+}
+
+.ConsoleWindow {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 30em;
+    height: 20em;
+    margin: 0;
+    padding: 1em;
+    overflow: auto;
+    font-size: x-small;
+    text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff, 1px 1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, -1px -1px 0 #fff;
+}
+.ConsoleWindow .log {
+    color: #090;
+}
+.ConsoleWindow .warn {
+    color: #f66;
+}
+.ConsoleWindow .error {
+    color: #f00;
+}
