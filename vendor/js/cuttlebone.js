@@ -7288,7 +7288,7 @@ if ('undefined' !== typeof module) {
       this.$blimp.show();
       _id = $(document.createElement("div")).text(id).html();
       $a = $("<a />");
-      if (id && /^[-\w]+:\/\//.test(id)) {
+      if (id && /^[-.\w]+:\/\//.test(id)) {
         $a.attr("href", id);
         $a.attr("target", "_blank");
       } else {
@@ -7330,7 +7330,7 @@ if ('undefined' !== typeof module) {
       _text = $(document.createElement("div")).text(text).html();
       _id = $(document.createElement("div")).text(id).html();
       $a = $("<a />");
-      if (id && /^[-\w]+:\/\//.test(id)) {
+      if (id && /^[-.\w]+:\/\//.test(id)) {
         $a.attr("href", id);
         $a.attr("target", "_blank");
       } else {
@@ -7367,7 +7367,7 @@ if ('undefined' !== typeof module) {
       this.$blimp.show();
       _id = $(document.createElement("div")).text(id).html();
       $a = $("<a />");
-      if (id && /^[-\w]+:\/\//.test(id)) {
+      if (id && /^[-.\w]+:\/\//.test(id)) {
         $a.attr("href", id);
         $a.attr("target", "_blank");
       } else {
