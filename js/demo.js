@@ -128,12 +128,20 @@ $(function() {
   ghost_nar2 = './vendor/nar/touhoku-zunko_or__.nar';
   delete_storage = function() {
     if (window.confirm('本当に削除しますか？')) {
-      return storage.backend._rmAll(fs_root).then(function() {
+      try {
+        return storage.backend._rmAll(fs_root).then(function() {
+          window.onbeforeunload = function() {};
+          return location.reload();
+        });
+      } catch (error) {
+        console.error(error.toString());
+        delete_database();
         window.onbeforeunload = function() {};
         return location.reload();
-      });
+      }
     }
   };
+  $('#ikagaka_clean').click(delete_storage);
   namedmanager = new cuttlebone.NamedManager();
   $(namedmanager.element).appendTo("body");
   nanikamanager = null;
@@ -468,7 +476,6 @@ $(function() {
         }).then(function() {
           $('#ikagaka_boot').click(boot_nanikamanager);
           $('#ikagaka_halt').click(halt_nanikamanager);
-          $('#ikagaka_clean').click(delete_storage);
           Promise.
           resolve().
           then(ikagakaConfig.afterPrepare).
