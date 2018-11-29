@@ -80,7 +80,10 @@ function showIkagakaLoadingImage() {
 }
 
 function hideIkagakaLoadingImage() {
-  if (ikagakaLoadingImage) document.body.removeChild(ikagakaLoadingImage);
+  if (ikagakaLoadingImage) {
+    document.body.removeChild(ikagakaLoadingImage);
+    ikagakaLoadingImage = null;
+  }
 }
 
 $(function() {
