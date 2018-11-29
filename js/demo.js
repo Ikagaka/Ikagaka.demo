@@ -69,6 +69,20 @@ Console = (function() {
 
 })();
 
+var ikagakaLoadingImage;
+
+function showIkagakaLoadingImage() {
+  if (!ikagakaConfig.loadingImage) return;
+  ikagakaLoadingImage = document.createElement("img");
+  ikagakaLoadingImage.src = ikagakaConfig.loadingImage;
+  ikagakaLoadingImage.className = "ikagaka-loading-image";
+  document.body.appendChild(ikagakaLoadingImage);
+}
+
+function hideIkagakaLoadingImage() {
+  if (ikagakaLoadingImage) document.body.removeChild(ikagakaLoadingImage);
+}
+
 $(function() {
   var balloon_nar, balloonnames, boot_nanikamanager, cb, con, delete_storage, error, fs_root, ghost_nar, ghost_nar2, ghostnames, gui, halt_nanikamanager, install_nar, log, namedmanager, nanikamanager, shellnames, storage, update_balloonnames, update_ghostnames, update_shellnames, warn, win;
   if (typeof require !== "undefined" && require !== null) {
@@ -132,6 +146,7 @@ $(function() {
       append_path: './vendor/js/',
       logging: true
     });
+    showIkagakaLoadingImage();
     $('#ikagaka_boot').attr('disabled', true);
     $('#ikagaka_halt').removeAttr('disabled');
     contextmenu = {
@@ -332,6 +347,7 @@ $(function() {
         var name;
         name = nanika.ghost.descript.name;
         nanika.on('named.initialized', function() {
+          hideIkagakaLoadingImage();
           return console.log('materialized ' + name);
         });
         return nanika.on('halted', function() {

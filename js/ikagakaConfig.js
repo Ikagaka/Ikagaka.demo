@@ -14,6 +14,13 @@ var ikagakaConfig = {
      */
     console: true,
     /**
+     * 起動時に表示する画像
+     *
+     * 表示しない場合はnullを指定してください。
+     * 表示位置などはcssの.ikagaka-loading-imageの記述で調整してください。
+     */
+    loadingImage: "./img/ikagaka-loading.png",
+    /**
      * ベースウェア準備完了後処理
      *
      * ベースウェア起動後（自動起動の場合ゴーストが起動する直前）に実行したい処理を書く
